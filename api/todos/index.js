@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { data, error } = await db
       .from('todos')
-      .select('*, todo_assignees(user_id)')
+      .select('*, todo_assignees(user_id), todo_people(people(id, name))')
       .is('deleted_at', null)
       .order('sort_order', { ascending: true });
 
@@ -18,9 +18,10 @@ export default async function handler(req, res) {
       return;
     }
 
-    const todos = data.map(({ todo_assignees, ...todo }) => ({
+    const todos = data.map(({ todo_assignees, todo_people, ...todo }) => ({
       ...todo,
       assignee_ids: todo_assignees.map((a) => a.user_id),
+      people: todo_people.map((tp) => tp.people).filter(Boolean),
     }));
 
     res.status(200).json({ todos });

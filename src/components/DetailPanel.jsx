@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { X, Lock, Trash2, Send, Clock, Link2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { X, Lock, Trash2, Send, Clock, Link2, UserPlus } from 'lucide-react';
 import { STATUSES, PRIORITIES } from '../lib/constants.js';
 import { formatDateTime, shortId } from '../lib/format.js';
 import { useTodoDetail } from '../hooks/useTodoDetail.js';
@@ -16,7 +16,17 @@ const ACTIVITY_LABEL = {
 const textFieldClass =
   'glass-field w-full rounded-lg border border-hairline px-3 py-2 text-sm text-ink outline-none focus:border-ink/30';
 
-export default function DetailPanel({ todo, config, onClose, onChange, onDelete }) {
+export default function DetailPanel({
+  todo,
+  config,
+  people,
+  onClose,
+  onChange,
+  onDelete,
+  onLinkPerson,
+  onUnlinkPerson,
+  onOpenPerson,
+}) {
   const { comments, activity, addComment } = useTodoDetail(todo?.id, config);
   const [title, setTitle] = useState(todo?.title ?? '');
   const [description, setDescription] = useState(todo?.description ?? '');
@@ -26,6 +36,18 @@ export default function DetailPanel({ todo, config, onClose, onChange, onDelete 
   const [linkLabel, setLinkLabel] = useState(todo?.link_label ?? '');
   const [commentText, setCommentText] = useState('');
   const [sending, setSending] = useState(false);
+  const [personQuery, setPersonQuery] = useState('');
+
+  const linkedPeople = todo?.people ?? [];
+  const linkedIds = new Set(linkedPeople.map((p) => p.id));
+  const suggestions = useMemo(() => {
+    const q = personQuery.trim().toLowerCase();
+    if (!q) return [];
+    return (people ?? [])
+      .filter((p) => !linkedIds.has(p.id) && p.name.toLowerCase().includes(q))
+      .slice(0, 5);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personQuery, people, todo?.people]);
 
   useEffect(() => {
     setTitle(todo?.title ?? '');
@@ -129,6 +151,59 @@ export default function DetailPanel({ todo, config, onClose, onChange, onDelete 
                 className={textFieldClass}
               />
             </LabeledField>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5 block">
+              People
+            </label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {linkedPeople.map((p) => (
+                <span
+                  key={p.id}
+                  className="glass-field inline-flex items-center gap-1.5 rounded-full border border-hairline pl-3 pr-1.5 py-1 text-xs text-ink"
+                >
+                  <button type="button" onClick={() => onOpenPerson(p.id)} className="tap-scale hover:underline">
+                    {p.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onUnlinkPerson(todo.id, p.id)}
+                    className="tap-scale inline-flex items-center justify-center w-4 h-4 rounded-full text-ink-muted hover:bg-black/10"
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+              {linkedPeople.length === 0 && <p className="text-xs text-ink-muted">No one linked yet.</p>}
+            </div>
+            <div className="relative">
+              <input
+                value={personQuery}
+                onChange={(e) => setPersonQuery(e.target.value)}
+                placeholder="Link someone from People…"
+                className={textFieldClass}
+              />
+              {suggestions.length > 0 && (
+                <div className="glass-panel absolute z-10 mt-1 w-full rounded-lg border border-hairline overflow-hidden">
+                  {suggestions.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        onLinkPerson(todo.id, p.id);
+                        setPersonQuery('');
+                      }}
+                      className="tap-scale flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-black/5"
+                    >
+                      <UserPlus size={12} className="text-ink-muted shrink-0" />
+                      {p.name}
+                      {p.company && <span className="text-ink-muted text-xs">· {p.company}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <LabeledField label="Description">

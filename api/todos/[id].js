@@ -22,12 +22,14 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'GET') {
-    const [{ data: todo, error }, { data: comments }, { data: activity }, { data: assignees }] = await Promise.all([
-      db.from('todos').select('*').eq('id', id).is('deleted_at', null).single(),
-      db.from('todo_comments').select('*').eq('todo_id', id).order('created_at', { ascending: true }),
-      db.from('todo_activity').select('*').eq('todo_id', id).order('created_at', { ascending: false }),
-      db.from('todo_assignees').select('user_id').eq('todo_id', id),
-    ]);
+    const [{ data: todo, error }, { data: comments }, { data: activity }, { data: assignees }, { data: links }] =
+      await Promise.all([
+        db.from('todos').select('*').eq('id', id).is('deleted_at', null).single(),
+        db.from('todo_comments').select('*').eq('todo_id', id).order('created_at', { ascending: true }),
+        db.from('todo_activity').select('*').eq('todo_id', id).order('created_at', { ascending: false }),
+        db.from('todo_assignees').select('user_id').eq('todo_id', id),
+        db.from('todo_people').select('people(id, name, company, role)').eq('todo_id', id),
+      ]);
 
     if (error || !todo) {
       res.status(404).json({ error: 'Not found' });
@@ -35,7 +37,11 @@ export default async function handler(req, res) {
     }
 
     res.status(200).json({
-      todo: { ...todo, assignee_ids: (assignees ?? []).map((a) => a.user_id) },
+      todo: {
+        ...todo,
+        assignee_ids: (assignees ?? []).map((a) => a.user_id),
+        people: (links ?? []).map((l) => l.people).filter(Boolean),
+      },
       comments: comments ?? [],
       activity: activity ?? [],
     });

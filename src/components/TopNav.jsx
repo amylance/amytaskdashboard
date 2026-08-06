@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LogOut, Plus } from 'lucide-react';
 import { VIEWS } from '../lib/constants.js';
 
-export default function TopNav({ active, onChange, onLogout, onCreate }) {
+export default function TopNav({ active, onChange, onLogout, onCreate, createLabel = 'New' }) {
   const tabRefs = useRef({});
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
@@ -45,7 +45,7 @@ export default function TopNav({ active, onChange, onLogout, onCreate }) {
             className="tap-scale inline-flex items-center gap-1.5 rounded-full bg-ink text-white text-sm font-medium px-4 py-2"
           >
             <Plus size={15} />
-            New
+            {createLabel}
           </button>
           <button
             onClick={onLogout}

@@ -65,5 +65,5 @@ function applyTodoChange(prev, payload) {
 
 function withAssigneeIds(row, prev) {
   const existing = prev.find((t) => t.id === row.id);
-  return { assignee_ids: existing?.assignee_ids ?? [], ...row };
+  return { assignee_ids: existing?.assignee_ids ?? [], people: existing?.people ?? [], ...row };
 }

@@ -16,4 +16,5 @@ export const VIEWS = [
   { id: 'list', label: 'List' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'calendar', label: 'Calendar' },
+  { id: 'people', label: 'People' },
 ];
