@@ -2,7 +2,19 @@ import { requireAuth } from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { PRIORITY_RANK, STATUSES, PRIORITIES } from '../_lib/priority.js';
 
-const EDITABLE_FIELDS = ['title', 'description', 'due_date', 'status', 'priority', 'is_private', 'sort_order'];
+const EDITABLE_FIELDS = [
+  'title',
+  'description',
+  'due_date',
+  'status',
+  'priority',
+  'is_private',
+  'sort_order',
+  'contact',
+  'category',
+  'link_url',
+  'link_label',
+];
 
 export default async function handler(req, res) {
   if (!requireAuth(req, res)) return;

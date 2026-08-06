@@ -58,6 +58,10 @@ export default async function handler(req, res) {
         priority,
         priority_rank: PRIORITY_RANK[priority],
         is_private: Boolean(body.is_private),
+        contact: body.contact || null,
+        category: body.category || null,
+        link_url: body.link_url || null,
+        link_label: body.link_label || null,
         sort_order,
       })
       .select()
