@@ -1,0 +1,40 @@
+async function request(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers ?? {}) },
+  });
+
+  let body = null;
+  const text = await res.text();
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = null;
+    }
+  }
+
+  if (!res.ok) {
+    const message = body?.error ?? `Request failed (${res.status})`;
+    const err = new Error(message);
+    err.status = res.status;
+    throw err;
+  }
+
+  return body;
+}
+
+export const api = {
+  getSession: () => request('/api/session'),
+  login: (passphrase) => request('/api/login', { method: 'POST', body: JSON.stringify({ passphrase }) }),
+  logout: () => request('/api/logout', { method: 'POST' }),
+
+  listTodos: () => request('/api/todos'),
+  createTodo: (payload) => request('/api/todos', { method: 'POST', body: JSON.stringify(payload) }),
+  getTodo: (id) => request(`/api/todos/${id}`),
+  updateTodo: (id, patch) => request(`/api/todos/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  deleteTodo: (id) => request(`/api/todos/${id}`, { method: 'DELETE' }),
+  reorderTodos: (updates) => request('/api/todos/reorder', { method: 'POST', body: JSON.stringify({ updates }) }),
+
+  addComment: (id, body) => request(`/api/todos/${id}/comments`, { method: 'POST', body: JSON.stringify({ body }) }),
+};
