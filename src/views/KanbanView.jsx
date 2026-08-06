@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { STATUSES } from '../lib/constants.js';
 import TodoCard from '../components/TodoCard.jsx';
-import { api } from '../lib/api.js';
 
-export default function KanbanView({ todos, onOpen, setTodos }) {
+export default function KanbanView({ todos, onOpen, onReorder }) {
   const [draggingId, setDraggingId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
 
@@ -34,16 +33,14 @@ export default function KanbanView({ todos, onOpen, setTodos }) {
             ? after.sort_order - 1
             : 0;
 
-    setTodos((prev) =>
-      prev.map((t) => (t.id === draggingId ? { ...t, status, sort_order: newSortOrder } : t)),
-    );
     setDraggingId(null);
     setOverColumn(null);
 
-    api.reorderTodos([{ id: draggingId, status, sort_order: newSortOrder }]).catch(() => {});
-    if (dragged.status !== status) {
-      api.updateTodo(draggingId, { status }).catch(() => {});
-    }
+    // Single call carrying both status and sort_order so the server-side
+    // status-change side effects (started_at/completed_at/decided_at,
+    // activity log) always run — a separate reorder call racing a separate
+    // status call let the reorder win and silently skip those side effects.
+    onReorder(draggingId, { status, sort_order: newSortOrder });
   }
 
   return (

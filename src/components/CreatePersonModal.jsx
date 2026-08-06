@@ -17,15 +17,18 @@ export default function CreatePersonModal({ onClose, onCreate }) {
     e.preventDefault();
     if (!name.trim() || submitting) return;
     setSubmitting(true);
-    await onCreate({
-      name: name.trim(),
-      company: company.trim(),
-      role: role.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
-      note: note.trim(),
-    });
-    setSubmitting(false);
+    try {
+      await onCreate({
+        name: name.trim(),
+        company: company.trim(),
+        role: role.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        note: note.trim(),
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

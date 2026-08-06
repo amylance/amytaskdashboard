@@ -22,19 +22,22 @@ export default function CreateTodoModal({ onClose, onCreate }) {
     e.preventDefault();
     if (!title.trim() || submitting) return;
     setSubmitting(true);
-    await onCreate({
-      title: title.trim(),
-      status,
-      priority,
-      due_date: dueDate || null,
-      contact: contact.trim(),
-      category: category.trim(),
-      description: notes.trim(),
-      link_url: linkUrl.trim(),
-      link_label: linkLabel.trim(),
-      is_private: isPrivate,
-    });
-    setSubmitting(false);
+    try {
+      await onCreate({
+        title: title.trim(),
+        status,
+        priority,
+        due_date: dueDate || null,
+        contact: contact.trim(),
+        category: category.trim(),
+        description: notes.trim(),
+        link_url: linkUrl.trim(),
+        link_label: linkLabel.trim(),
+        is_private: isPrivate,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

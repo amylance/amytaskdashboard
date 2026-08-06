@@ -100,6 +100,10 @@ export default function CalendarView({ todos, onOpen }) {
           );
         })}
       </div>
+
+      {todos.length === 0 && (
+        <p className="mt-4 text-sm text-ink-muted text-center">No tasks yet.</p>
+      )}
     </div>
   );
 }
