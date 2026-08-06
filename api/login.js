@@ -6,6 +6,11 @@ export default async function handler(req, res) {
     return;
   }
 
+  if (!process.env.DASHBOARD_PASSPHRASE) {
+    res.status(500).json({ error: 'Server is not configured: DASHBOARD_PASSPHRASE is not set' });
+    return;
+  }
+
   const { passphrase } = req.body ?? {};
 
   if (!checkPassphrase(passphrase)) {
