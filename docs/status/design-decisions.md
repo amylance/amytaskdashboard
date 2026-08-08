@@ -96,6 +96,19 @@ transcript. The workflow is: source auto-generates → Claude cross-checks & ann
 - **Accept (✓)** = Fireflies text becomes a task unchanged, still linked to source.
 - **Mark unnecessary (✗)** = dismissed but kept as history (not hard-deleted).
 
+### The morning-briefing skill — kept, schedule dropped, output to dashboard
+Isaac built a morning-briefing **skill** with Amy (skill-creator, saved as .md;
+sweeps all connectors + dashboard; output = top-3 / focus for the day / what to do
+now / open threads / blind spots; originally scheduled 3am PT). He also built it to
+run on-demand ("use your morning brief skill to give me an update").
+- **KEEP the skill** — it's the engine (present here as `/brief` and `/morning`).
+  Isaac's work is not discarded.
+- **DROP only the schedule** — the automatic 3am PT timer. (No scheduled jobs exist
+  in this build environment; any schedule set in Amy's personal Claude account is a
+  one-click removal there.)
+- **ADD** — the brief's output lands **on the dashboard** with a "last updated"
+  timestamp (Item 14), triggered on-demand when Amy asks.
+
 ### Standing value — always acknowledge who helped (NEW standing rule)
 Amy always acknowledges the people who helped, inspired, or encouraged her. Never
 "I did this / I thought of this" — always the acknowledgement. Concretely: the
