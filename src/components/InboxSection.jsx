@@ -13,8 +13,21 @@ const SOURCE_LABEL = {
 
 // The filter between "what the machine heard" and "what's actually on Amy's plate".
 // Nothing here is a task yet — she approves, edits, or dismisses each one.
-export default function InboxSection({ items, onResolve }) {
-  if (items.length === 0) return null;
+export default function InboxSection({ items, sweep, onResolve }) {
+  const lastSwept = sweep?.last_swept_at ? formatDateTimePT(sweep.last_swept_at) : null;
+
+  if (items.length === 0) {
+    return (
+      <div className="mb-8 rounded-xl border border-dashed border-hairline px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xs text-ink-muted">
+          Inbox clear — nothing waiting for review.
+        </span>
+        {lastSwept && (
+          <span className="text-[10px] font-mono text-ink-muted">last swept {lastSwept}</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8">
@@ -22,6 +35,9 @@ export default function InboxSection({ items, onResolve }) {
         <InboxIcon size={14} className="text-clay" />
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink">Needs review</h2>
         <span className="rounded-full bg-clay-soft px-2 py-0.5 text-[10px] font-mono text-clay">{items.length}</span>
+        {lastSwept && (
+          <span className="ml-auto text-[10px] font-mono text-ink-muted">last swept {lastSwept}</span>
+        )}
       </div>
       <div className="flex flex-col gap-2">
         {items.map((item) => (

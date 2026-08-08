@@ -4,11 +4,13 @@ import { getSupabaseClient } from '../lib/supabaseClient.js';
 
 export function useInbox(config) {
   const [items, setItems] = useState([]);
+  const [sweep, setSweep] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
-      const { items } = await api.getInbox();
+      const { items, sweep } = await api.getInbox();
       setItems(items ?? []);
+      setSweep(sweep ?? null);
     } catch {
       // ignore
     }
@@ -40,5 +42,5 @@ export function useInbox(config) {
     [refresh],
   );
 
-  return { items, resolve, refresh };
+  return { items, sweep, resolve, refresh };
 }

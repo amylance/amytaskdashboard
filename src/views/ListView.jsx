@@ -25,7 +25,7 @@ const COLUMNS = [
 
 // List = the full record (every task, every source) with the review queue on top.
 export default function ListView({ todos, onOpen, config }) {
-  const { items: inboxItems, resolve } = useInbox(config);
+  const { items: inboxItems, sweep, resolve } = useInbox(config);
   const [sortKey, setSortKey] = useState('due_date');
   const [dir, setDir] = useState('asc');
 
@@ -59,7 +59,7 @@ export default function ListView({ todos, onOpen, config }) {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-6">
-      <InboxSection items={inboxItems} onResolve={resolve} />
+      <InboxSection items={inboxItems} sweep={sweep} onResolve={resolve} />
 
       <div className="rounded-2xl border border-hairline bg-panel overflow-hidden">
         <table className="w-full text-sm">

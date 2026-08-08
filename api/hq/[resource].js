@@ -24,24 +24,70 @@ export default async function handler(req, res) {
 // Nothing here is a task until Amy approves it. ---
 async function handleInbox(req, res, db) {
   if (req.method === 'GET') {
-    const { data, error } = await db
-      .from('inbox_items')
-      .select('*')
-      .eq('state', 'pending')
-      .order('received_at', { ascending: false });
+    const [{ data, error }, { data: sweep }] = await Promise.all([
+      db.from('inbox_items').select('*').eq('state', 'pending').order('received_at', { ascending: false }),
+      db.from('sweep_state').select('*').eq('id', true).maybeSingle(),
+    ]);
     if (error) {
       res.status(500).json({ error: error.message });
       return;
     }
-    res.status(200).json({ items: data ?? [] });
+    res.status(200).json({ items: data ?? [], sweep: sweep ?? null });
     return;
   }
 
   if (req.method === 'POST') {
     const body = req.body ?? {};
     const { id, action } = body;
+
+    // The sweep writes new candidates here. Dedupe on (source, source_raw) so
+    // re-sweeping the same window never creates duplicates.
+    if (action === 'create') {
+      const items = Array.isArray(body.items) ? body.items : [];
+      if (items.length === 0) {
+        res.status(400).json({ error: 'items[] is required' });
+        return;
+      }
+      const inserted = [];
+      for (const it of items) {
+        if (!it?.title || !it?.received_at) continue;
+        const { data: dupe } = await db
+          .from('inbox_items')
+          .select('id')
+          .eq('source', it.source ?? 'fireflies')
+          .eq('source_raw', it.source_raw ?? '')
+          .maybeSingle();
+        if (dupe) continue;
+        const { data: row } = await db
+          .from('inbox_items')
+          .insert({
+            title: it.title,
+            source: it.source ?? 'fireflies',
+            source_raw: it.source_raw ?? null,
+            source_url: it.source_url ?? null,
+            source_context: it.source_context ?? null,
+            claude_note: it.claude_note ?? null,
+            suggested_status: it.suggested_status === 'done' ? 'done' : 'todo',
+            received_at: it.received_at,
+          })
+          .select()
+          .single();
+        if (row) inserted.push(row);
+      }
+      await db
+        .from('sweep_state')
+        .update({
+          last_swept_at: new Date().toISOString(),
+          last_summary: body.summary ?? `Swept — ${inserted.length} new item(s).`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', true);
+      res.status(201).json({ inserted: inserted.length });
+      return;
+    }
+
     if (!id || !['approve', 'dismiss'].includes(action)) {
-      res.status(400).json({ error: 'id and action (approve|dismiss) are required' });
+      res.status(400).json({ error: 'id and action (approve|dismiss|create) are required' });
       return;
     }
 
