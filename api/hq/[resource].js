@@ -13,9 +13,56 @@ export default async function handler(req, res) {
   if (resource === 'pending') return handlePending(req, res, db);
   if (resource === 'feed') return handleFeed(req, res, db);
   if (resource === 'profile') return handleProfile(req, res, db);
+  if (resource === 'calendar') return handleCalendar(req, res, db);
 
   res.status(404).json({ error: 'Not found' });
   return undefined;
+}
+
+// --- Activity events for the calendar (Amy's "what I did" record). ---
+async function handleCalendar(req, res, db) {
+  if (req.method === 'GET') {
+    const { data, error } = await db
+      .from('activity_events')
+      .select('*')
+      .order('event_date', { ascending: false });
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ events: data ?? [] });
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const body = req.body ?? {};
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    if (!title || !body.event_date) {
+      res.status(400).json({ error: 'title and event_date are required' });
+      return;
+    }
+    const kind = ['meeting', 'action', 'milestone'].includes(body.kind) ? body.kind : 'action';
+    const { data, error } = await db
+      .from('activity_events')
+      .insert({
+        title,
+        detail: body.detail || null,
+        event_date: body.event_date,
+        kind,
+        source: body.source || null,
+        source_url: body.source_url || null,
+      })
+      .select()
+      .single();
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(201).json({ event: data });
+    return;
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
 }
 
 // --- Profile / Memory sections (public or private). ---

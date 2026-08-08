@@ -166,7 +166,7 @@ export default function App() {
     kanban: <KanbanView todos={todos} onOpen={openTodoDetail} onReorder={handlePatch} />,
     list: <ListView todos={todos} onOpen={openTodoDetail} />,
     timeline: <TimelineView todos={todos} onOpen={openTodoDetail} />,
-    calendar: <CalendarView todos={todos} onOpen={openTodoDetail} />,
+    calendar: <CalendarView todos={todos} onOpen={openTodoDetail} config={config} />,
     people: <PeopleView people={people} onOpen={openPersonDetail} config={config} />,
     profile: <ProfileView config={config} />,
   };
