@@ -1,53 +1,64 @@
 import { useMemo, useState } from 'react';
-import { Eye, EyeOff, Lock, Globe } from 'lucide-react';
+import { EyeOff, Eye, Lock, Globe, ShieldCheck } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile.js';
 
-// Profile / Memory tab (items 3 + 11). The durable memory of who Amy is. Each section is
-// public or private; private sections stay hidden behind a reveal (soft privacy — the
-// dashboard is one shared passphrase, so this keeps personal notes out of the default
-// view rather than locking them per-person).
+// Profile / Memory tab (items 3 + 11). Amy's OWN record — for her visibility and
+// transparency — of who she is and what she's poured into the Lance network (Claude,
+// the tools, her emails). Not a team profile. Sections are private by default and shown
+// to her; a "Hide private" switch tucks them away when she's screen-sharing.
+// (Soft privacy: the dashboard is one shared passphrase, so true per-person locking
+// waits on real logins — until then this keeps personal notes out of view on demand.)
 export default function ProfileView({ config }) {
   const { sections, updateSection } = useProfile(config);
-  const [showPrivate, setShowPrivate] = useState(false);
+  const [hidePrivate, setHidePrivate] = useState(false);
 
-  const publicSections = useMemo(() => sections.filter((s) => s.visibility !== 'private'), [sections]);
-  const privateSections = useMemo(() => sections.filter((s) => s.visibility === 'private'), [sections]);
+  const visible = useMemo(
+    () => (hidePrivate ? sections.filter((s) => s.visibility !== 'private') : sections),
+    [sections, hidePrivate],
+  );
+  const privateCount = sections.filter((s) => s.visibility === 'private').length;
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-6">
       <div className="mb-5">
-        <h1 className="text-lg font-semibold text-ink">Amy — Profile & Memory</h1>
-        <p className="text-xs text-ink-muted mt-1">
-          What I&apos;ve learned about myself and how I work since day one — visible to anyone with the
-          dashboard. Sections marked <span className="text-clay font-medium">private</span> stay hidden until revealed.
+        <div className="flex items-center gap-2 mb-1">
+          <ShieldCheck size={16} className="text-clay" />
+          <h1 className="text-lg font-semibold text-ink">Amy — Profile & Memory</h1>
+          <span className="inline-flex items-center gap-1 rounded-full bg-clay-soft px-2 py-0.5 text-[10px] font-medium text-clay">
+            <Lock size={10} /> Private
+          </span>
+        </div>
+        <p className="text-xs text-ink-muted leading-relaxed">
+          My own record — for my visibility and transparency — of what I&apos;ve poured into the Lance
+          network: what I&apos;ve given Claude, the tools, and my emails. This is my ledger, not a team
+          profile. Mark a section <span className="text-ink font-medium">Public</span> only if I want
+          the team to see it; use <span className="text-ink font-medium">Hide private</span> before
+          screen-sharing.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {publicSections.map((s) => (
-          <SectionCard key={s.id} section={s} onUpdate={updateSection} />
-        ))}
-      </div>
-
-      {privateSections.length > 0 && (
-        <div className="mt-6">
+      {privateCount > 0 && (
+        <div className="flex justify-end mb-3">
           <button
-            onClick={() => setShowPrivate((v) => !v)}
-            className="tap-scale inline-flex items-center gap-2 rounded-full border border-hairline bg-panel px-3.5 py-2 text-sm text-ink-muted hover:text-ink"
+            onClick={() => setHidePrivate((v) => !v)}
+            className="tap-scale inline-flex items-center gap-2 rounded-full border border-hairline bg-panel px-3.5 py-1.5 text-xs text-ink-muted hover:text-ink"
           >
-            {showPrivate ? <EyeOff size={14} /> : <Eye size={14} />}
-            {showPrivate ? 'Hide private' : `Show private (${privateSections.length})`}
+            {hidePrivate ? <Eye size={13} /> : <EyeOff size={13} />}
+            {hidePrivate ? `Show private (${privateCount})` : 'Hide private'}
           </button>
-
-          {showPrivate && (
-            <div className="flex flex-col gap-3 mt-3">
-              {privateSections.map((s) => (
-                <SectionCard key={s.id} section={s} onUpdate={updateSection} />
-              ))}
-            </div>
-          )}
         </div>
       )}
+
+      <div className="flex flex-col gap-3">
+        {visible.map((s) => (
+          <SectionCard key={s.id} section={s} onUpdate={updateSection} />
+        ))}
+        {visible.length === 0 && (
+          <p className="text-sm text-ink-muted text-center py-10 border border-dashed border-hairline rounded-2xl">
+            All sections are private and currently hidden.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -62,7 +73,7 @@ function SectionCard({ section, onUpdate }) {
         <h2 className="text-sm font-semibold text-ink">{section.heading}</h2>
         <button
           onClick={() => onUpdate(section.id, { visibility: isPrivate ? 'public' : 'private' })}
-          title={isPrivate ? 'Make public' : 'Make private'}
+          title={isPrivate ? 'Make public (team can see it)' : 'Make private (just me)'}
           className={`tap-scale inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${
             isPrivate ? 'bg-clay/10 text-clay' : 'bg-black/[0.04] text-ink-muted hover:text-ink'
           }`}
@@ -73,7 +84,6 @@ function SectionCard({ section, onUpdate }) {
       </div>
       <textarea
         value={body}
-        data-section-id={section.id}
         onChange={(e) => setBody(e.target.value)}
         onBlur={() => body !== section.body && onUpdate(section.id, { body })}
         rows={Math.max(3, body.split('\n').length)}

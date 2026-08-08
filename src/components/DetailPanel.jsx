@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { X, Lock, Trash2, Send, Clock, Link2, UserPlus } from 'lucide-react';
+import { X, Lock, Trash2, Send, Clock, Link2, UserPlus, ExternalLink } from 'lucide-react';
 import { STATUSES, PRIORITIES } from '../lib/constants.js';
+
+const SOURCE_LABEL = {
+  app: 'App',
+  fireflies: 'Fireflies',
+  slack: 'Slack',
+  google: 'Google',
+  lance_live: 'Lance Live',
+  email: 'Email',
+};
 import { formatDateTime, shortId } from '../lib/format.js';
 import { useTodoDetail } from '../hooks/useTodoDetail.js';
 
@@ -106,6 +115,43 @@ export default function DetailPanel({
             rows={1}
             className="w-full resize-none text-lg font-semibold text-ink outline-none bg-transparent leading-snug"
           />
+
+          {(todo.source_raw || todo.claude_note) && (
+            <div className="rounded-xl border border-hairline bg-black/[0.02] p-3 flex flex-col gap-2.5">
+              <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">Provenance</span>
+              {todo.source_raw && (
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-mono uppercase text-ink-muted">
+                      🎙 {SOURCE_LABEL[todo.source] ?? todo.source}
+                    </span>
+                    {todo.source_url && (
+                      <a
+                        href={todo.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] text-clay hover:underline"
+                      >
+                        <ExternalLink size={10} /> source
+                      </a>
+                    )}
+                  </div>
+                  <p className="text-xs text-ink-muted italic">“{todo.source_raw}”</p>
+                </div>
+              )}
+              {todo.claude_note && (
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-ink-muted">🤖 Claude</span>
+                  <p className="text-xs text-ink">{todo.claude_note}</p>
+                </div>
+              )}
+              {todo.edited_from_source && (
+                <span className="inline-flex w-fit items-center gap-1 text-[10px] text-clay">
+                  ✎ you edited this from the source
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <FieldSelect value={todo.status} options={STATUSES} onChange={(status) => patch({ status })} />

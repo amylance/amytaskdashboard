@@ -9,7 +9,7 @@ function timeIn(tz) {
   });
 }
 
-// Stacked world-clock: Philippines on top, San Francisco below. 12-hour with AM/PM,
+// Stacked world-clock: San Francisco on top, Philippines below. 12-hour with AM/PM,
 // so "this is Amy's time" reads at a glance for anyone on the dashboard.
 export default function Clocks() {
   const [, tick] = useState(0);
@@ -22,10 +22,10 @@ export default function Clocks() {
   return (
     <div className="hidden sm:flex flex-col gap-0.5 leading-tight font-mono text-[10px] text-ink-muted">
       <span className="inline-flex items-center gap-1">
-        <span aria-hidden>🇵🇭</span> PH <span className="text-ink">{timeIn('Asia/Manila')}</span>
+        <span aria-hidden>🇺🇸</span> SF <span className="text-ink">{timeIn('America/Los_Angeles')}</span>
       </span>
       <span className="inline-flex items-center gap-1">
-        <span aria-hidden>🇺🇸</span> SF <span className="text-ink">{timeIn('America/Los_Angeles')}</span>
+        <span aria-hidden>🇵🇭</span> PH <span className="text-ink">{timeIn('Asia/Manila')}</span>
       </span>
     </div>
   );
