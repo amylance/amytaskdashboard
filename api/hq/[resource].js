@@ -14,9 +14,90 @@ export default async function handler(req, res) {
   if (resource === 'feed') return handleFeed(req, res, db);
   if (resource === 'profile') return handleProfile(req, res, db);
   if (resource === 'calendar') return handleCalendar(req, res, db);
+  if (resource === 'inbox') return handleInbox(req, res, db);
 
   res.status(404).json({ error: 'Not found' });
   return undefined;
+}
+
+// --- Inbox: raw commitment candidates awaiting approve / edit / dismiss.
+// Nothing here is a task until Amy approves it. ---
+async function handleInbox(req, res, db) {
+  if (req.method === 'GET') {
+    const { data, error } = await db
+      .from('inbox_items')
+      .select('*')
+      .eq('state', 'pending')
+      .order('received_at', { ascending: false });
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ items: data ?? [] });
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const body = req.body ?? {};
+    const { id, action } = body;
+    if (!id || !['approve', 'dismiss'].includes(action)) {
+      res.status(400).json({ error: 'id and action (approve|dismiss) are required' });
+      return;
+    }
+
+    const { data: item, error: findErr } = await db.from('inbox_items').select('*').eq('id', id).single();
+    if (findErr || !item) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    if (action === 'dismiss') {
+      await db
+        .from('inbox_items')
+        .update({ state: 'dismissed', resolved_at: new Date().toISOString() })
+        .eq('id', id);
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    // Approve — Amy may have edited the title/status before accepting.
+    const title = typeof body.title === 'string' && body.title.trim() ? body.title.trim() : item.title;
+    const status = body.status === 'done' ? 'done' : body.status || item.suggested_status;
+    const edited = title !== item.title;
+
+    const { data: todo, error: todoErr } = await db
+      .from('todos')
+      .insert({
+        title,
+        description: item.source_context ? `From ${item.source_context}` : null,
+        status,
+        priority: 'normal',
+        source: item.source,
+        source_url: item.source_url,
+        source_raw: item.source_raw,
+        claude_note: item.claude_note,
+        edited_from_source: edited,
+        received_at: item.received_at,
+        completed_at: status === 'done' ? new Date().toISOString() : null,
+      })
+      .select()
+      .single();
+
+    if (todoErr) {
+      res.status(500).json({ error: todoErr.message });
+      return;
+    }
+
+    await db
+      .from('inbox_items')
+      .update({ state: 'approved', resolved_at: new Date().toISOString(), created_todo_id: todo.id })
+      .eq('id', id);
+
+    res.status(201).json({ todo });
+    return;
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
 }
 
 // --- Activity events for the calendar (Amy's "what I did" record). ---

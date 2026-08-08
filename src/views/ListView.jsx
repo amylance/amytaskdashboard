@@ -1,11 +1,20 @@
 import { useMemo, useState } from 'react';
 import { ArrowUp, ArrowDown, Lock } from 'lucide-react';
 import PriorityBadge from '../components/PriorityBadge.jsx';
+import InboxSection from '../components/InboxSection.jsx';
+import { useInbox } from '../hooks/useInbox.js';
 import { formatDueDate, isOverdue } from '../lib/format.js';
 import { STATUSES } from '../lib/constants.js';
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.id, s.label]));
 const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
+const SOURCE_MARK = {
+  fireflies: '🎙',
+  slack: '💬',
+  email: '✉️',
+  google: '📅',
+  lance_live: '🏨',
+};
 
 const COLUMNS = [
   { key: 'title', label: 'Title' },
@@ -14,7 +23,9 @@ const COLUMNS = [
   { key: 'due_date', label: 'Due' },
 ];
 
-export default function ListView({ todos, onOpen }) {
+// List = the full record (every task, every source) with the review queue on top.
+export default function ListView({ todos, onOpen, config }) {
+  const { items: inboxItems, resolve } = useInbox(config);
   const [sortKey, setSortKey] = useState('due_date');
   const [dir, setDir] = useState('asc');
 
@@ -48,6 +59,8 @@ export default function ListView({ todos, onOpen }) {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-6">
+      <InboxSection items={inboxItems} onResolve={resolve} />
+
       <div className="rounded-2xl border border-hairline bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -76,6 +89,11 @@ export default function ListView({ todos, onOpen }) {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     {todo.is_private && <Lock size={11} className="text-ink-muted shrink-0" />}
+                    {SOURCE_MARK[todo.source] && (
+                      <span className="shrink-0 text-[11px]" title={todo.source}>
+                        {SOURCE_MARK[todo.source]}
+                      </span>
+                    )}
                     <span className="font-medium text-ink">{todo.title}</span>
                   </div>
                 </td>

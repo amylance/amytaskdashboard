@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCalendarEvents } from '../hooks/useCalendarEvents.js';
+import { toPacificDateKey } from '../lib/format.js';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const KIND_MARK = { meeting: '🎙', milestone: '✦', action: '•' };
@@ -19,17 +20,23 @@ export default function CalendarView({ todos, onOpen, config }) {
     return d;
   });
 
+  // The calendar only shows what actually happened: meetings + completed work
+  // (on the day it was finished) + upcoming deadlines. Nothing speculative.
   const byDate = useMemo(() => {
     const map = new Map();
     const bucket = (key) => {
-      if (!map.has(key)) map.set(key, { events: [], tasks: [] });
+      if (!map.has(key)) map.set(key, { events: [], done: [], tasks: [] });
       return map.get(key);
     };
     for (const ev of events) {
       if (ev.event_date) bucket(ev.event_date).events.push(ev);
     }
     for (const todo of todos) {
-      if (todo.due_date && todo.status !== 'done') bucket(todo.due_date).tasks.push(todo);
+      if (todo.status === 'done' && todo.completed_at) {
+        bucket(toPacificDateKey(todo.completed_at)).done.push(todo);
+      } else if (todo.due_date && todo.status !== 'done') {
+        bucket(todo.due_date).tasks.push(todo);
+      }
     }
     return map;
   }, [events, todos]);
@@ -58,7 +65,9 @@ export default function CalendarView({ todos, onOpen, config }) {
             <span className="mr-3">🎙 meeting</span>
             <span className="mr-3">✦ milestone</span>
             <span className="mr-3">• what I did</span>
-            <span>○ deadline</span>
+            <span className="mr-3">✓ completed</span>
+            <span className="mr-3">○ deadline</span>
+            <span className="text-clay">all times PT</span>
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -86,13 +95,13 @@ export default function CalendarView({ todos, onOpen, config }) {
         {cells.map((date, idx) => {
           if (!date) return <div key={idx} className="bg-panel min-h-[110px]" />;
           const key = toKey(date);
-          const cell = byDate.get(key) ?? { events: [], tasks: [] };
+          const cell = byDate.get(key) ?? { events: [], done: [], tasks: [] };
           const isToday = key === todayKey;
-          const total = cell.events.length + cell.tasks.length;
+          const total = cell.events.length + cell.done.length + cell.tasks.length;
           const shownEvents = cell.events.slice(0, 4);
-          const remainingSlots = Math.max(0, 4 - shownEvents.length);
-          const shownTasks = cell.tasks.slice(0, remainingSlots);
-          const overflow = total - shownEvents.length - shownTasks.length;
+          const shownDone = cell.done.slice(0, Math.max(0, 4 - shownEvents.length));
+          const shownTasks = cell.tasks.slice(0, Math.max(0, 4 - shownEvents.length - shownDone.length));
+          const overflow = total - shownEvents.length - shownDone.length - shownTasks.length;
 
           return (
             <div key={idx} className="bg-panel min-h-[110px] p-1.5 flex flex-col gap-1">
@@ -132,6 +141,17 @@ export default function CalendarView({ todos, onOpen, config }) {
                     </span>
                   );
                 })}
+                {shownDone.map((todo) => (
+                  <button
+                    key={todo.id}
+                    onClick={() => onOpen(todo.id)}
+                    title="Completed"
+                    className="tap-scale flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-ink hover:bg-black/[0.05] text-left"
+                  >
+                    <span className="shrink-0">✓</span>
+                    <span className="truncate">{todo.title}</span>
+                  </button>
+                ))}
                 {shownTasks.map((todo) => (
                   <button
                     key={todo.id}

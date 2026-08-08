@@ -56,6 +56,10 @@ export const api = {
   updateProfileSection: (id, fields) =>
     request('/api/hq/profile', { method: 'POST', body: JSON.stringify({ id, ...fields }) }),
 
+  getInbox: () => request('/api/hq/inbox'),
+  resolveInboxItem: (id, action, fields = {}) =>
+    request('/api/hq/inbox', { method: 'POST', body: JSON.stringify({ id, action, ...fields }) }),
+
   getCalendar: () => request('/api/hq/calendar'),
   addActivityEvent: (payload) => request('/api/hq/calendar', { method: 'POST', body: JSON.stringify(payload) }),
 };

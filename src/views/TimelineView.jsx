@@ -1,46 +1,90 @@
 import { useMemo } from 'react';
-import TodoCard from '../components/TodoCard.jsx';
+import { ExternalLink } from 'lucide-react';
+import { formatDateTimePT, formatLocal, toPacificDateKey } from '../lib/format.js';
+import { STATUSES } from '../lib/constants.js';
 
-function groupLabel(dateStr) {
-  if (!dateStr) return 'No due date';
-  const d = new Date(`${dateStr}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((d - today) / 86400000);
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Tomorrow';
-  if (diffDays === -1) return 'Yesterday';
+const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.id, s.label]));
+const SOURCE_MARK = {
+  fireflies: '🎙 Fireflies',
+  slack: '💬 Slack',
+  email: '✉️ Email',
+  google: '📅 Google',
+  lance_live: '🏨 Lance Live',
+  app: 'Added here',
+};
+
+function dayLabel(key) {
+  const d = new Date(`${key}T12:00:00`);
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
+// Timeline = the RECEIVED log: when each task landed on Amy's plate, newest first.
+// This is the view that answers "when was this given to me?" without digging through Slack.
 export default function TimelineView({ todos, onOpen }) {
   const groups = useMemo(() => {
     const map = new Map();
     for (const todo of todos) {
-      const key = todo.due_date ?? '9999-99-99';
+      const stamp = todo.received_at ?? todo.created_at;
+      if (!stamp) continue;
+      const key = toPacificDateKey(stamp);
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(todo);
     }
-    return [...map.entries()]
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([key, items]) => ({ key, label: groupLabel(key === '9999-99-99' ? null : key), items }));
+    for (const items of map.values()) {
+      items.sort(
+        (a, b) => new Date(b.received_at ?? b.created_at) - new Date(a.received_at ?? a.created_at),
+      );
+    }
+    return [...map.entries()].sort(([a], [b]) => (a > b ? -1 : a < b ? 1 : 0));
   }, [todos]);
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-6">
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold text-ink">When this landed on my plate</h2>
+        <p className="text-[11px] text-ink-muted mt-0.5">
+          Every task at the moment it was given — newest first, on Pacific time.
+        </p>
+      </div>
+
       <div className="relative border-l border-hairline ml-2">
-        {groups.map((group) => (
-          <div key={group.key} className="relative pl-6 pb-8">
+        {groups.map(([key, items]) => (
+          <div key={key} className="relative pl-6 pb-7">
             <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-ink" />
-            <h2 className="text-sm font-semibold text-ink mb-3">{group.label}</h2>
+            <h3 className="text-sm font-semibold text-ink mb-2.5">{dayLabel(key)}</h3>
             <div className="flex flex-col gap-2">
-              {group.items.map((todo) => (
-                <TodoCard key={todo.id} todo={todo} onClick={() => onOpen(todo.id)} />
-              ))}
+              {items.map((todo) => {
+                const stamp = todo.received_at ?? todo.created_at;
+                return (
+                  <button
+                    key={todo.id}
+                    onClick={() => onOpen(todo.id)}
+                    className="tap-scale text-left rounded-xl border border-hairline bg-panel p-3 hover:bg-black/[0.03]"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">
+                        {SOURCE_MARK[todo.source] ?? 'Added here'}
+                      </span>
+                      <span className="text-[10px] font-mono text-ink-muted" title={formatLocal(stamp)}>
+                        {formatDateTimePT(stamp)}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-ink">{todo.title}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-ink-muted">{STATUS_LABEL[todo.status]}</span>
+                      {todo.source_url && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-clay">
+                          <ExternalLink size={9} /> source
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
-        {groups.length === 0 && <p className="pl-6 text-sm text-ink-muted">No tasks yet.</p>}
+        {groups.length === 0 && <p className="pl-6 text-sm text-ink-muted">Nothing received yet.</p>}
       </div>
     </div>
   );
