@@ -27,7 +27,7 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 |---|------|--------|
 | 1 | Read all three Fireflies meetings; understand where I stand | ✅ research done, no artifact |
 | 2 | Ask questions to understand my work style, vocabulary, how I think | ✅ |
-| 3 | Build a persistent memory profile of me | ⚠️ partial — never built as a standing artifact |
+| 3 | Build a persistent memory profile of me | ✅ built — `memory-profile.md` + Profile/Memory tab (2026-08-08) |
 | 4 | Go through Gmail, Slack, Drive, the Lance tool guide, everything connected | ✅ |
 | 5 | Incorporate my New Hire form answers | ✅ |
 | 6 | Watch the Lance product demo (Tella video) | ✅ |
@@ -42,12 +42,12 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 ### Dashboard / headquarters
 | # | Item | Status |
 |---|------|--------|
-| 10 | One place for everything | ❌ not built |
-| 11 | Profile/memory tab with public/private toggle | ❌ not built — public/private default undecided |
-| 12 | Philippines + San Francisco real-time clocks | ❌ not built |
-| 13 | Away/status toggle (dog walks) | ❌ not built |
+| 10 | One place for everything | 🔄 in progress — tasks, People timeline, Profile, clocks all on one dashboard |
+| 11 | Profile/memory tab with public/private toggle | ✅ built — Profile tab, per-section public/private (soft privacy) |
+| 12 | Philippines + San Francisco real-time clocks | ✅ built — stacked PH/SF, 12-hour AM/PM |
+| 13 | Away/status toggle (dog walks) | ➖ built, then removed at Amy's request (data table kept) |
 | 14 | Daily brief landing on the dashboard | ❌ not built — **final model: on-demand, NOT scheduled** |
-| 15 | Action items with timestamps: what given, when, done, when done | ❌ not built — highest-friction item |
+| 15 | Action items with timestamps: what given, when, done, when done | 🔄 partial — task board populated (done kept as history); full timestamp lifecycle + provenance = v1.1 |
 | 16 | Gavin's view / Isaac's view toggles, with labels and categories | ❌ not built — one dataset, filtered by viewer |
 | 17 | "Someone's viewing this" indicator | ❌ deferred by Amy's own decision (not first pass) |
 | 18 | Cross-reference hired-for vs. actually-doing; zoom out then in | ⚠️ discussed only |
@@ -55,10 +55,10 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 ### People CRM
 | # | Item | Status |
 |---|------|--------|
-| 19 | Personal CRM, separate from the Lance product CRM | 🔁 built, then reverted |
-| 20 | Verified/unverified tiers with links to the verification source | 🔁 built, then reverted — **principle must survive any rebuild** |
-| 21 | Interns included, including the ones leaving | 🔁 built, then reverted |
-| 22 | Ongoing logging from meetings, Slack, email | 🔁 built, then reverted — final model: on-demand |
+| 19 | Personal CRM, separate from the Lance product CRM | ✅ rebuilt — People awareness timeline (separate from GM CRM) |
+| 20 | Verified/unverified tiers with links to the verification source | ✅ rebuilt — tiers + clickable source links, all records cited |
+| 21 | Interns included, including the ones leaving | ✅ rebuilt — Avani & Maxwell included (last day 8/8) |
+| 22 | Ongoing logging from meetings, Slack, email | 🔄 seeded — founding entries logged; ongoing on-demand logging = v1.1 |
 
 ### Standing rules
 | # | Item | Status |
