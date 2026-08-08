@@ -15,6 +15,7 @@ import ListView from './views/ListView.jsx';
 import TimelineView from './views/TimelineView.jsx';
 import CalendarView from './views/CalendarView.jsx';
 import PeopleView from './views/PeopleView.jsx';
+import ProfileView from './views/ProfileView.jsx';
 
 export default function App() {
   const session = useSession();
@@ -43,7 +44,8 @@ export default function App() {
 
   const openTodo = todos.find((t) => t.id === openTodoId) ?? null;
   const openPerson = people.find((p) => p.id === openPersonId) ?? null;
-  const isLoading = activeView === 'people' ? peopleLoading : todosLoading;
+  const isLoading =
+    activeView === 'people' ? peopleLoading : activeView === 'profile' ? false : todosLoading;
 
   function openTodoDetail(id) {
     setOpenPersonId(null);
@@ -166,6 +168,7 @@ export default function App() {
     timeline: <TimelineView todos={todos} onOpen={openTodoDetail} />,
     calendar: <CalendarView todos={todos} onOpen={openTodoDetail} />,
     people: <PeopleView people={people} onOpen={openPersonDetail} config={config} />,
+    profile: <ProfileView config={config} />,
   };
 
   return (
@@ -176,6 +179,7 @@ export default function App() {
         onLogout={session.logout}
         onCreate={() => setShowCreate(true)}
         createLabel={activeView === 'people' ? 'New person' : 'New task'}
+        canCreate={activeView !== 'profile'}
       />
 
       {error && (
@@ -228,7 +232,7 @@ export default function App() {
       {showCreate && activeView === 'people' && (
         <CreatePersonModal onClose={() => setShowCreate(false)} onCreate={handleCreatePerson} />
       )}
-      {showCreate && activeView !== 'people' && (
+      {showCreate && activeView !== 'people' && activeView !== 'profile' && (
         <CreateTodoModal onClose={() => setShowCreate(false)} onCreate={handleCreate} />
       )}
     </div>

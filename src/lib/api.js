@@ -51,4 +51,8 @@ export const api = {
   addPersonNote: (id, body) => request(`/api/people/${id}/notes`, { method: 'POST', body: JSON.stringify({ body }) }),
 
   getPeopleFeed: () => request('/api/hq/feed'),
+
+  getProfile: () => request('/api/hq/profile'),
+  updateProfileSection: (id, fields) =>
+    request('/api/hq/profile', { method: 'POST', body: JSON.stringify({ id, ...fields }) }),
 };

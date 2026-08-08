@@ -12,9 +12,49 @@ export default async function handler(req, res) {
   if (resource === 'status') return handleStatus(req, res, db);
   if (resource === 'pending') return handlePending(req, res, db);
   if (resource === 'feed') return handleFeed(req, res, db);
+  if (resource === 'profile') return handleProfile(req, res, db);
 
   res.status(404).json({ error: 'Not found' });
   return undefined;
+}
+
+// --- Profile / Memory sections (public or private). ---
+async function handleProfile(req, res, db) {
+  if (req.method === 'GET') {
+    const { data, error } = await db
+      .from('profile_sections')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ sections: data ?? [] });
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const body = req.body ?? {};
+    const { id } = body;
+    if (!id) {
+      res.status(400).json({ error: 'id is required' });
+      return;
+    }
+    const updates = { updated_at: new Date().toISOString() };
+    if (typeof body.heading === 'string') updates.heading = body.heading;
+    if (typeof body.body === 'string') updates.body = body.body;
+    if (body.visibility === 'public' || body.visibility === 'private') updates.visibility = body.visibility;
+
+    const { data, error } = await db.from('profile_sections').update(updates).eq('id', id).select().single();
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ section: data });
+    return;
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
 }
 
 // --- People awareness timeline: every encounter entry (person_notes) joined to its
