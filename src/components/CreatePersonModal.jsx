@@ -10,6 +10,8 @@ export default function CreatePersonModal({ onClose, onCreate }) {
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [crmType, setCrmType] = useState('hotel_contact');
+  const [verificationSource, setVerificationSource] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,6 +26,9 @@ export default function CreatePersonModal({ onClose, onCreate }) {
         role: role.trim(),
         phone: phone.trim(),
         email: email.trim(),
+        crm_type: crmType,
+        // Always starts UNVERIFIED — the source just records where the mention came from.
+        verification_source: verificationSource.trim(),
         note: note.trim(),
       });
     } finally {
@@ -96,6 +101,27 @@ export default function CreatePersonModal({ onClose, onCreate }) {
             />
           </Field>
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Type">
+            <select value={crmType} onChange={(e) => setCrmType(e.target.value)} className={fieldClass}>
+              <option value="hotel_contact">Hotel / external contact</option>
+              <option value="lance_team">Lance team</option>
+            </select>
+          </Field>
+          <Field label="Verification source (optional)">
+            <input
+              value={verificationSource}
+              onChange={(e) => setVerificationSource(e.target.value)}
+              placeholder="link, or where you heard it"
+              className={fieldClass}
+            />
+          </Field>
+        </div>
+
+        <p className="text-[11px] text-ink-muted -mt-2 mb-3">
+          New people start <span className="font-medium text-clay">unverified</span> — you confirm them later.
+        </p>
 
         <Field label="First note">
           <textarea

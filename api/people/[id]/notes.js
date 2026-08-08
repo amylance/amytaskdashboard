@@ -17,9 +17,21 @@ export default async function handler(req, res) {
     return;
   }
 
+  const ALLOWED_SOURCES = ['app', 'slack', 'fireflies', 'email'];
+  const ALLOWED_ACTIVITY = ['meeting', 'slack_thread', 'slack_message', 'email', 'note'];
+  const source = ALLOWED_SOURCES.includes(req.body?.source) ? req.body.source : 'app';
+  const activity_type = ALLOWED_ACTIVITY.includes(req.body?.activity_type) ? req.body.activity_type : null;
+
   const { data, error } = await db
     .from('person_notes')
-    .insert({ person_id: id, body, source: 'app' })
+    .insert({
+      person_id: id,
+      body,
+      source,
+      activity_type,
+      source_url: req.body?.source_url || null,
+      occurred_at: req.body?.occurred_at || null,
+    })
     .select()
     .single();
 

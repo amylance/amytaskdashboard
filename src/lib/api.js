@@ -49,4 +49,10 @@ export const api = {
   updatePerson: (id, patch) => request(`/api/people/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   deletePerson: (id) => request(`/api/people/${id}`, { method: 'DELETE' }),
   addPersonNote: (id, body) => request(`/api/people/${id}/notes`, { method: 'POST', body: JSON.stringify({ body }) }),
+
+  getStatus: () => request('/api/status'),
+  setStatus: (payload) => request('/api/status', { method: 'POST', body: JSON.stringify(payload) }),
+
+  listPending: () => request('/api/pending'),
+  addPending: (payload) => request('/api/pending', { method: 'POST', body: JSON.stringify(payload) }),
 };

@@ -37,6 +37,14 @@ export default async function handler(req, res) {
         role: body.role || null,
         phone: body.phone || null,
         email: body.email || null,
+        // Guardrail: anyone added manually defaults to UNVERIFIED. Nothing auto-promotes.
+        verification_tier: body.verification_tier === 'verified' ? 'verified' : 'unverified',
+        verification_source: body.verification_source || null,
+        crm_type: body.crm_type === 'lance_team' ? 'lance_team' : 'hotel_contact',
+        department: body.department || null,
+        reports_to: body.reports_to || null,
+        location: body.location || null,
+        source_url: body.source_url || null,
       })
       .select()
       .single();

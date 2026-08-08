@@ -1,7 +1,24 @@
 import { requireAuth } from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 
-const EDITABLE_FIELDS = ['name', 'company', 'role', 'phone', 'email'];
+const EDITABLE_FIELDS = [
+  'name',
+  'company',
+  'role',
+  'phone',
+  'email',
+  'verification_tier',
+  'verification_source',
+  'crm_type',
+  'department',
+  'reports_to',
+  'location',
+  'tenure_note',
+  'employment_type',
+  'is_intern',
+  'last_day',
+  'source_url',
+];
 
 export default async function handler(req, res) {
   if (!requireAuth(req, res)) return;

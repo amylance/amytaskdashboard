@@ -10,6 +10,7 @@ import DetailPanel from './components/DetailPanel.jsx';
 import PersonDetailPanel from './components/PersonDetailPanel.jsx';
 import CreateTodoModal from './components/CreateTodoModal.jsx';
 import CreatePersonModal from './components/CreatePersonModal.jsx';
+import PendingNote from './components/PendingNote.jsx';
 import KanbanView from './views/KanbanView.jsx';
 import ListView from './views/ListView.jsx';
 import TimelineView from './views/TimelineView.jsx';
@@ -176,6 +177,7 @@ export default function App() {
         onLogout={session.logout}
         onCreate={() => setShowCreate(true)}
         createLabel={activeView === 'people' ? 'New person' : 'New task'}
+        config={config}
       />
 
       {error && (
@@ -224,6 +226,8 @@ export default function App() {
           onOpenTodo={openTodoDetail}
         />
       )}
+
+      <PendingNote config={config} scope={activeView} />
 
       {showCreate && activeView === 'people' && (
         <CreatePersonModal onClose={() => setShowCreate(false)} onCreate={handleCreatePerson} />
