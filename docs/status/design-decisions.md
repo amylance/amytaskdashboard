@@ -43,6 +43,29 @@ when building starts. **Still discussion-first — nothing is built until Amy sa
   is worth building — she wants to review the real extracted task lists first
   (see `meeting-action-items.md`).
 
+### Task provenance — the Fireflies → Claude → Amy verification stack
+Every task carries a **three-layer, all-visible provenance stack** (the same
+verified/unverified discipline as the People tiers in Item 20, applied to tasks):
+
+1. **Source layer (automated).** The raw item exactly as the source generated it,
+   verbatim, with a source icon (Fireflies / Slack / Google / Lance Live). Kept
+   because it's the automated record — never silently overwritten.
+2. **Claude verification layer.** A visible comment from Claude assessing the source
+   item's accuracy against the transcript/context — e.g. *"Fireflies attributed this
+   to you; the transcript shows it was Vanita's."* Claude's reasoning is shown, not
+   hidden. This is the second layer of verification.
+3. **Amy decision layer.** With both layers in view, Amy acts: **accept (✓)**,
+   **edit & save** as her own task, or **mark unnecessary (✗)**.
+
+Example card:
+> 🎙️ Fireflies: "Go onsite to Hyatt Centric to diagnose WiFi" (00:16:54)
+> 🤖 Claude: Fireflies attributed this to you — transcript shows it was Vanita's, Tyler briefing. Likely not yours.
+> [ ✓ accept ] [ ✎ edit & save ] [ ✗ mark unnecessary ]
+
+Proven doable: Claude already caught the Hyatt Centric mis-attribution by reading the
+transcript. The workflow is: source auto-generates → Claude cross-checks & annotates
+→ Amy decides.
+
 ### Task / activity list display
 - **Newest at the top**, oldest at the bottom — Amy never scrolls down to find today.
 - **Include everything Fireflies generates** from her meetings, and **keep done items
