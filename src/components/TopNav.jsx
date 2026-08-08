@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { LogOut, Plus } from 'lucide-react';
 import { VIEWS } from '../lib/constants.js';
 import Clocks from './Clocks.jsx';
-import StatusToggle from './StatusToggle.jsx';
 
-export default function TopNav({ active, onChange, onLogout, onCreate, createLabel = 'New', config }) {
+export default function TopNav({ active, onChange, onLogout, onCreate, createLabel = 'New' }) {
   const tabRefs = useRef({});
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
@@ -43,7 +42,6 @@ export default function TopNav({ active, onChange, onLogout, onCreate, createLab
         </nav>
 
         <div className="flex items-center gap-2 shrink-0">
-          <StatusToggle config={config} />
           <button
             onClick={onCreate}
             className="tap-scale inline-flex items-center gap-1.5 rounded-full bg-ink text-white text-sm font-medium px-4 py-2"

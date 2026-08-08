@@ -50,9 +50,5 @@ export const api = {
   deletePerson: (id) => request(`/api/people/${id}`, { method: 'DELETE' }),
   addPersonNote: (id, body) => request(`/api/people/${id}/notes`, { method: 'POST', body: JSON.stringify({ body }) }),
 
-  getStatus: () => request('/api/hq/status'),
-  setStatus: (payload) => request('/api/hq/status', { method: 'POST', body: JSON.stringify(payload) }),
-
-  listPending: () => request('/api/hq/pending'),
-  addPending: (payload) => request('/api/hq/pending', { method: 'POST', body: JSON.stringify(payload) }),
+  getPeopleFeed: () => request('/api/hq/feed'),
 };

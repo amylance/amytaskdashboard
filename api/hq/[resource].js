@@ -11,9 +11,58 @@ export default async function handler(req, res) {
 
   if (resource === 'status') return handleStatus(req, res, db);
   if (resource === 'pending') return handlePending(req, res, db);
+  if (resource === 'feed') return handleFeed(req, res, db);
 
   res.status(404).json({ error: 'Not found' });
   return undefined;
+}
+
+// --- People awareness timeline: every encounter entry (person_notes) joined to its
+// person, newest first. This is the primary People view — a feed of who crossed Amy's
+// awareness, why, and from where. ---
+async function handleFeed(req, res, db) {
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const { data, error } = await db
+    .from('person_notes')
+    .select(
+      'id, person_id, body, source, source_url, activity_type, occurred_at, created_at, ' +
+        'people!inner(id, name, verification_tier, crm_type, company, role, deleted_at)',
+    )
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+
+  const feed = (data ?? [])
+    .filter((n) => n.people && !n.people.deleted_at)
+    .map((n) => ({
+      id: n.id,
+      person_id: n.person_id,
+      body: n.body,
+      source: n.source,
+      source_url: n.source_url,
+      activity_type: n.activity_type,
+      occurred_at: n.occurred_at,
+      created_at: n.created_at,
+      person: {
+        id: n.people.id,
+        name: n.people.name,
+        verification_tier: n.people.verification_tier,
+        crm_type: n.people.crm_type,
+        company: n.people.company,
+        role: n.people.role,
+      },
+    }))
+    .sort((a, b) => new Date(b.occurred_at || b.created_at) - new Date(a.occurred_at || a.created_at));
+
+  res.status(200).json({ feed });
 }
 
 // --- Away / status log. Current status = the most recent event still open. ---
