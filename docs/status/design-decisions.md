@@ -43,6 +43,13 @@ when building starts. **Still discussion-first — nothing is built until Amy sa
   is worth building — she wants to review the real extracted task lists first
   (see `meeting-action-items.md`).
 
+### Task / activity list display
+- **Newest at the top**, oldest at the bottom — Amy never scrolls down to find today.
+- **Include everything Fireflies generates** from her meetings, and **keep done items
+  visible as history** (not hidden) — so Amy can check them for accuracy, since
+  Fireflies' auto-generated wording is often wrong.
+- Lists are **categorized by source** (Fireflies / Slack / Google / Lance Live).
+
 ## Still open (need Amy)
 1. After reviewing `meeting-action-items.md`: which items become live dashboard tasks?
 2. Is the Fireflies per-item "edit before save" control worth building for v1?
