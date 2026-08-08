@@ -73,6 +73,29 @@ transcript. The workflow is: source auto-generates → Claude cross-checks & ann
   Fireflies' auto-generated wording is often wrong.
 - Lists are **categorized by source** (Fireflies / Slack / Google / Lance Live).
 
+### Feature — "Why this exists" explainer layer (for future hires / successors)
+- Motivation: future EAs/hires may not share Amy's systems-mindset. If they open her
+  dashboard, a clickable explainer answers *"why Amy built this / why this feature
+  works this way"* so they can self-serve before having to ask her.
+- Each feature/page carries an optional info affordance (ⓘ / "Why this exists") that
+  opens the rationale in-context.
+- **Content source = the docs we're already writing** — `design-decisions.md` and
+  `thinking-process-log.md`. The dashboard surfaces that reasoning; it doesn't need
+  new content authored separately.
+- Ties to: Item 18 (headquarters helping a future VA understand how Amy works —
+  attributed to Isaac in Amy's notes) and Item 11 (public/private memory tab). Makes
+  the dashboard self-documenting and a legacy for whoever comes next.
+
+### Editing a Fireflies task — where the edit goes
+- **Never overwrite the Fireflies original; never write back to Fireflies** (separate
+  system; the dashboard is the source of truth). The raw Fireflies item is frozen
+  layer-1 history.
+- **Edit → creates a new "live" task = Amy's customized version**, tagged "edited from
+  Fireflies," linked to the original. The active list shows Amy's version; the original
+  + Claude's verification note sit one click away in the provenance stack.
+- **Accept (✓)** = Fireflies text becomes a task unchanged, still linked to source.
+- **Mark unnecessary (✗)** = dismissed but kept as history (not hard-deleted).
+
 ## Still open (need Amy)
 1. After reviewing `meeting-action-items.md`: which items become live dashboard tasks?
 2. Is the Fireflies per-item "edit before save" control worth building for v1?
