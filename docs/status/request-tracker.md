@@ -66,6 +66,7 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 | 23 | Itemize before executing; wait for my go-ahead | ✅ standing rule — in force |
 | 24 | Always spell Lance correctly (L-A-N-C-E) | ✅ standing rule — in force |
 | 25 | Remind me to ask Isaac about Claude access to lance.live/internal | ⏳ outstanding — raise with Isaac Monday (Aug 10) |
+| 26 | Always acknowledge the people who helped/inspired/encouraged me | ✅ standing rule — in force (e.g. Isaac gave the structure, Amy modified it) |
 
 ## Open decisions waiting on Amy
 1. **Item 9** — where the task checkbox lives when a task exists in both Fireflies and the dashboard (two-sources-of-truth).
@@ -78,3 +79,4 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 - **Verification is reputational:** provenance travels attached to every record; unverified is the default; nothing auto-promotes to verified.
 - **Spell Lance correctly** (L-A-N-C-E), always.
 - **On-demand, not scheduled:** the briefing model is ad hoc, triggered by Amy asking — no cron.
+- **Always acknowledge who helped:** credit the people who helped, inspired, or encouraged Amy — never "I did this." Isaac gave the structure; Amy made it hers.

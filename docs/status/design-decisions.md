@@ -96,6 +96,43 @@ transcript. The workflow is: source auto-generates → Claude cross-checks & ann
 - **Accept (✓)** = Fireflies text becomes a task unchanged, still linked to source.
 - **Mark unnecessary (✗)** = dismissed but kept as history (not hard-deleted).
 
+### Standing value — always acknowledge who helped (NEW standing rule)
+Amy always acknowledges the people who helped, inspired, or encouraged her. Never
+"I did this / I thought of this" — always the acknowledgement. Concretely: the
+"Why this exists" explainers, dashboard copy, and docs must credit that **Isaac
+provided the structure and Amy modified it**, and name others who helped wherever
+relevant. This is a standing rule (see tracker Rule 26), in force everywhere.
+
+### Away / status toggle — general, with dog-walk preset
+- A **general** away/status toggle (purpose: transparency into Amy's pattern), NOT
+  dog-specific.
+- One-tap presets: **"Walking the dogs"** (signature), Away, Heads-down/Focus,
+  "back at ~time", plus free text.
+- **Logs each away period** so it accumulates into a living record of Amy's rhythm —
+  Gavin/Isaac learn her pattern without her re-explaining (ties to New Hire form
+  disclosure and Item 13).
+
+### Proposed Version 1 scope (PENDING Amy's go-ahead)
+Foundation first (mostly invisible, but everything depends on it):
+1. **Schema + migration reconcile.** Rebuild the DB properly and capture it as a repo
+   migration so code and DB never drift again (the gap that caused the earlier
+   revert): people with verified/unverified tiers + source links + crm_type; person
+   encounter notes (source, occurred_at, activity_type); tasks with source +
+   provenance fields (raw source text, Claude verification note, edited-from link,
+   status). *Writes to the live Supabase project — get explicit go before applying.*
+
+Visible v1 (recommended lean slice):
+2. **HQ header:** live Philippines + San Francisco clocks + the away/status toggle.
+3. **People awareness log:** verified/unverified with source links, encounter entries,
+   greyed "Populate GM CRM?" button + the "Pending" corner note.
+
+Right after v1 (v1.1+):
+4. Task provenance + Fireflies inbox (source→Claude→Amy stack, categorized, newest-first).
+5. Calendar overlay (Fireflies meetings + task deadlines).
+6. Profile/memory tab + "Why this exists" explainer (crediting Isaac) + public/private toggle.
+7. Daily brief landing + "last updated" timestamp.
+8. Gavin/Isaac view toggles.
+
 ## Still open (need Amy)
 1. After reviewing `meeting-action-items.md`: which items become live dashboard tasks?
 2. Is the Fireflies per-item "edit before save" control worth building for v1?
