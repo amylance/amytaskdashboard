@@ -12,6 +12,8 @@ import CreateTodoModal from './components/CreateTodoModal.jsx';
 import CreatePersonModal from './components/CreatePersonModal.jsx';
 import KanbanView from './views/KanbanView.jsx';
 import InboxView from './views/InboxView.jsx';
+import ListView from './views/ListView.jsx';
+import TimelineView from './views/TimelineView.jsx';
 import CalendarView from './views/CalendarView.jsx';
 import PeopleView from './views/PeopleView.jsx';
 import ProfileView from './views/ProfileView.jsx';
@@ -164,6 +166,8 @@ export default function App() {
   const views = {
     inbox: <InboxView config={config} />,
     kanban: <KanbanView todos={todos} onOpen={openTodoDetail} onReorder={handlePatch} />,
+    list: <ListView todos={todos} onOpen={openTodoDetail} />,
+    timeline: <TimelineView todos={todos} onOpen={openTodoDetail} />,
     calendar: <CalendarView todos={todos} onOpen={openTodoDetail} config={config} />,
     people: (
       <PeopleView
