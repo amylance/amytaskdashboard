@@ -296,3 +296,41 @@ that, search would report a match that stayed invisible behind a collapsed row �
 not shown, which is worse than not finding it.
 
 Keyboard: arrows to move, Enter to jump, Escape to clear, click-away to dismiss.
+
+---
+
+## Aug 10, 2026 — The notebook: Home → Code without handoff files
+
+Amy's problem, in her words: she dissects things (e.g. Fireflies meetings) in Home
+conversations, realizes she wants a feature, and Home has no access to the Code session.
+A handoff file "is likely gonna miss the way I think — my process of thinking, why things
+have been decided on."
+
+**Diagnosis.** Handoff files fail structurally: written after the thinking, they carry
+conclusions and drop reasoning, and they brief one session then evaporate. Sessions do not
+share memory — what persists is what is written where every session reads it.
+
+**Built, three pieces:**
+
+1. **`CLAUDE.md`** — did not exist until now. The operating manual: who Amy is, the eleven
+   standing rules (each earned by a real mistake this week), where the record lives,
+   conventions, live threads. Claude Code loads it automatically at every session start,
+   so "understanding how Amy works" stops depending on conversation carryover. It evolves
+   by explicit preference, never inference.
+
+2. **`public.notebook`** — the bridge table. Home writes to Supabase (connector already
+   present); Code reads Supabase. Columns carry her words (`body` is the reasoning),
+   context (what prompted it), kind (decision/feature/idea/preference/context), and a
+   processed_at + outcome stamp so nothing is read twice or lost.
+
+3. **`log` skill** for her claude.ai account — "log this" mid-conversation captures the
+   thought in her own words with the why attached, one line of confirmation, conversation
+   continues. Explicitly not a task queue: commitments still go through sweep/Inbox.
+
+CLAUDE.md instructs every Code session to read unprocessed notebook entries at start,
+discuss-or-act per the discussion-before-execution rule, and stamp the outcome. Durable
+preferences get folded into CLAUDE.md — the file is versioned in git, so how Amy works is
+a diffable, evolving record rather than a memory.
+
+claude.ai Memory (Settings → Customize → Memory) covers Home-to-Home continuity but never
+reaches Code, which is why the notebook and CLAUDE.md carry the load.
