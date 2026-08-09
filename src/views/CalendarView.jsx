@@ -53,7 +53,10 @@ export default function CalendarView({ todos, onOpen, config }) {
     return out;
   }, [cursor]);
 
-  const todayKey = toKey(new Date());
+  // "Today" is the Lance team's day (Pacific), not the browser's. Amy works from the
+  // Philippines, 15 hours ahead — her Sunday 1am is still Saturday in SF, and the
+  // dashboard is a shared surface.
+  const todayKey = toPacificDateKey(new Date());
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-6">

@@ -157,7 +157,10 @@ async function handleInbox(req, res, db) {
         claude_note: item.claude_note,
         edited_from_source: edited,
         received_at: item.received_at,
-        completed_at: status === 'done' ? new Date().toISOString() : null,
+        // An item approved as "already done" was NOT finished now — stamping it with the
+        // current time drops days-old work onto today's calendar. The moment it arose is
+        // the closest defensible evidence we have, and Amy can correct it.
+        completed_at: status === 'done' ? item.received_at : null,
       })
       .select()
       .single();
