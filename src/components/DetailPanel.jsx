@@ -43,6 +43,7 @@ export default function DetailPanel({
   const [category, setCategory] = useState(todo?.category ?? '');
   const [linkUrl, setLinkUrl] = useState(todo?.link_url ?? '');
   const [linkLabel, setLinkLabel] = useState(todo?.link_label ?? '');
+  const [waitingOn, setWaitingOn] = useState(todo?.waiting_on ?? '');
   const [commentText, setCommentText] = useState('');
   const [sending, setSending] = useState(false);
   const [personQuery, setPersonQuery] = useState('');
@@ -65,6 +66,7 @@ export default function DetailPanel({
     setCategory(todo?.category ?? '');
     setLinkUrl(todo?.link_url ?? '');
     setLinkLabel(todo?.link_label ?? '');
+    setWaitingOn(todo?.waiting_on ?? '');
   }, [todo?.id]);
 
   if (!todo) return null;
@@ -177,6 +179,45 @@ export default function DetailPanel({
               Private
             </button>
           </div>
+
+          {/* Who this is blocked on. Editable — the person who raised it often isn't the
+              person who can unblock it (Isaac raised the GM CRM; Gavin grants the access). */}
+          <LabeledField label="Waiting on">
+            <div className="flex items-center gap-2">
+              <input
+                value={waitingOn}
+                onChange={(e) => setWaitingOn(e.target.value)}
+                onBlur={() => {
+                  if (waitingOn === (todo.waiting_on ?? '')) return;
+                  const value = waitingOn.trim();
+                  patch({
+                    waiting_on: value || null,
+                    // Start the clock when someone is first named, and clear it when removed.
+                    waiting_since: value ? todo.waiting_since ?? new Date().toISOString() : null,
+                    ...(value && todo.status !== 'waiting' ? { status: 'waiting' } : {}),
+                  });
+                }}
+                placeholder="e.g. Gavin — who can actually unblock this"
+                className={textFieldClass}
+              />
+              {todo.waiting_on && (
+                <button
+                  onClick={() =>
+                    patch({ waiting_on: null, waiting_since: null, status: 'todo' })
+                  }
+                  title="No longer waiting"
+                  className="tap-scale shrink-0 rounded-full border border-hairline px-2.5 py-1.5 text-[11px] text-ink-muted hover:text-ink"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            {todo.waiting_since && (
+              <p className="mt-1 text-[11px] text-ink-muted">
+                waiting since {formatDateTime(todo.waiting_since)}
+              </p>
+            )}
+          </LabeledField>
 
           <div className="grid grid-cols-2 gap-3">
             <LabeledField label="Contact">
