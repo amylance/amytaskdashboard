@@ -7,7 +7,7 @@ import { sourceOf, statusOf } from '../lib/visuals.js';
 
 // People Amy works with daily — she doesn't need reminding who they are, so they stay out
 // of the awareness log. Their value here is "what's open with them".
-const CORE_TEAM = ['Gavin Brennen', 'Isaac Gutierrez'];
+const CORE_TEAM = ['Gavin Brennen', 'Isaac Gutierrez', 'Caleb Chan'];
 
 // People = where names crossed Amy's awareness, grouped by the tool they came from, then
 // by date, newest first. Collapsed to a count; click to see who.
