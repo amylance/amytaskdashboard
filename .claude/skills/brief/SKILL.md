@@ -230,16 +230,30 @@ Short sentences. No dashes inside sentences.
 Prefer "in a thread you weren't on" to "you missed this." Prefer "the day is light" to
 "not much to report, sorry."
 
-## On-demand only
+## On-demand by default
 
-**Do not schedule this.** Amy's sleep and work cadence are irregular by design — she wakes,
-works, sleeps again, then starts her real day. A fixed trigger would never match. She calls
-it when she wants it, in either direction: forward-looking ("brief me for my workday") or
-backward-looking ("I'm done for the day, what happened"). Read which one she means from her
-words and frame the same data accordingly.
+Amy's sleep and work cadence are irregular by design — she wakes, works, sleeps again, then
+starts her real day. She calls this when she wants it, in either direction: forward-looking
+("brief me for my workday") or backward-looking ("I'm done for the day, what happened").
+Read which one she means from her words and frame the same data accordingly.
 
-If she ever asks to make it recurring, say plainly that she chose on-demand and ask her to
+If she asks to make it recurring, say plainly that she chose on-demand and ask her to
 confirm the change before setting anything up.
+
+### Unattended scheduled runs — skip Phase 1
+
+A scheduled run has a standing instruction that the run is **strictly read-only**. Phase 1
+writes to `inbox_items`, so it directly contradicts that. When the invocation says nobody is
+watching, or is otherwise an unattended or scheduled run:
+
+- **Skip Phase 1 entirely.** Do not sweep, do not file to the Inbox, do not touch
+  `sweep_state.last_swept_at`. Filing items while Amy is asleep means she meets a queue she
+  never saw arrive, and a moved watermark means the next real sweep skips that window.
+- **Run Phase 2 only**, reading straight from the tools and the dashboard.
+- Where a briefing names a commitment that has no matching task, **say so in the briefing**
+  instead of filing it. The next attended `sweep` or `brief` will capture it properly.
+
+Say in one line at the top that this was a read-only scheduled run and nothing was captured.
 
 ## Ground rules
 
