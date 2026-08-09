@@ -187,10 +187,15 @@ async function handleInbox(req, res, db) {
 async function handleCalendar(req, res, db) {
   if (req.method === 'GET') {
     const [{ data, error }, { data: meetings, error: meetErr }] = await Promise.all([
-      db.from('activity_events').select('*').order('event_date', { ascending: false }),
+      db
+        .from('activity_events')
+        .select('*')
+        .is('deleted_at', null)
+        .order('event_date', { ascending: false }),
       db
         .from('meetings')
         .select('*, items:meeting_items(id, label, discussed, sort_order, todo_id)')
+        .is('deleted_at', null)
         .order('occurred_at', { ascending: false }),
     ]);
     if (error || meetErr) {
