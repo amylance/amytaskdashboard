@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCalendarEvents } from '../hooks/useCalendarEvents.js';
-import { toPacificDateKey } from '../lib/format.js';
+import { toPacificDateKey, formatDateTimePT } from '../lib/format.js';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const KIND_MARK = { meeting: '🎙', milestone: '✦', action: '•' };
@@ -14,6 +14,7 @@ function toKey(date) {
 // plus task deadlines (what's coming). Bucketed by day.
 export default function CalendarView({ todos, onOpen, config }) {
   const { events } = useCalendarEvents(config);
+  const [openDay, setOpenDay] = useState(null);
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -104,7 +105,13 @@ export default function CalendarView({ todos, onOpen, config }) {
           const overflow = total - shownEvents.length - shownDone.length - shownTasks.length;
 
           return (
-            <div key={idx} className="bg-panel min-h-[110px] p-1.5 flex flex-col gap-1">
+            <div
+              key={idx}
+              onClick={() => total > 0 && setOpenDay(key)}
+              className={`bg-panel min-h-[110px] p-1.5 flex flex-col gap-1 ${
+                total > 0 ? 'cursor-pointer hover:bg-black/[0.03]' : ''
+              }`}
+            >
               <span
                 className={`self-start font-mono text-[11px] px-1.5 py-0.5 rounded-full ${
                   isToday ? 'bg-ink text-white' : 'text-ink-muted'
@@ -169,6 +176,114 @@ export default function CalendarView({ todos, onOpen, config }) {
           );
         })}
       </div>
+
+      {openDay && (
+        <DayPanel
+          dayKey={openDay}
+          cell={byDate.get(openDay) ?? { events: [], done: [], tasks: [] }}
+          onClose={() => setOpenDay(null)}
+          onOpen={onOpen}
+        />
+      )}
+    </div>
+  );
+}
+
+// Click a day → the wrap-up: what happened, what was finished (and when it was first
+// asked of her), and what's due. This is the "index" Amy wanted — go back to any day and
+// see what was actually discussed and closed.
+function DayPanel({ dayKey, cell, onClose, onOpen }) {
+  const label = new Date(`${dayKey}T12:00:00`).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end">
+      <div className="absolute inset-0 frosted overlay-in" onClick={onClose} />
+      <div className="glass-panel relative slide-in-panel w-full max-w-md h-full border-l flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-hairline shrink-0">
+          <h2 className="text-sm font-semibold text-ink">{label}</h2>
+          <button
+            onClick={onClose}
+            className="tap-scale inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-muted hover:bg-black/10"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
+          {cell.events.length > 0 && (
+            <Group title="What happened">
+              {cell.events.map((ev) => (
+                <div key={ev.id} className="rounded-lg border border-hairline bg-panel px-3 py-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm text-ink">
+                      {KIND_MARK[ev.kind] ?? '•'} {ev.title}
+                    </p>
+                    {ev.source_url && (
+                      <a
+                        href={ev.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 text-[11px] text-clay hover:underline"
+                      >
+                        open
+                      </a>
+                    )}
+                  </div>
+                  {ev.detail && <p className="text-[11px] text-ink-muted mt-1">{ev.detail}</p>}
+                </div>
+              ))}
+            </Group>
+          )}
+
+          {cell.done.length > 0 && (
+            <Group title={`Finished (${cell.done.length})`}>
+              {cell.done.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => onOpen(t.id)}
+                  className="tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2"
+                >
+                  <p className="text-sm text-ink">✓ {t.title}</p>
+                  <p className="text-[11px] text-ink-muted mt-0.5">
+                    {t.received_at && <>asked {formatDateTimePT(t.received_at)} · </>}
+                    done {formatDateTimePT(t.completed_at)}
+                  </p>
+                </button>
+              ))}
+            </Group>
+          )}
+
+          {cell.tasks.length > 0 && (
+            <Group title={`Due (${cell.tasks.length})`}>
+              {cell.tasks.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => onOpen(t.id)}
+                  className="tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2"
+                >
+                  <p className="text-sm text-ink">○ {t.title}</p>
+                  {t.waiting_on && (
+                    <p className="text-[11px] text-violet-700 mt-0.5">⏳ waiting on {t.waiting_on}</p>
+                  )}
+                </button>
+              ))}
+            </Group>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Group({ title, children }) {
+  return (
+    <div>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1.5">{title}</h3>
+      <div className="flex flex-col gap-1.5">{children}</div>
     </div>
   );
 }

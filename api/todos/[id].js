@@ -3,6 +3,8 @@ import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { PRIORITY_RANK, STATUSES, PRIORITIES } from '../_lib/priority.js';
 
 const EDITABLE_FIELDS = [
+  'waiting_on',
+  'waiting_since',
   'title',
   'description',
   'due_date',

@@ -30,8 +30,17 @@ export const STATUS_VISUALS = {
   todo: { label: 'To Do', mark: '○', dot: 'bg-slate-400', text: 'text-slate-600', bar: 'bg-slate-300' },
   doing: { label: 'Doing', mark: '◐', dot: 'bg-blue-500', text: 'text-blue-700', bar: 'bg-blue-400' },
   review: { label: 'Review', mark: '◔', dot: 'bg-amber-500', text: 'text-amber-700', bar: 'bg-amber-400' },
+  // Purple reads as "not mine right now" — distinct from the blue of work in motion.
+  waiting: { label: 'Waiting on', mark: '⏳', dot: 'bg-violet-500', text: 'text-violet-700', bar: 'bg-violet-400' },
   done: { label: 'Done', mark: '✓', dot: 'bg-emerald-500', text: 'text-emerald-700', bar: 'bg-emerald-400' },
 };
+
+// Days a waiting item has been sitting, and whether that's gone stale.
+export function waitingAge(since) {
+  if (!since) return null;
+  const days = Math.floor((Date.now() - new Date(since).getTime()) / 86400000);
+  return { days, stale: days >= 2 };
+}
 
 export function statusOf(status) {
   return STATUS_VISUALS[status] ?? STATUS_VISUALS.todo;

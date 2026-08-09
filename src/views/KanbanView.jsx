@@ -7,10 +7,31 @@ export default function KanbanView({ todos, onOpen, onReorder }) {
   const [draggingId, setDraggingId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
 
+  // Done shows TODAY's completions only — older finished work lives in the Calendar,
+  // on the day it happened, so the board stays about live work.
+  const todayKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+
   const columns = STATUSES.map((s) => ({
     ...s,
     items: todos
-      .filter((t) => t.status === s.id)
+      .filter((t) => {
+        if (t.status !== s.id) return false;
+        if (s.id !== 'done') return true;
+        if (!t.completed_at) return true;
+        return (
+          new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Los_Angeles',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }).format(new Date(t.completed_at)) === todayKey
+        );
+      })
       .sort((a, b) => a.sort_order - b.sort_order),
   }));
 
@@ -45,7 +66,7 @@ export default function KanbanView({ todos, onOpen, onReorder }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
       {columns.map((col) => (
         <div
           key={col.id}
@@ -105,8 +126,13 @@ export default function KanbanView({ todos, onOpen, onReorder }) {
             ))}
             {col.items.length === 0 && (
               <div className="text-xs text-ink-muted/70 text-center py-6 border border-dashed border-hairline rounded-xl">
-                Nothing here
+                {col.id === 'done' ? 'Nothing finished today' : 'Nothing here'}
               </div>
+            )}
+            {col.id === 'done' && col.items.length > 0 && (
+              <p className="text-[10px] text-ink-muted/70 text-center pt-1">
+                Today only — earlier work is in the Calendar
+              </p>
             )}
           </div>
         </div>

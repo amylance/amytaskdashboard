@@ -11,8 +11,7 @@ import PersonDetailPanel from './components/PersonDetailPanel.jsx';
 import CreateTodoModal from './components/CreateTodoModal.jsx';
 import CreatePersonModal from './components/CreatePersonModal.jsx';
 import KanbanView from './views/KanbanView.jsx';
-import ListView from './views/ListView.jsx';
-import TimelineView from './views/TimelineView.jsx';
+import InboxView from './views/InboxView.jsx';
 import CalendarView from './views/CalendarView.jsx';
 import PeopleView from './views/PeopleView.jsx';
 import ProfileView from './views/ProfileView.jsx';
@@ -22,7 +21,7 @@ export default function App() {
   const config = session.status === 'ready' ? session.config : null;
   const { todos, setTodos, loading: todosLoading } = useTodos(config);
   const { people, setPeople, loading: peopleLoading } = usePeople(config);
-  const [activeView, setActiveView] = useState('kanban');
+  const [activeView, setActiveView] = useState('inbox');
   const [openTodoId, setOpenTodoId] = useState(null);
   const [openPersonId, setOpenPersonId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -45,7 +44,7 @@ export default function App() {
   const openTodo = todos.find((t) => t.id === openTodoId) ?? null;
   const openPerson = people.find((p) => p.id === openPersonId) ?? null;
   const isLoading =
-    activeView === 'people' ? peopleLoading : activeView === 'profile' ? false : todosLoading;
+    activeView === 'people' ? peopleLoading : ['profile','inbox'].includes(activeView) ? false : todosLoading;
 
   function openTodoDetail(id) {
     setOpenPersonId(null);
@@ -163,11 +162,18 @@ export default function App() {
   }
 
   const views = {
+    inbox: <InboxView config={config} />,
     kanban: <KanbanView todos={todos} onOpen={openTodoDetail} onReorder={handlePatch} />,
-    list: <ListView todos={todos} onOpen={openTodoDetail} config={config} />,
-    timeline: <TimelineView todos={todos} onOpen={openTodoDetail} />,
     calendar: <CalendarView todos={todos} onOpen={openTodoDetail} config={config} />,
-    people: <PeopleView people={people} onOpen={openPersonDetail} config={config} />,
+    people: (
+      <PeopleView
+        people={people}
+        todos={todos}
+        onOpen={openPersonDetail}
+        onOpenTodo={openTodoDetail}
+        config={config}
+      />
+    ),
     profile: <ProfileView />,
   };
 
@@ -179,7 +185,7 @@ export default function App() {
         onLogout={session.logout}
         onCreate={() => setShowCreate(true)}
         createLabel={activeView === 'people' ? 'New person' : 'New task'}
-        canCreate={activeView !== 'profile'}
+        canCreate={activeView !== 'profile' && activeView !== 'inbox'}
       />
 
       {error && (

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Search, BadgeCheck, HelpCircle, Database, ExternalLink } from 'lucide-react';
+import { Search, BadgeCheck, HelpCircle, ExternalLink } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { getSupabaseClient } from '../lib/supabaseClient.js';
 import { formatDateTime } from '../lib/format.js';
+import { statusOf } from '../lib/visuals.js';
 
 const SOURCE_LABEL = { app: 'App', slack: 'Slack', fireflies: 'Fireflies', email: 'Email' };
 const ACTIVITY_LABEL = {
@@ -15,7 +16,11 @@ const ACTIVITY_LABEL = {
 
 // People = an awareness timeline: a feed of who crossed Amy's awareness, why, and from
 // where — newest first — with a verified/unverified badge and a clickable source link.
-export default function PeopleView({ people, onOpen, config }) {
+// People Amy works with daily — she doesn't need reminding who they are, so they're kept
+// out of the awareness timeline. Their value here is "what's open with them".
+const CORE_TEAM = ['Gavin Brennen', 'Isaac Gutierrez'];
+
+export default function PeopleView({ people, todos = [], onOpen, onOpenTodo, config }) {
   const [feed, setFeed] = useState([]);
   const [query, setQuery] = useState('');
   const [tier, setTier] = useState('all'); // all | verified | unverified
@@ -44,9 +49,31 @@ export default function PeopleView({ people, onOpen, config }) {
     return () => client.removeChannel(channel);
   }, [config, refresh]);
 
+  // "Working with" — open work grouped by the person it involves. Serves Amy ("what have
+  // I done for Gavin?") and them ("what did I ask Amy, and what's waiting on me?").
+  const workingWith = useMemo(() => {
+    const map = new Map();
+    for (const t of todos) {
+      if (t.status === 'done') continue;
+      const names = new Set();
+      if (t.waiting_on) names.add(t.waiting_on.split(' /')[0].trim());
+      for (const p of t.people ?? []) names.add(p.name);
+      for (const raw of names) {
+        const name = raw.split(' ')[0];
+        if (!map.has(name)) map.set(name, { name, open: 0, waiting: 0, items: [] });
+        const row = map.get(name);
+        row.open += 1;
+        if (t.status === 'waiting') row.waiting += 1;
+        row.items.push(t);
+      }
+    }
+    return [...map.values()].sort((a, b) => b.waiting - a.waiting || b.open - a.open);
+  }, [todos]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return feed.filter((e) => {
+      if (CORE_TEAM.includes(e.person?.name)) return false;
       const t = e.person?.verification_tier === 'verified' ? 'verified' : 'unverified';
       if (tier !== 'all' && t !== tier) return false;
       if (!q) return true;
@@ -71,15 +98,43 @@ export default function PeopleView({ people, onOpen, config }) {
             className="w-full rounded-full border border-hairline bg-panel pl-9 pr-4 py-2 text-sm outline-none focus:border-ink/30"
           />
         </div>
-        <button
-          disabled
-          title="Available after connecting lance.live/internal with Isaac (Mon)"
-          className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-panel px-3.5 py-2 text-sm text-ink-muted opacity-50 cursor-not-allowed"
-        >
-          <Database size={14} />
-          Populate the GM CRM?
-        </button>
       </div>
+
+      {/* Working with — click a name to see what's open with that person. */}
+      {workingWith.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-2">Working with</h2>
+          <div className="flex flex-col gap-1.5">
+            {workingWith.map((row) => (
+              <details key={row.name} className="rounded-xl border border-hairline bg-panel">
+                <summary className="cursor-pointer list-none px-4 py-2.5 flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-ink">{row.name}</span>
+                  <span className="flex items-center gap-2 text-[11px]">
+                    {row.waiting > 0 && (
+                      <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-violet-700">
+                        ⏳ {row.waiting} waiting on {row.name}
+                      </span>
+                    )}
+                    <span className="text-ink-muted">{row.open} open</span>
+                  </span>
+                </summary>
+                <div className="px-4 pb-3 flex flex-col gap-1">
+                  {row.items.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => onOpenTodo?.(t.id)}
+                      className="tap-scale text-left text-sm text-ink hover:underline flex items-center gap-2"
+                    >
+                      <span className="text-[11px] text-ink-muted">{statusOf(t.status).mark}</span>
+                      {t.title}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-1.5 mb-5">
         <TierChip label="All" active={tier === 'all'} onClick={() => setTier('all')} count={verifiedCount + unverifiedCount} />

@@ -1,7 +1,7 @@
 import { Lock, Calendar } from 'lucide-react';
 import PriorityBadge from './PriorityBadge.jsx';
 import { formatDueDate, isOverdue } from '../lib/format.js';
-import { sourceOf, statusOf } from '../lib/visuals.js';
+import { sourceOf, statusOf, waitingAge } from '../lib/visuals.js';
 
 export default function TodoCard({ todo, onClick, draggable, onDragStart, onDragEnd, dragging, showStatus }) {
   const overdue = isOverdue(todo.due_date, todo.status);
@@ -34,6 +34,28 @@ export default function TodoCard({ todo, onClick, draggable, onDragStart, onDrag
       <h3 className={`text-sm font-medium leading-snug line-clamp-2 mb-2 ${isDone ? 'text-ink-muted line-through' : 'text-ink'}`}>
         {todo.title}
       </h3>
+
+      {/* Waiting items name who they're stuck on and how long — the chase prompt. */}
+      {todo.status === 'waiting' && todo.waiting_on && (
+        <div className="mb-2">
+          {(() => {
+            const age = waitingAge(todo.waiting_since);
+            return (
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${
+                  age?.stale
+                    ? 'bg-clay-soft text-clay border border-clay/35 font-medium'
+                    : 'bg-violet-500/10 text-violet-700 border border-violet-500/25'
+                }`}
+              >
+                ⏳ {todo.waiting_on}
+                {age && ` · ${age.days}d`}
+                {age?.stale && ' — chase'}
+              </span>
+            );
+          })()}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 flex-wrap">
         {showStatus && (
