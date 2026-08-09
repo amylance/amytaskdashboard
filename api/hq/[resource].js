@@ -114,6 +114,33 @@ async function handleInbox(req, res, db) {
 
     // Approve — Amy may have edited the title/status before accepting.
     const title = typeof body.title === 'string' && body.title.trim() ? body.title.trim() : item.title;
+
+    // A memory proposal becomes a disclosure-ledger entry, not a task.
+    if (item.kind === 'memory') {
+      const { data: disc, error: discErr } = await db
+        .from('disclosures')
+        .insert({
+          what: title,
+          to_whom: item.to_whom ?? null,
+          occurred_at: item.received_at,
+          source: item.source,
+          source_url: item.source_url,
+          evidence: item.source_raw,
+        })
+        .select()
+        .single();
+      if (discErr) {
+        res.status(500).json({ error: discErr.message });
+        return;
+      }
+      await db
+        .from('inbox_items')
+        .update({ state: 'approved', resolved_at: new Date().toISOString(), created_disclosure_id: disc.id })
+        .eq('id', id);
+      res.status(201).json({ disclosure: disc });
+      return;
+    }
+
     const status = body.status === 'done' ? 'done' : body.status || item.suggested_status;
     const edited = title !== item.title;
 
@@ -206,15 +233,15 @@ async function handleProfile(req, res, db) {
       res.status(403).json({ error: 'locked', locked: true });
       return;
     }
-    const { data, error } = await db
-      .from('profile_sections')
-      .select('*')
-      .order('sort_order', { ascending: true });
+    const [{ data, error }, { data: disclosures }] = await Promise.all([
+      db.from('profile_sections').select('*').order('sort_order', { ascending: true }),
+      db.from('disclosures').select('*').order('occurred_at', { ascending: false }),
+    ]);
     if (error) {
       res.status(500).json({ error: error.message });
       return;
     }
-    res.status(200).json({ sections: data ?? [] });
+    res.status(200).json({ sections: data ?? [], disclosures: disclosures ?? [] });
     return;
   }
 

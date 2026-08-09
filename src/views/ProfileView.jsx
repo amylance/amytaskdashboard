@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { EyeOff, Eye, Lock, Globe, ShieldCheck } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile.js';
+import { formatDateTimePT } from '../lib/format.js';
 
 // Profile / Memory tab (items 3 + 11). Amy's OWN record — for her visibility and
 // transparency — of who she is and what she's poured into the Lance network (Claude,
@@ -9,7 +10,7 @@ import { useProfile } from '../hooks/useProfile.js';
 // (Soft privacy: the dashboard is one shared passphrase, so true per-person locking
 // waits on real logins — until then this keeps personal notes out of view on demand.)
 export default function ProfileView() {
-  const { sections, locked, loading, unlock, updateSection } = useProfile();
+  const { sections, disclosures, locked, loading, unlock, updateSection } = useProfile();
   const [hidePrivate, setHidePrivate] = useState(false);
   const [entry, setEntry] = useState('');
   const [error, setError] = useState(null);
@@ -115,6 +116,41 @@ export default function ProfileView() {
           <p className="text-sm text-ink-muted text-center py-10 border border-dashed border-hairline rounded-2xl">
             All sections are private and currently hidden.
           </p>
+        )}
+      </div>
+
+      {/* Disclosure ledger — the factual record of what Amy has given the Lance network.
+          Populated by approving 'memory' proposals from the Inbox; the reflective
+          sections above stay hand-written in her own voice. */}
+      <div className="mt-8">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink mb-1">
+          What I&apos;ve given the Lance network
+        </h2>
+        <p className="text-[11px] text-ink-muted mb-3">
+          A factual ledger — what I shared, with whom, and when. Built from approved Inbox proposals.
+        </p>
+        {disclosures.length === 0 ? (
+          <p className="text-xs text-ink-muted border border-dashed border-hairline rounded-xl px-4 py-6 text-center">
+            Nothing logged yet — run a sweep and approve any memory proposals.
+          </p>
+        ) : (
+          <ol className="relative border-l border-hairline ml-2 flex flex-col gap-3 pl-5">
+            {disclosures.map((d) => (
+              <li key={d.id} className="relative">
+                <span className="absolute -left-[27px] top-2 w-2 h-2 rounded-full bg-clay" />
+                <div className="rounded-xl border border-hairline bg-panel p-3">
+                  <div className="flex items-start justify-between gap-2 mb-0.5">
+                    <p className="text-sm text-ink">{d.what}</p>
+                    <span className="shrink-0 text-[10px] font-mono text-ink-muted">
+                      {formatDateTimePT(d.occurred_at)}
+                    </span>
+                  </div>
+                  {d.to_whom && <p className="text-[11px] text-ink-muted">to {d.to_whom}</p>}
+                  {d.evidence && <p className="text-[11px] text-ink-muted italic mt-1">“{d.evidence}”</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
         )}
       </div>
     </div>

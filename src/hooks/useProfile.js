@@ -5,18 +5,21 @@ import { api } from '../lib/api.js';
 // and the browser's realtime key cannot read it — until the gate is unlocked.
 export function useProfile() {
   const [sections, setSections] = useState([]);
+  const [disclosures, setDisclosures] = useState([]);
   const [locked, setLocked] = useState(true);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const { sections } = await api.getProfile();
+      const { sections, disclosures } = await api.getProfile();
       setSections(sections ?? []);
+      setDisclosures(disclosures ?? []);
       setLocked(false);
     } catch (err) {
       if (err.status === 403) {
         setLocked(true);
         setSections([]);
+        setDisclosures([]);
       }
     } finally {
       setLoading(false);
@@ -47,5 +50,5 @@ export function useProfile() {
     [refresh],
   );
 
-  return { sections, locked, loading, unlock, updateSection };
+  return { sections, disclosures, locked, loading, unlock, updateSection };
 }

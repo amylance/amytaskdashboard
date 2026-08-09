@@ -52,11 +52,13 @@ function InboxCard({ item, onResolve }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
   const alreadyDone = item.suggested_status === 'done';
+  const isMemory = item.kind === 'memory';
 
   return (
     <div className="rounded-xl border border-clay/25 bg-clay-soft p-3.5">
       <div className="flex items-center justify-between gap-2 mb-1.5">
         <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">
+          {isMemory && <span className="text-clay">🔒 memory · </span>}
           {SOURCE_LABEL[item.source] ?? item.source}
           {item.source_context ? ` · ${item.source_context}` : ''}
         </span>
@@ -91,7 +93,7 @@ function InboxCard({ item, onResolve }) {
           className="tap-scale inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-white"
         >
           <Check size={12} />
-          {alreadyDone ? 'Approve as done' : 'Approve'}
+          {isMemory ? 'Add to my ledger' : alreadyDone ? 'Approve as done' : 'Approve'}
         </button>
         <button
           onClick={() => (editing ? onResolve(item.id, 'approve', { title, status: item.suggested_status }) : setEditing(true))}

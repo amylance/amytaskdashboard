@@ -55,6 +55,23 @@ For every candidate, check it against the record before filing:
 Always write a short, specific `claude_note`. That note is the whole point — it's what
 lets Amy trust the queue at a glance.
 
+## 4b. Also propose disclosures (memory)
+
+Alongside commitments, capture **what Amy gave the Lance network** — her stated purpose
+for the Profile tab: *"what I've poured in, what I've given Claude, the tools, my emails."*
+
+Only **factual, verifiable disclosure events**. Examples:
+- "Shared dashboard link + passphrase with Gavin and Isaac"
+- "Submitted BIR TIN ID to Rippling"
+- "Granted Claude access to Slack, Gmail, Fireflies, Supabase"
+
+File these with `"kind": "memory"` and a `to_whom`. They land in the same Inbox and,
+when Amy approves, become entries in her **disclosure ledger** (Profile tab).
+
+**Never propose reflective content** — how she works, her voice, her background, her
+rhythm. That section is hers to write. Inferring personality from messages is exactly
+the kind of guess that pollutes a record she has to trust.
+
 ## 5. File them
 
 POST to `/api/hq/inbox` with `action: "create"` (dedupes on source + source_raw):
