@@ -110,7 +110,23 @@ Or write directly to `public.inbox_items` via Supabase if the API isn't reachabl
 `received_at` must be the **absolute instant** it landed (UTC) — the dashboard renders
 everything in Pacific.
 
-## 6. Report back
+## 6. Move the watermark — with the real clock
+
+```sql
+update public.sweep_state set last_swept_at = <the moment the sweep finished> where id = true;
+```
+
+**Read the actual current time before writing this. Never guess it, never round it up, and
+never reuse a timestamp written earlier in the run.** The watermark is the floor of the next
+sweep, so a value even slightly in the future creates a blind window that nothing will ever
+look at again — items that land in it are lost silently, with no error and no gap in the UI.
+
+If in doubt, set it *earlier* than the true finish time. Re-seeing a few items is free; the
+`create` call dedupes on source + source_raw. Missing them is not recoverable.
+
+Skip this step entirely on an unattended run — see the `brief` skill.
+
+## 7. Report back
 
 Tell Amy in plain prose: how many items filed, which are already-done, which look
 mis-attributed, and anything genuinely urgent. Then stop — she decides from the dashboard.
