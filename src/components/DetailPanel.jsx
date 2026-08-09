@@ -110,13 +110,19 @@ export default function DetailPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
-          <textarea
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => title.trim() && title !== todo.title && patch({ title: title.trim() })}
-            rows={1}
-            className="w-full resize-none text-lg font-semibold text-ink outline-none bg-transparent leading-snug"
-          />
+          {/* The title has to LOOK editable — it was styled as plain text and locked to one
+              line, so long titles were clipped and nobody could tell it was a field. */}
+          <div>
+            <label className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">Task</label>
+            <textarea
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => title.trim() && title !== todo.title && patch({ title: title.trim() })}
+              rows={Math.max(1, Math.ceil(title.length / 34))}
+              placeholder="Name this task…"
+              className="mt-1 w-full resize-none rounded-lg border border-hairline bg-panel px-3 py-2 text-lg font-semibold text-ink outline-none leading-snug hover:border-ink/25 focus:border-ink/40"
+            />
+          </div>
 
           {(todo.source_raw || todo.claude_note) && (
             <div className="rounded-xl border border-hairline bg-black/[0.02] p-3 flex flex-col gap-2.5">
