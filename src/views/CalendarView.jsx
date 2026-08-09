@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCalendarEvents } from '../hooks/useCalendarEvents.js';
 import { toPacificDateKey, formatDateTimePT } from '../lib/format.js';
 import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
+import CalendarSearch from '../components/CalendarSearch.jsx';
+import { buildCalendarIndex } from '../lib/calendarSearch.js';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const KIND_MARK = { meeting: '🎙', milestone: '✦', action: '•' };
@@ -17,6 +19,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
   const { events, meetings } = useCalendarEvents(config);
   const [openDay, setOpenDay] = useState(null);
   const [openMeeting, setOpenMeeting] = useState(null);
+  const [highlight, setHighlight] = useState(null);
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -70,6 +73,31 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
   // dashboard is a shared surface.
   const todayKey = toPacificDateKey(new Date());
 
+  const searchIndex = useMemo(
+    () => buildCalendarIndex({ meetings, events, todos, removed }),
+    [meetings, events, todos, removed],
+  );
+
+  // Jump: move the month into view, open that day, and light up the row. The ring on the
+  // cell fades on its own so the grid does not stay permanently marked, but the row inside
+  // the panel stays lit for as long as the panel is open.
+  function jumpTo(result) {
+    const [y, m] = result.dayKey.split('-').map(Number);
+    setCursor(new Date(y, m - 1, 1));
+    setOpenDay(result.dayKey);
+    setHighlight({ dayKey: result.dayKey, id: result.id, kind: result.kind });
+    if (result.kind === 'meeting') {
+      const meeting = meetings.find((x) => x.id === result.id);
+      if (meeting) setOpenMeeting(meeting);
+    }
+  }
+
+  useEffect(() => {
+    if (!highlight) return undefined;
+    const t = setTimeout(() => setHighlight((h) => (h ? { ...h, dayKey: null } : null)), 2600);
+    return () => clearTimeout(t);
+  }, [highlight]);
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-6">
       <div className="flex items-center justify-between mb-4">
@@ -86,7 +114,8 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             <span className="text-clay">all times PT</span>
           </p>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-3">
+          <CalendarSearch index={searchIndex} onJump={jumpTo} />
           <button
             onClick={() => setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1))}
             className="tap-scale inline-flex items-center justify-center w-8 h-8 rounded-full border border-hairline hover:bg-black/5"
@@ -132,8 +161,10 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             <div
               key={idx}
               onClick={() => openable && setOpenDay(key)}
-              className={`bg-panel min-h-[110px] p-1.5 flex flex-col gap-1 ${
+              className={`bg-panel min-h-[110px] p-1.5 flex flex-col gap-1 transition-shadow ${
                 openable ? 'cursor-pointer hover:bg-black/[0.03]' : ''
+              } ${
+                highlight?.dayKey === key ? 'ring-2 ring-inset ring-clay bg-clay-soft/40' : ''
               }`}
             >
               <span className="flex items-center gap-1">
@@ -238,6 +269,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           onOpenMeeting={setOpenMeeting}
           removed={byDate.get(openDay)?.removed ?? []}
           onRestore={onRestore}
+          highlightId={highlight?.id ?? null}
         />
       )}
 
@@ -313,7 +345,9 @@ function MeetingPanel({ meeting, onClose }) {
 // Click a day → the wrap-up: what happened, what was finished (and when it was first
 // asked of her), and what's due. This is the "index" Amy wanted — go back to any day and
 // see what was actually discussed and closed.
-function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], onRestore }) {
+const LIT = 'ring-2 ring-clay bg-clay-soft/50';
+
+function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], onRestore, highlightId }) {
   const label = new Date(`${dayKey}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -341,7 +375,9 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
                 <button
                   key={m.id}
                   onClick={() => onOpenMeeting(m)}
-                  className="tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2"
+                  className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
+                    highlightId === m.id ? LIT : ''
+                  }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm text-ink truncate">🎙 {m.title}</p>
@@ -361,7 +397,12 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
           {cell.events.length > 0 && (
             <Group title="What happened">
               {cell.events.map((ev) => (
-                <div key={ev.id} className="rounded-lg border border-hairline bg-panel px-3 py-2">
+                <div
+                  key={ev.id}
+                  className={`rounded-lg border border-hairline bg-panel px-3 py-2 ${
+                    highlightId === ev.id ? LIT : ''
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm text-ink">
                       {KIND_MARK[ev.kind] ?? '•'} {ev.title}
@@ -389,7 +430,9 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
                 <button
                   key={t.id}
                   onClick={() => onOpen(t.id)}
-                  className="tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2"
+                  className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
+                    highlightId === t.id ? LIT : ''
+                  }`}
                 >
                   <p className="text-sm text-ink">✓ {t.title}</p>
                   <p className="text-[11px] text-ink-muted mt-0.5">
@@ -407,7 +450,9 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
                 <button
                   key={t.id}
                   onClick={() => onOpen(t.id)}
-                  className="tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2"
+                  className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
+                    highlightId === t.id ? LIT : ''
+                  }`}
                 >
                   <p className="text-sm text-ink">○ {t.title}</p>
                   {t.waiting_on && (
@@ -423,6 +468,7 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
             noun="entry"
             onRestore={onRestore}
             describe={removedAt}
+            highlightId={highlightId}
           />
         </div>
       </div>

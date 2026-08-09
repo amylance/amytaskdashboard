@@ -264,3 +264,35 @@ Vercel's 12-function ceiling and a new endpoint would have broken the deploy.
 *Precedent: Amy trimmed the People list during onboarding and lost Maanya Kashyap with it,
 catching the mistake days later only because she heard the name on a call with Gavin. That
 is the failure mode this closes.*
+
+---
+
+## Aug 9, 2026 — Calendar search
+
+Amy's ask: *"I remember something that I don't [know when], and I key in a word to help me
+locate it, it then leads me to the right month in the view and highlights the day… and
+highlights the item."*
+
+**Searches every month at once, and searches bodies — not just titles.** The whole premise
+is a half-remembered fragment, so title-only matching would miss the thing she is looking
+for. The index reaches into meeting checklist lines, task descriptions and Claude notes,
+activity-event detail, and who a meeting was with. Typing `hyatt` finds the Aug 5 onboarding
+call even though the word appears nowhere in its title — only in a checklist line.
+
+**Ranking:** title-prefix, then title-substring, then the person/category line, then body,
+newest first inside each tier. When the match is in a body, the result shows the surrounding
+phrase rather than the whole field, so she can tell which item is hers before clicking.
+
+**On selection:** the month scrolls into view, the day panel opens, the day cell gets a clay
+ring, and the matching row lights up inside the panel. Meetings open their checklist
+directly.
+
+The cell ring fades after ~2.6 seconds so the grid does not stay permanently marked; the row
+inside the panel stays lit for as long as the panel is open. Different lifetimes because
+they answer different questions — *where* is momentary, *which one* is not.
+
+**Removed items are searchable too**, and a hit auto-expands the recovery strip. Without
+that, search would report a match that stayed invisible behind a collapsed row — found but
+not shown, which is worse than not finding it.
+
+Keyboard: arrows to move, Enter to jump, Escape to clear, click-away to dismiss.

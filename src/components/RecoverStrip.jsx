@@ -5,8 +5,13 @@ import { formatDateTimePT } from '../lib/format.js';
 // You look for a lost thing in the room you lost it in — not a central trash can you have
 // to remember exists. This renders only when there is something to recover, so an empty
 // state costs nothing. That is the whole reason it isn't a tab.
-export default function RecoverStrip({ items, noun, onRestore, describe }) {
+export default function RecoverStrip({ items, noun, onRestore, describe, highlightId }) {
   const [open, setOpen] = useState(false);
+
+  // If search lands on something removed, the strip has to open itself — otherwise the
+  // result is "found" but still invisible behind a collapsed row.
+  const hit = highlightId && items?.some((i) => i.id === highlightId);
+  const expanded = open || hit;
 
   if (!items || items.length === 0) return null;
 
@@ -21,15 +26,17 @@ export default function RecoverStrip({ items, noun, onRestore, describe }) {
         <span>
           {items.length} {label} removed
         </span>
-        <ChevronRight size={12} className={`transition-transform ${open ? 'rotate-90' : ''}`} />
+        <ChevronRight size={12} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
       </button>
 
-      {open && (
+      {expanded && (
         <div className="mt-2 flex flex-col gap-1.5">
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-hairline px-3 py-2"
+              className={`flex items-center justify-between gap-3 rounded-lg border border-dashed border-hairline px-3 py-2 ${
+                highlightId === item.id ? 'ring-2 ring-clay bg-clay-soft/50' : ''
+              }`}
             >
               <div className="min-w-0">
                 <p className="text-[13px] text-ink-muted line-through truncate">
