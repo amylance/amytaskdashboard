@@ -30,19 +30,15 @@ export default function Clocks() {
     return () => clearInterval(t);
   }, []);
 
-  const sf = parts(PT);
-  const ph = parts(PH);
-  const dayAhead = ph.key > sf.key;
-
   return (
     <div className="hidden sm:flex flex-col gap-0.5 leading-tight font-mono text-[10px] text-ink-muted">
-      <Row flag="🇺🇸" label="SF" p={sf} note="dashboard" />
-      <Row flag="🇵🇭" label="PH" p={ph} note={dayAhead ? 'you · next day' : 'you'} />
+      <Row flag="🇺🇸" label="SF" p={parts(PT)} />
+      <Row flag="🇵🇭" label="PH" p={parts(PH)} />
     </div>
   );
 }
 
-function Row({ flag, label, p, note }) {
+function Row({ flag, label, p }) {
   return (
     <span className="inline-flex items-center gap-1 whitespace-nowrap">
       <span aria-hidden>{flag}</span>
@@ -50,7 +46,6 @@ function Row({ flag, label, p, note }) {
       <span className="w-8 text-ink">{p.day}</span>
       <span className="w-12 text-ink">{p.date}</span>
       <span className="text-ink tabular-nums">{p.time}</span>
-      <span className="text-ink-muted/70">· {note}</span>
     </span>
   );
 }
