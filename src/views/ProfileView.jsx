@@ -15,6 +15,17 @@ export default function ProfileView() {
   const [error, setError] = useState(null);
   const [checking, setChecking] = useState(false);
 
+  // NOTE: every hook must run on every render — keep these ABOVE the early returns
+  // below, or React throws "rendered more hooks than during the previous render".
+  const visible = useMemo(
+    () => (hidePrivate ? sections.filter((s) => s.visibility !== 'private') : sections),
+    [sections, hidePrivate],
+  );
+  const privateCount = useMemo(
+    () => sections.filter((s) => s.visibility === 'private').length,
+    [sections],
+  );
+
   async function handleUnlock(e) {
     e.preventDefault();
     if (!entry.trim() || checking) return;
