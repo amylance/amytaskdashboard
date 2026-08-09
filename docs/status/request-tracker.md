@@ -37,17 +37,17 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 |---|------|--------|
 | 7 | List every tool, its purpose, what I'm connected to and what I'm not | ⚠️ discussed only — no written inventory |
 | 8 | Best use of each; design what I need, don't copy Isaac's setup | ⚠️ discussed only |
-| 9 | Fireflies: action items, My Tasks vs All Tasks, notes, AI skills — where does the checkbox live? | ❌ unresolved (open design question) |
+| 9 | Fireflies: action items, My Tasks vs All Tasks, notes, AI skills — where does the checkbox live? | ✅ resolved & built — dashboard is the single source of truth; Fireflies feeds an Inbox review queue (approve/edit/dismiss) |
 
 ### Dashboard / headquarters
 | # | Item | Status |
 |---|------|--------|
 | 10 | One place for everything | 🔄 in progress — tasks, People timeline, Profile, clocks all on one dashboard |
-| 11 | Profile/memory tab with public/private toggle | ✅ built — Profile tab, per-section public/private (soft privacy) |
+| 11 | Profile/memory tab with public/private toggle | ✅ built — Profile tab gated behind its OWN passphrase (server-verified, hash-only). Amy's private ledger; team passphrase can't open it |
 | 12 | Philippines + San Francisco real-time clocks | ✅ built — stacked PH/SF, 12-hour AM/PM |
 | 13 | Away/status toggle (dog walks) | ➖ built, then removed at Amy's request (data table kept) |
 | 14 | Daily brief landing on the dashboard | ❌ not built — **final model: on-demand, NOT scheduled** |
-| 15 | Action items with timestamps: what given, when, done, when done | 🔄 partial — task board populated (done kept as history); full timestamp lifecycle + provenance = v1.1 |
+| 15 | Action items with timestamps: what given, when, done, when done | ✅ built — Timeline = received log (when given); Calendar = completions (when done); provenance stack on each task |
 | 16 | Gavin's view / Isaac's view toggles, with labels and categories | ❌ not built — one dataset, filtered by viewer |
 | 17 | "Someone's viewing this" indicator | ❌ deferred by Amy's own decision (not first pass) |
 | 18 | Cross-reference hired-for vs. actually-doing; zoom out then in | ⚠️ discussed only |
@@ -58,7 +58,7 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 | 19 | Personal CRM, separate from the Lance product CRM | ✅ rebuilt — People awareness timeline (separate from GM CRM) |
 | 20 | Verified/unverified tiers with links to the verification source | ✅ rebuilt — tiers + clickable source links, all records cited |
 | 21 | Interns included, including the ones leaving | ✅ rebuilt — Avani & Maxwell included (last day 8/8) |
-| 22 | Ongoing logging from meetings, Slack, email | 🔄 seeded — founding entries logged; ongoing on-demand logging = v1.1 |
+| 22 | Ongoing logging from meetings, Slack, email | ✅ built — on-demand `sweep` skill pulls Fireflies/Slack/Gmail, filters to commitments, verifies, files to Inbox. Never scheduled |
 
 ### Standing rules
 | # | Item | Status |
@@ -69,9 +69,17 @@ Legend: ✅ done · ⚠️ partial / discussed-only · ❌ not built · ⏳ outs
 | 26 | Always acknowledge the people who helped/inspired/encouraged me | ✅ standing rule — in force (e.g. Isaac gave the structure, Amy modified it) |
 
 ## Open decisions waiting on Amy
-1. **Item 9** — where the task checkbox lives when a task exists in both Fireflies and the dashboard (two-sources-of-truth).
-2. **Item 11** — whether the memory/profile tab defaults public or private.
-3. **Item 25** — asking Isaac to connect lance.live/internal to Claude (removes the screenshot workaround).
+1. ~~Item 9 — where the checkbox lives~~ ✅ **resolved**: dashboard is the single source of truth; Fireflies feeds the Inbox.
+2. ~~Item 11 — public or private~~ ✅ **resolved**: private, behind its own passphrase.
+3. **Item 25** — asking Isaac to connect lance.live/internal to Claude (removes the screenshot workaround). **Monday.**
+4. **Copy the `sweep` skill into Claude home** so "sweep" works outside Claude Code.
+
+## Infrastructure (2026-08-08)
+- **Vercel ↔ GitHub connected.** Pushes to the default branch now deploy automatically
+  (~20 seconds). This replaced manual file-upload deploys, which had hit a payload
+  ceiling at ~50 files / 146KB and were failing.
+- **Timezone rule:** timestamps render in Pacific (Lance's shared clock) with Amy's
+  local on hover; plain dates (due dates) never shift.
 
 ## Standing rules in force (how work happens here)
 - **Itemize before executing; wait for explicit go-ahead per item.**
