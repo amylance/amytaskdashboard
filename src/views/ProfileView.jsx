@@ -8,9 +8,63 @@ import { useProfile } from '../hooks/useProfile.js';
 // to her; a "Hide private" switch tucks them away when she's screen-sharing.
 // (Soft privacy: the dashboard is one shared passphrase, so true per-person locking
 // waits on real logins — until then this keeps personal notes out of view on demand.)
-export default function ProfileView({ config }) {
-  const { sections, updateSection } = useProfile(config);
+export default function ProfileView() {
+  const { sections, locked, loading, unlock, updateSection } = useProfile();
   const [hidePrivate, setHidePrivate] = useState(false);
+  const [entry, setEntry] = useState('');
+  const [error, setError] = useState(null);
+  const [checking, setChecking] = useState(false);
+
+  async function handleUnlock(e) {
+    e.preventDefault();
+    if (!entry.trim() || checking) return;
+    setChecking(true);
+    setError(null);
+    try {
+      await unlock(entry.trim());
+      setEntry('');
+    } catch {
+      setError('Incorrect passphrase.');
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="max-w-2xl mx-auto px-6 py-16 text-center text-sm text-ink-muted">Loading…</div>;
+  }
+
+  if (locked) {
+    return (
+      <div className="max-w-sm mx-auto px-6 py-20">
+        <div className="rounded-2xl border border-hairline bg-panel p-6 text-center">
+          <Lock size={20} className="mx-auto mb-3 text-clay" />
+          <h1 className="text-base font-semibold text-ink mb-1">Profile & Memory is private</h1>
+          <p className="text-xs text-ink-muted mb-5 leading-relaxed">
+            This section has its own passphrase — the dashboard passphrase doesn&apos;t open it.
+          </p>
+          <form onSubmit={handleUnlock}>
+            <input
+              type="password"
+              autoFocus
+              value={entry}
+              onChange={(e) => setEntry(e.target.value)}
+              placeholder="Profile passphrase"
+              className="glass-field w-full rounded-lg border border-hairline px-3.5 py-2.5 text-sm text-ink outline-none focus:border-ink/30 mb-3"
+            />
+            {error && <p className="text-xs text-clay mb-2">{error}</p>}
+            <button
+              type="submit"
+              disabled={!entry.trim() || checking}
+              className="tap-scale w-full rounded-lg bg-ink text-white text-sm font-medium py-2.5 disabled:opacity-40"
+            >
+              {checking ? 'Checking…' : 'Unlock'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const visible = useMemo(
     () => (hidePrivate ? sections.filter((s) => s.visibility !== 'private') : sections),
@@ -31,9 +85,8 @@ export default function ProfileView({ config }) {
         <p className="text-xs text-ink-muted leading-relaxed">
           My own record — for my visibility and transparency — of what I&apos;ve poured into the Lance
           network: what I&apos;ve given Claude, the tools, and my emails. This is my ledger, not a team
-          profile. Mark a section <span className="text-ink font-medium">Public</span> only if I want
-          the team to see it; use <span className="text-ink font-medium">Hide private</span> before
-          screen-sharing.
+          profile. It sits behind its own passphrase, so the dashboard passphrase alone can&apos;t
+          open it. Use <span className="text-ink font-medium">Hide private</span> before screen-sharing.
         </p>
       </div>
 

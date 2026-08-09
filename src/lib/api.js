@@ -53,6 +53,8 @@ export const api = {
   getPeopleFeed: () => request('/api/hq/feed'),
 
   getProfile: () => request('/api/hq/profile'),
+  unlockProfile: (passphrase) =>
+    request('/api/hq/profile', { method: 'POST', body: JSON.stringify({ action: 'unlock', passphrase }) }),
   updateProfileSection: (id, fields) =>
     request('/api/hq/profile', { method: 'POST', body: JSON.stringify({ id, ...fields }) }),
 

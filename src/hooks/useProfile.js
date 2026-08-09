@@ -1,17 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
-import { getSupabaseClient } from '../lib/supabaseClient.js';
 
-export function useProfile(config) {
+// The Profile/Memory tab is gated by its own passphrase. Content is never fetched —
+// and the browser's realtime key cannot read it — until the gate is unlocked.
+export function useProfile() {
   const [sections, setSections] = useState([]);
+  const [locked, setLocked] = useState(true);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
       const { sections } = await api.getProfile();
       setSections(sections ?? []);
-    } catch {
-      // ignore
+      setLocked(false);
+    } catch (err) {
+      if (err.status === 403) {
+        setLocked(true);
+        setSections([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -21,24 +27,25 @@ export function useProfile(config) {
     refresh();
   }, [refresh]);
 
-  useEffect(() => {
-    if (!config) return undefined;
-    const client = getSupabaseClient(config.supabaseUrl, config.supabaseAnonKey);
-    const channel = client
-      .channel('profile-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profile_sections' }, () => refresh())
-      .subscribe();
-    return () => client.removeChannel(channel);
-  }, [config, refresh]);
+  const unlock = useCallback(
+    async (passphrase) => {
+      await api.unlockProfile(passphrase);
+      await refresh();
+    },
+    [refresh],
+  );
 
-  const updateSection = useCallback(async (id, fields) => {
-    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, ...fields } : s)));
-    try {
-      await api.updateProfileSection(id, fields);
-    } catch {
-      refresh();
-    }
-  }, [refresh]);
+  const updateSection = useCallback(
+    async (id, fields) => {
+      setSections((prev) => prev.map((s) => (s.id === id ? { ...s, ...fields } : s)));
+      try {
+        await api.updateProfileSection(id, fields);
+      } catch {
+        refresh();
+      }
+    },
+    [refresh],
+  );
 
-  return { sections, loading, updateSection };
+  return { sections, locked, loading, unlock, updateSection };
 }

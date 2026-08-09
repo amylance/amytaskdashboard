@@ -1,4 +1,10 @@
-import { requireAuth } from '../_lib/auth.js';
+import {
+  requireAuth,
+  hashPassphrase,
+  createProfileToken,
+  setProfileCookie,
+  isProfileUnlocked,
+} from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 
 // Consolidated HQ endpoint. Handles both the away/status log and the pending notes
@@ -194,7 +200,12 @@ async function handleCalendar(req, res, db) {
 
 // --- Profile / Memory sections (public or private). ---
 async function handleProfile(req, res, db) {
+  // Gated by its own passphrase — the shared dashboard passphrase is not enough.
   if (req.method === 'GET') {
+    if (!isProfileUnlocked(req)) {
+      res.status(403).json({ error: 'locked', locked: true });
+      return;
+    }
     const { data, error } = await db
       .from('profile_sections')
       .select('*')
@@ -209,6 +220,27 @@ async function handleProfile(req, res, db) {
 
   if (req.method === 'POST') {
     const body = req.body ?? {};
+
+    if (body.action === 'unlock') {
+      const { data: gate } = await db.from('profile_gate').select('passphrase_hash').eq('id', true).maybeSingle();
+      if (!gate?.passphrase_hash) {
+        res.status(500).json({ error: 'Profile gate is not configured' });
+        return;
+      }
+      if (hashPassphrase(body.passphrase ?? '') !== gate.passphrase_hash) {
+        res.status(401).json({ error: 'Incorrect passphrase' });
+        return;
+      }
+      setProfileCookie(res, createProfileToken());
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (!isProfileUnlocked(req)) {
+      res.status(403).json({ error: 'locked', locked: true });
+      return;
+    }
+
     const { id } = body;
     if (!id) {
       res.status(400).json({ error: 'id is required' });
