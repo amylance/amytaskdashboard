@@ -28,7 +28,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
   const byDate = useMemo(() => {
     const map = new Map();
     const bucket = (key) => {
-      if (!map.has(key)) map.set(key, { meetings: [], events: [], done: [], tasks: [] });
+      if (!map.has(key)) map.set(key, { meetings: [], events: [], done: [], tasks: [], removed: [] });
       return map.get(key);
     };
     for (const m of meetings) {
@@ -44,8 +44,15 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
         bucket(todo.due_date).tasks.push(todo);
       }
     }
+    // A deleted task still belongs to the day it sat on — that is where Amy will look for
+    // it. Without this the day empties out completely and becomes unclickable, which would
+    // strand the only route back to it.
+    for (const todo of removed) {
+      const key = todo.completed_at ? toPacificDateKey(todo.completed_at) : todo.due_date;
+      if (key) bucket(key).removed.push(todo);
+    }
     return map;
-  }, [events, meetings, todos]);
+  }, [events, meetings, todos, removed]);
 
   const cells = useMemo(() => {
     const year = cursor.getFullYear();
@@ -104,9 +111,11 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
         {cells.map((date, idx) => {
           if (!date) return <div key={idx} className="bg-panel min-h-[110px]" />;
           const key = toKey(date);
-          const cell = byDate.get(key) ?? { meetings: [], events: [], done: [], tasks: [] };
+          const cell = byDate.get(key) ?? { meetings: [], events: [], done: [], tasks: [], removed: [] };
           const isToday = key === todayKey;
           const total = cell.meetings.length + cell.events.length + cell.done.length + cell.tasks.length;
+          // A day holding only removed items still has to be openable.
+          const openable = total + cell.removed.length > 0;
           // Meetings claim the top slots — they are the anchor of a day, and everything
           // else that day usually came out of one.
           const shownMeetings = cell.meetings.slice(0, 4);
@@ -122,17 +131,29 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           return (
             <div
               key={idx}
-              onClick={() => total > 0 && setOpenDay(key)}
+              onClick={() => openable && setOpenDay(key)}
               className={`bg-panel min-h-[110px] p-1.5 flex flex-col gap-1 ${
-                total > 0 ? 'cursor-pointer hover:bg-black/[0.03]' : ''
+                openable ? 'cursor-pointer hover:bg-black/[0.03]' : ''
               }`}
             >
-              <span
-                className={`self-start font-mono text-[11px] px-1.5 py-0.5 rounded-full ${
-                  isToday ? 'bg-ink text-white' : 'text-ink-muted'
-                }`}
-              >
-                {date.getDate()}
+              <span className="flex items-center gap-1">
+                <span
+                  className={`self-start font-mono text-[11px] px-1.5 py-0.5 rounded-full ${
+                    isToday ? 'bg-ink text-white' : 'text-ink-muted'
+                  }`}
+                >
+                  {date.getDate()}
+                </span>
+                {/* One faint glyph, not the struck-through row itself — she deleted it to
+                    get it out of sight, so the grid stays clean and the day stays findable. */}
+                {cell.removed.length > 0 && (
+                  <span
+                    title={`${cell.removed.length} removed — open to restore`}
+                    className="font-mono text-[10px] text-ink-muted/50"
+                  >
+                    ↺{cell.removed.length}
+                  </span>
+                )}
               </span>
               <div className="flex flex-col gap-0.5 overflow-hidden">
                 {shownMeetings.map((m) => (
@@ -211,15 +232,11 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
       {openDay && (
         <DayPanel
           dayKey={openDay}
-          cell={byDate.get(openDay) ?? { meetings: [], events: [], done: [], tasks: [] }}
+          cell={byDate.get(openDay) ?? { meetings: [], events: [], done: [], tasks: [], removed: [] }}
           onClose={() => setOpenDay(null)}
           onOpen={onOpen}
           onOpenMeeting={setOpenMeeting}
-          removed={removed.filter(
-            (t) =>
-              (t.completed_at && toPacificDateKey(t.completed_at) === openDay) ||
-              (!t.completed_at && t.due_date === openDay),
-          )}
+          removed={byDate.get(openDay)?.removed ?? []}
           onRestore={onRestore}
         />
       )}
