@@ -77,12 +77,6 @@ export default function ProfileView() {
     );
   }
 
-  const visible = useMemo(
-    () => (hidePrivate ? sections.filter((s) => s.visibility !== 'private') : sections),
-    [sections, hidePrivate],
-  );
-  const privateCount = sections.filter((s) => s.visibility === 'private').length;
-
   return (
     <div className="max-w-2xl mx-auto px-6 py-6">
       <div className="mb-5">
