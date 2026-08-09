@@ -151,3 +151,37 @@ Right after v1 (v1.1+):
 2. Is the Fireflies per-item "edit before save" control worth building for v1?
 3. Item 25 — connect lance.live/internal to Claude (Monday, with Isaac).
 4. Verify: Gmail delegation to Gavin's inbox; Slack MFA.
+
+---
+
+## Aug 9, 2026 — Scheduled briefing deleted, on-demand confirmed
+
+Amy uploaded her `sweep` and `brief` skills to her Claude account and, in doing so,
+replaced an earlier `brief` she had built from Isaac's prompt on Aug 7. Isaac's original
+prompt is preserved verbatim at `docs/source/isaac-brief-prompt.md`, so nothing is lost.
+She chose not to restore the old skill: the new one supersedes it by capturing before it
+reads.
+
+Two problems surfaced in her Claude account, both now resolved:
+
+1. **A scheduled task ("Weekday morning brief", weekdays 3:00 AM) invoked `brief` by
+   name**, while declaring the run strictly read-only. Phase 1 of `brief` writes to
+   `inbox_items`, so the two instructions contradicted each other and an unattended run
+   would have resolved that ambiguity unpredictably.
+
+2. **The schedule was losing a working day.** 3:00 AM Manila is noon Pacific *the
+   previous day*. Against Manila weekdays that put a briefing on Pacific Sunday and none
+   on Pacific Friday.
+
+**Decision: the scheduled task is deleted. Briefings stay on-demand, permanently.** This
+is the same rule already recorded for `sweep`, applied consistently — Amy's cadence is
+irregular by design and a fixed trigger cannot match it.
+
+`brief` still carries an unattended-run guard (skip Phase 1, stay read-only, leave
+`sweep_state` untouched). That path is now dormant. It stays in the skill as insurance in
+case a schedule is ever created again, by her or by anyone helping her.
+
+**Also decided:** Anthropic's built-in `morning` skill is turned off. It overlaps `brief`
+on the phrase "morning brief", and two skills competing for the same words is what made
+this confusing in the first place. `skill-creator` stays — it is the tool that builds
+skills, and it only fires when explicitly asked.
