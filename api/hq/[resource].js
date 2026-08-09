@@ -21,6 +21,7 @@ export default async function handler(req, res) {
   if (resource === 'profile') return handleProfile(req, res, db);
   if (resource === 'calendar') return handleCalendar(req, res, db);
   if (resource === 'inbox') return handleInbox(req, res, db);
+  if (resource === 'recover') return handleRecover(req, res, db);
 
   res.status(404).json({ error: 'Not found' });
   return undefined;
@@ -176,6 +177,81 @@ async function handleInbox(req, res, db) {
       .eq('id', id);
 
     res.status(201).json({ todo });
+    return;
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
+}
+
+// --- Recovery. Nothing in this dashboard is ever destroyed: tasks and people carry a
+// deleted_at, inbox items carry a 'dismissed' state. This exposes both so a mistake is
+// always reversible. Amy lost a person this way once (Maanya, re-added by hand) — that
+// is the failure mode this closes. ---
+const RECOVER_KINDS = {
+  todo: { table: 'todos', restore: { deleted_at: null }, filter: (q) => q.not('deleted_at', 'is', null) },
+  person: { table: 'people', restore: { deleted_at: null }, filter: (q) => q.not('deleted_at', 'is', null) },
+  inbox: {
+    table: 'inbox_items',
+    restore: { state: 'pending', resolved_at: null },
+    filter: (q) => q.eq('state', 'dismissed'),
+  },
+};
+
+async function handleRecover(req, res, db) {
+  if (req.method === 'GET') {
+    const [todos, people, inbox] = await Promise.all([
+      db
+        .from('todos')
+        .select('id, title, status, category, due_date, completed_at, deleted_at')
+        .not('deleted_at', 'is', null)
+        .order('deleted_at', { ascending: false }),
+      db
+        .from('people')
+        .select('id, name, role, company, deleted_at')
+        .not('deleted_at', 'is', null)
+        .order('deleted_at', { ascending: false }),
+      db
+        .from('inbox_items')
+        .select('id, title, source, source_context, claude_note, received_at, resolved_at')
+        .eq('state', 'dismissed')
+        .order('resolved_at', { ascending: false }),
+    ]);
+
+    const failed = [todos, people, inbox].find((r) => r.error);
+    if (failed) {
+      res.status(500).json({ error: failed.error.message });
+      return;
+    }
+
+    res.status(200).json({
+      todos: todos.data ?? [],
+      people: people.data ?? [],
+      inbox: inbox.data ?? [],
+    });
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const { kind, id } = req.body ?? {};
+    const spec = RECOVER_KINDS[kind];
+    if (!spec || !id) {
+      res.status(400).json({ error: 'kind and id are required' });
+      return;
+    }
+
+    const { data, error } = await db
+      .from(spec.table)
+      .update(spec.restore)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+
+    res.status(200).json({ restored: data });
     return;
   }
 

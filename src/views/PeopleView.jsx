@@ -1,3 +1,4 @@
+import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Search, BadgeCheck, HelpCircle, ExternalLink, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api.js';
@@ -11,7 +12,7 @@ const CORE_TEAM = ['Gavin Brennen', 'Isaac Gutierrez', 'Caleb Chan'];
 
 // People = where names crossed Amy's awareness, grouped by the tool they came from, then
 // by date, newest first. Collapsed to a count; click to see who.
-export default function PeopleView({ people, todos = [], onOpen, onOpenTodo, config }) {
+export default function PeopleView({ people, todos = [], onOpen, onOpenTodo, config, removed = [], onRestore }) {
   const [feed, setFeed] = useState([]);
   const [query, setQuery] = useState('');
   const [openGroups, setOpenGroups] = useState({});
@@ -196,6 +197,8 @@ export default function PeopleView({ people, todos = [], onOpen, onOpenTodo, con
           })}
         </div>
       )}
+
+      <RecoverStrip items={removed} noun="person" onRestore={onRestore} describe={removedAt} />
     </div>
   );
 }

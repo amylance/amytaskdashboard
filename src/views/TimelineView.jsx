@@ -1,3 +1,4 @@
+import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import { useMemo } from 'react';
 import TodoCard from '../components/TodoCard.jsx';
 import { daysUntilPT } from '../lib/format.js';
@@ -17,7 +18,7 @@ function bucketOf(dueDate) {
   return { key: '5-later', label: 'Later', order: 5 };
 }
 
-export default function TimelineView({ todos, onOpen }) {
+export default function TimelineView({ todos, onOpen, removed = [], onRestore }) {
   const groups = useMemo(() => {
     const map = new Map();
     for (const todo of todos) {
@@ -64,6 +65,8 @@ export default function TimelineView({ todos, onOpen }) {
         ))}
         {groups.length === 0 && <p className="pl-6 text-sm text-ink-muted">Nothing open.</p>}
       </div>
+
+      <RecoverStrip items={removed} noun="task" onRestore={onRestore} describe={removedAt} />
     </div>
   );
 }

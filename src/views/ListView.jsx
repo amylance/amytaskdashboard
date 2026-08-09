@@ -1,3 +1,4 @@
+import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import { useMemo, useState } from 'react';
 import { ArrowUp, ArrowDown, Lock } from 'lucide-react';
 import PriorityBadge from '../components/PriorityBadge.jsx';
@@ -18,7 +19,7 @@ const COLUMNS = [
 
 // The full record of every task, with filters. This doubles as Gavin's and Isaac's view:
 // they click their own name and see what they asked for and where it stands.
-export default function ListView({ todos, onOpen }) {
+export default function ListView({ todos, onOpen, removed = [], onRestore }) {
   const [sortKey, setSortKey] = useState('due_date');
   const [dir, setDir] = useState('asc');
   const [person, setPerson] = useState('all');
@@ -178,6 +179,8 @@ export default function ListView({ todos, onOpen }) {
           </tbody>
         </table>
       </div>
+      <RecoverStrip items={removed} noun="task" onRestore={onRestore} describe={removedAt} />
+
     </div>
   );
 }

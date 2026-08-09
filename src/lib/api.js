@@ -62,6 +62,9 @@ export const api = {
   resolveInboxItem: (id, action, fields = {}) =>
     request('/api/hq/inbox', { method: 'POST', body: JSON.stringify({ id, action, ...fields }) }),
 
+  getRecoverable: () => request('/api/hq/recover'),
+  restore: (kind, id) => request('/api/hq/recover', { method: 'POST', body: JSON.stringify({ kind, id }) }),
+
   getCalendar: () => request('/api/hq/calendar'),
   addActivityEvent: (payload) => request('/api/hq/calendar', { method: 'POST', body: JSON.stringify(payload) }),
 };

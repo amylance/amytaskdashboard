@@ -216,3 +216,51 @@ Amy's Google Calendar contains **nothing but the weekly Townhall**. The Monday s
 Gavin — where codebase access and Gmail delegation both get resolved — exists only as an
 intention in a Slack message. It is not on anyone's calendar, so nothing will remind either
 of them. Worth booking rather than trusting to memory.
+
+---
+
+## Aug 9, 2026 — Recovery: undo everywhere, no Trash tab
+
+Amy asked where deleted and dismissed things should go so a mistake is reversible, and
+which placement is easiest to navigate psychologically.
+
+**Rejected: a Trash tab.** It fails on recognition — you have to remember it exists, and you
+only think of it while already panicking. It also costs a permanent slot in navigation for a
+room entered twice a year, right after Amy deliberately cut the tab count.
+
+**Built instead, two layers:**
+
+1. **Undo toast, every view.** Any delete or dismiss raises a bar at the bottom of the
+   screen — the action, and an Undo button — for ten seconds, with a draining progress bar
+   so "time left" reads without a number. The moment of highest anxiety is the two seconds
+   after the click; that is where the affordance belongs.
+
+2. **A contextual strip where the loss happened.** A quiet line — `2 tasks removed ›` —
+   at the bottom of the view. It renders **only when there is something to recover**, so the
+   empty state costs nothing. That property is the whole reason it is not a tab.
+
+| View | Strip |
+|---|---|
+| Inbox | dismissed items |
+| Kanban / List / Timeline | deleted tasks |
+| Calendar | deleted entries **scoped to the open day** — a task you deleted vanished from a specific date, and that date is where you will look for it |
+| People | removed people |
+| Profile | none — the disclosure ledger is deliberate, not triage |
+
+**The real argument is speed, not recovery.** Knowing undo exists is what lets Amy clear a
+17-item inbox in one sitting instead of second-guessing each call. Most of the value is
+spent before the feature is ever used, which is why the undo is visible rather than tucked
+away.
+
+**Schema work this required.** `activity_events` and `meetings` had no `deleted_at`, so any
+delete button added later would have been permanent. Both are now soft-deletable and read
+paths filter to live rows. Every table Amy can delete from is now recoverable.
+
+**No auto-purge.** Volume is tiny and Amy values the record.
+
+Served from `/api/hq/recover` inside the existing consolidated route — the project sits at
+Vercel's 12-function ceiling and a new endpoint would have broken the deploy.
+
+*Precedent: Amy trimmed the People list during onboarding and lost Maanya Kashyap with it,
+catching the mistake days later only because she heard the name on a call with Gavin. That
+is the failure mode this closes.*

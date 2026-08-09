@@ -3,7 +3,9 @@ import { X } from 'lucide-react';
 import { useSession } from './hooks/useSession.js';
 import { useTodos } from './hooks/useTodos.js';
 import { usePeople } from './hooks/usePeople.js';
+import { useRecoverable } from './hooks/useRecoverable.js';
 import { api } from './lib/api.js';
+import UndoToast from './components/UndoToast.jsx';
 import PassphraseGate from './components/PassphraseGate.jsx';
 import TopNav from './components/TopNav.jsx';
 import DetailPanel from './components/DetailPanel.jsx';
@@ -28,6 +30,8 @@ export default function App() {
   const [openPersonId, setOpenPersonId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState(null);
+  const [undo, setUndo] = useState(null);
+  const { removed, refreshRemoved, restore } = useRecoverable();
 
   useEffect(() => {
     if (!error) return undefined;
@@ -87,13 +91,39 @@ export default function App() {
 
   async function handleDelete(id) {
     const previousTodos = todos;
+    const doomed = todos.find((t) => t.id === id);
     setTodos((prev) => prev.filter((t) => t.id !== id));
     setOpenTodoId(null);
     try {
       await api.deleteTodo(id);
+      await refreshRemoved();
+      setUndo({
+        label: `Deleted "${doomed?.title ?? 'task'}"`,
+        onUndo: () => handleRestore('todo', id),
+      });
     } catch (err) {
       setTodos(previousTodos);
       showError(`Couldn't delete that task — ${err.message}`);
+    }
+  }
+
+  // Restoring has to update the live list too, not just the removed list — otherwise the
+  // row comes back in the database but stays invisible until a refresh.
+  async function handleRestore(kind, id) {
+    try {
+      const restored = await restore(kind, id);
+      if (kind === 'todo' && restored) {
+        setTodos((prev) => (prev.some((t) => t.id === restored.id) ? prev : [...prev, restored]));
+      }
+      if (kind === 'person' && restored) {
+        setPeople((prev) =>
+          prev.some((p) => p.id === restored.id)
+            ? prev
+            : [...prev, restored].sort((a, b) => a.name.localeCompare(b.name)),
+        );
+      }
+    } catch (err) {
+      showError(`Couldn't restore that — ${err.message}`);
     }
   }
 
@@ -142,10 +172,16 @@ export default function App() {
 
   async function handleDeletePerson(id) {
     const previousPeople = people;
+    const doomed = people.find((p) => p.id === id);
     setPeople((prev) => prev.filter((p) => p.id !== id));
     setOpenPersonId(null);
     try {
       await api.deletePerson(id);
+      await refreshRemoved();
+      setUndo({
+        label: `Removed ${doomed?.name ?? 'that person'}`,
+        onUndo: () => handleRestore('person', id),
+      });
     } catch (err) {
       setPeople(previousPeople);
       showError(`Couldn't delete that person — ${err.message}`);
@@ -163,12 +199,43 @@ export default function App() {
     }
   }
 
+  // Recovery is passed down to the view where the loss happened, never hoisted into a tab.
+  const removedTodos = removed.todos;
+  const restoreTodo = (item) => handleRestore('todo', item.id);
+
   const views = {
-    inbox: <InboxView config={config} />,
-    kanban: <KanbanView todos={todos} onOpen={openTodoDetail} onReorder={handlePatch} />,
-    list: <ListView todos={todos} onOpen={openTodoDetail} />,
-    timeline: <TimelineView todos={todos} onOpen={openTodoDetail} />,
-    calendar: <CalendarView todos={todos} onOpen={openTodoDetail} config={config} />,
+    inbox: (
+      <InboxView
+        config={config}
+        dismissed={removed.inbox}
+        onRefreshRemoved={refreshRemoved}
+        onRestore={(item) => handleRestore('inbox', item.id)}
+      />
+    ),
+    kanban: (
+      <KanbanView
+        todos={todos}
+        onOpen={openTodoDetail}
+        onReorder={handlePatch}
+        removed={removedTodos}
+        onRestore={restoreTodo}
+      />
+    ),
+    list: (
+      <ListView todos={todos} onOpen={openTodoDetail} removed={removedTodos} onRestore={restoreTodo} />
+    ),
+    timeline: (
+      <TimelineView todos={todos} onOpen={openTodoDetail} removed={removedTodos} onRestore={restoreTodo} />
+    ),
+    calendar: (
+      <CalendarView
+        todos={todos}
+        onOpen={openTodoDetail}
+        config={config}
+        removed={removedTodos}
+        onRestore={restoreTodo}
+      />
+    ),
     people: (
       <PeopleView
         people={people}
@@ -176,6 +243,8 @@ export default function App() {
         onOpen={openPersonDetail}
         onOpenTodo={openTodoDetail}
         config={config}
+        removed={removed.people}
+        onRestore={(item) => handleRestore('person', item.id)}
       />
     ),
     profile: <ProfileView />,
@@ -245,6 +314,8 @@ export default function App() {
       {showCreate && activeView !== 'people' && activeView !== 'profile' && (
         <CreateTodoModal onClose={() => setShowCreate(false)} onCreate={handleCreate} />
       )}
+
+      <UndoToast undo={undo} onDismiss={() => setUndo(null)} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCalendarEvents } from '../hooks/useCalendarEvents.js';
 import { toPacificDateKey, formatDateTimePT } from '../lib/format.js';
+import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const KIND_MARK = { meeting: '🎙', milestone: '✦', action: '•' };
@@ -12,7 +13,7 @@ function toKey(date) {
 
 // Calendar = Amy's proof-of-work: what she DID (activity events, on their real dates)
 // plus task deadlines (what's coming). Bucketed by day.
-export default function CalendarView({ todos, onOpen, config }) {
+export default function CalendarView({ todos, onOpen, config, removed = [], onRestore }) {
   const { events, meetings } = useCalendarEvents(config);
   const [openDay, setOpenDay] = useState(null);
   const [openMeeting, setOpenMeeting] = useState(null);
@@ -214,6 +215,12 @@ export default function CalendarView({ todos, onOpen, config }) {
           onClose={() => setOpenDay(null)}
           onOpen={onOpen}
           onOpenMeeting={setOpenMeeting}
+          removed={removed.filter(
+            (t) =>
+              (t.completed_at && toPacificDateKey(t.completed_at) === openDay) ||
+              (!t.completed_at && t.due_date === openDay),
+          )}
+          onRestore={onRestore}
         />
       )}
 
@@ -289,7 +296,7 @@ function MeetingPanel({ meeting, onClose }) {
 // Click a day → the wrap-up: what happened, what was finished (and when it was first
 // asked of her), and what's due. This is the "index" Amy wanted — go back to any day and
 // see what was actually discussed and closed.
-function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting }) {
+function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], onRestore }) {
   const label = new Date(`${dayKey}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -393,6 +400,13 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting }) {
               ))}
             </Group>
           )}
+
+          <RecoverStrip
+            items={removed}
+            noun="entry"
+            onRestore={onRestore}
+            describe={removedAt}
+          />
         </div>
       </div>
     </div>
