@@ -40,27 +40,6 @@ export default function PeopleView({ people, todos = [], onOpen, onOpenTodo, con
     return () => client.removeChannel(channel);
   }, [config, refresh]);
 
-  // Open work grouped by the person it involves. Serves Amy ("what have I done for
-  // Gavin?") and them ("what's waiting on me?").
-  const workingWith = useMemo(() => {
-    const map = new Map();
-    for (const t of todos) {
-      if (t.status === 'done') continue;
-      const names = new Set();
-      if (t.waiting_on) names.add(t.waiting_on.split(' /')[0].trim());
-      for (const p of t.people ?? []) names.add(p.name);
-      for (const raw of names) {
-        const name = raw.split(' ')[0];
-        if (!map.has(name)) map.set(name, { name, open: 0, waiting: 0, items: [] });
-        const row = map.get(name);
-        row.open += 1;
-        if (t.status === 'waiting') row.waiting += 1;
-        row.items.push(t);
-      }
-    }
-    return [...map.values()].sort((a, b) => b.waiting - a.waiting || b.open - a.open);
-  }, [todos]);
-
   // Group: source tool → date → the people who surfaced there.
   const grouped = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -118,41 +97,6 @@ export default function PeopleView({ people, todos = [], onOpen, onOpenTodo, con
           <HelpCircle size={11} className="inline text-clay" /> {unverifiedCount} still to confirm
         </p>
       </div>
-
-      {workingWith.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-2">Working with</h2>
-          <div className="flex flex-col gap-1.5">
-            {workingWith.map((row) => (
-              <details key={row.name} className="rounded-xl border border-hairline bg-panel">
-                <summary className="cursor-pointer list-none px-4 py-2.5 flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-ink">{row.name}</span>
-                  <span className="flex items-center gap-2 text-[11px]">
-                    {row.waiting > 0 && (
-                      <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-violet-700">
-                        ⏳ {row.waiting} waiting on {row.name}
-                      </span>
-                    )}
-                    <span className="text-ink-muted">{row.open} open</span>
-                  </span>
-                </summary>
-                <div className="px-4 pb-3 flex flex-col gap-1">
-                  {row.items.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => onOpenTodo?.(t.id)}
-                      className="tap-scale text-left text-sm text-ink hover:underline flex items-center gap-2"
-                    >
-                      <span className="text-[11px] text-ink-muted">{statusOf(t.status).mark}</span>
-                      {t.title}
-                    </button>
-                  ))}
-                </div>
-              </details>
-            ))}
-          </div>
-        </div>
-      )}
 
       <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-2">
         Where names came from
