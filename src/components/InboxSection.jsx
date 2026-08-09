@@ -51,7 +51,8 @@ export default function InboxSection({ items, sweep, onResolve }) {
 function InboxCard({ item, onResolve }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
-  const alreadyDone = item.suggested_status === 'done';
+  // Claude only SUGGESTS the status — Amy makes the call before it becomes a task.
+  const [status, setStatus] = useState(item.suggested_status ?? 'todo');
   const isMemory = item.kind === 'memory';
 
   return (
@@ -87,20 +88,40 @@ function InboxCard({ item, onResolve }) {
         </p>
       )}
 
+      {/* Amy picks the status — Claude's suggestion is just the default. */}
+      {!isMemory && (
+        <div className="mb-2 inline-flex items-center gap-1 rounded-full border border-hairline bg-panel p-0.5">
+          {[
+            { id: 'todo', label: '○ To do' },
+            { id: 'done', label: '✓ Done' },
+          ].map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setStatus(opt.id)}
+              className={`tap-scale rounded-full px-2.5 py-1 text-[11px] ${
+                status === opt.id ? 'bg-ink text-white font-medium' : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-1.5">
         <button
-          onClick={() => onResolve(item.id, 'approve', { title, status: item.suggested_status })}
+          onClick={() => onResolve(item.id, 'approve', { title, status })}
           className="tap-scale inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-white"
         >
           <Check size={12} />
-          {isMemory ? 'Add to my ledger' : alreadyDone ? 'Approve as done' : 'Approve'}
+          {isMemory ? 'Add to my ledger' : status === 'done' ? 'Save as done' : 'Save as to-do'}
         </button>
         <button
-          onClick={() => (editing ? onResolve(item.id, 'approve', { title, status: item.suggested_status }) : setEditing(true))}
+          onClick={() => (editing ? onResolve(item.id, 'approve', { title, status }) : setEditing(true))}
           className="tap-scale inline-flex items-center gap-1 rounded-full border border-hairline bg-panel px-3 py-1.5 text-xs text-ink"
         >
           <Pencil size={12} />
-          {editing ? 'Save as task' : 'Edit'}
+          {editing ? 'Save' : 'Edit'}
         </button>
         <button
           onClick={() => onResolve(item.id, 'dismiss')}

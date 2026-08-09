@@ -1,18 +1,17 @@
-const STYLES = {
-  normal: 'border border-hairline text-ink-muted',
-  high: 'border border-ink/25 text-ink font-medium',
-  urgent: 'bg-clay-soft text-clay font-medium',
-};
+import { priorityOf } from '../lib/visuals.js';
 
-const LABELS = { normal: 'Normal', high: 'High', urgent: 'Urgent' };
-
+// Normal priority renders nothing on purpose — only exceptions earn colour, so High and
+// Urgent are the only things competing for attention.
 export default function PriorityBadge({ priority, className = '' }) {
+  const p = priorityOf(priority);
+  if (!p.show) return null;
+
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${STYLES[priority] ?? STYLES.normal} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${p.chip} ${className}`}
     >
-      {priority === 'urgent' && <span className="w-1.5 h-1.5 rounded-full bg-clay" />}
-      {LABELS[priority] ?? priority}
+      <span aria-hidden className="text-[9px]">{p.mark}</span>
+      {p.label}
     </span>
   );
 }

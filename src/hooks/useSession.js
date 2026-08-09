@@ -10,7 +10,13 @@ export function useSession() {
     try {
       const session = await api.getSession();
       if (session.authenticated) {
-        setConfig({ supabaseUrl: session.supabaseUrl, supabaseAnonKey: session.supabaseAnonKey });
+        // config stays null when realtime isn't usable — every live-update hook already
+        // guards on it, so they skip cleanly rather than retrying a doomed handshake.
+        setConfig(
+          session.supabaseUrl && session.supabaseAnonKey
+            ? { supabaseUrl: session.supabaseUrl, supabaseAnonKey: session.supabaseAnonKey }
+            : null,
+        );
         setStatus('ready');
       } else {
         setStatus('gate');

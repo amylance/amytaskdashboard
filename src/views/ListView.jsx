@@ -4,19 +4,12 @@ import PriorityBadge from '../components/PriorityBadge.jsx';
 import InboxSection from '../components/InboxSection.jsx';
 import { useInbox } from '../hooks/useInbox.js';
 import { formatDueDate, isOverdue } from '../lib/format.js';
-import { STATUSES } from '../lib/constants.js';
+import { sourceOf, statusOf } from '../lib/visuals.js';
 
-const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.id, s.label]));
 const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
-const SOURCE_MARK = {
-  fireflies: '🎙',
-  slack: '💬',
-  email: '✉️',
-  google: '📅',
-  lance_live: '🏨',
-};
 
 const COLUMNS = [
+  { key: 'source', label: 'From' },
   { key: 'title', label: 'Title' },
   { key: 'status', label: 'Status' },
   { key: 'priority', label: 'Priority' },
@@ -86,20 +79,31 @@ export default function ListView({ todos, onOpen, config }) {
                 onClick={() => onOpen(todo.id)}
                 className="tap-scale cursor-pointer border-b border-hairline last:border-0 hover:bg-black/[0.03]"
               >
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1 text-[11px] text-ink-muted">
+                    <span aria-hidden>{sourceOf(todo.source).mark}</span>
+                    {sourceOf(todo.source).label}
+                  </span>
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     {todo.is_private && <Lock size={11} className="text-ink-muted shrink-0" />}
-                    {SOURCE_MARK[todo.source] && (
-                      <span className="shrink-0 text-[11px]" title={todo.source}>
-                        {SOURCE_MARK[todo.source]}
-                      </span>
-                    )}
-                    <span className="font-medium text-ink">{todo.title}</span>
+                    <span
+                      className={`font-medium ${todo.status === 'done' ? 'text-ink-muted line-through' : 'text-ink'}`}
+                    >
+                      {todo.title}
+                    </span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-ink-muted">{STATUS_LABEL[todo.status]}</td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className={`inline-flex items-center gap-1 text-[12px] ${statusOf(todo.status).text}`}>
+                    <span aria-hidden>{statusOf(todo.status).mark}</span>
+                    {statusOf(todo.status).label}
+                  </span>
+                </td>
                 <td className="px-4 py-3">
                   <PriorityBadge priority={todo.priority} />
+                  {todo.priority === 'normal' && <span className="text-xs text-ink-muted/50">—</span>}
                 </td>
                 <td
                   className={`px-4 py-3 font-mono text-xs ${
@@ -112,7 +116,7 @@ export default function ListView({ todos, onOpen, config }) {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-sm text-ink-muted">
+                <td colSpan={5} className="px-4 py-10 text-center text-sm text-ink-muted">
                   No tasks yet.
                 </td>
               </tr>

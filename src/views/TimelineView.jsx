@@ -1,17 +1,7 @@
 import { useMemo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { formatDateTimePT, formatLocal, toPacificDateKey } from '../lib/format.js';
-import { STATUSES } from '../lib/constants.js';
-
-const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.id, s.label]));
-const SOURCE_MARK = {
-  fireflies: '🎙 Fireflies',
-  slack: '💬 Slack',
-  email: '✉️ Email',
-  google: '📅 Google',
-  lance_live: '🏨 Lance Live',
-  app: 'Added here',
-};
+import { sourceOf, statusOf } from '../lib/visuals.js';
 
 function dayLabel(key) {
   const d = new Date(`${key}T12:00:00`);
@@ -55,23 +45,35 @@ export default function TimelineView({ todos, onOpen }) {
             <div className="flex flex-col gap-2">
               {items.map((todo) => {
                 const stamp = todo.received_at ?? todo.created_at;
+                const src = sourceOf(todo.source);
+                const st = statusOf(todo.status);
+                const isDone = todo.status === 'done';
                 return (
                   <button
                     key={todo.id}
                     onClick={() => onOpen(todo.id)}
-                    className="tap-scale text-left rounded-xl border border-hairline bg-panel p-3 hover:bg-black/[0.03]"
+                    className={`tap-scale relative overflow-hidden text-left rounded-xl border border-hairline bg-panel p-3 pl-4 hover:bg-black/[0.03] ${
+                      isDone ? 'opacity-65' : ''
+                    }`}
                   >
+                    <span className={`absolute left-0 top-0 bottom-0 w-1 ${st.bar}`} aria-hidden />
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">
-                        {SOURCE_MARK[todo.source] ?? 'Added here'}
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wide text-ink-muted">
+                        <span aria-hidden>{src.mark}</span>
+                        {src.label}
                       </span>
                       <span className="text-[10px] font-mono text-ink-muted" title={formatLocal(stamp)}>
                         {formatDateTimePT(stamp)}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-ink">{todo.title}</p>
+                    <p className={`text-sm font-medium ${isDone ? 'text-ink-muted line-through' : 'text-ink'}`}>
+                      {todo.title}
+                    </p>
                     <div className="mt-1 flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-ink-muted">{STATUS_LABEL[todo.status]}</span>
+                      <span className={`inline-flex items-center gap-1 text-[11px] ${st.text}`}>
+                        <span aria-hidden>{st.mark}</span>
+                        {st.label}
+                      </span>
                       {todo.source_url && (
                         <span className="inline-flex items-center gap-1 text-[10px] text-clay">
                           <ExternalLink size={9} /> source

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { STATUSES } from '../lib/constants.js';
+import { statusOf } from '../lib/visuals.js';
 import TodoCard from '../components/TodoCard.jsx';
 
 export default function KanbanView({ todos, onOpen, onReorder }) {
@@ -62,8 +63,16 @@ export default function KanbanView({ todos, onOpen, onReorder }) {
           }`}
         >
           <div className="flex items-center justify-between px-1 mb-3">
-            <h2 className="text-sm font-semibold text-ink">{col.label}</h2>
-            <span className="font-mono text-xs text-ink-muted">{col.items.length}</span>
+            <h2 className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
+              <span className={`w-2 h-2 rounded-full ${statusOf(col.id).dot}`} aria-hidden />
+              {col.label}
+            </h2>
+            <span
+              className="rounded-full bg-black/[0.06] px-2 py-0.5 font-mono text-[11px] text-ink-muted"
+              title={`${col.items.length} task${col.items.length === 1 ? '' : 's'} in ${col.label}`}
+            >
+              {col.items.length}
+            </span>
           </div>
 
           <div className="flex flex-col gap-2">
