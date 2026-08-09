@@ -1,14 +1,13 @@
 import { useMemo } from 'react';
 import TodoCard from '../components/TodoCard.jsx';
+import { daysUntilPT } from '../lib/format.js';
 
 // Timeline answers the one thing Kanban can't: what's due, and when — in order.
 // Forward-looking only; finished work lives in the Calendar.
 function bucketOf(dueDate) {
   if (!dueDate) return { key: '9-none', label: 'No due date', order: 9 };
-  const due = new Date(`${dueDate}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const days = Math.round((due - today) / 86400000);
+  // "Today" is Pacific — the dashboard's clock — not the browser's.
+  const days = daysUntilPT(dueDate);
 
   if (days < 0) return { key: '0-overdue', label: `Overdue`, order: 0 };
   if (days === 0) return { key: '1-today', label: 'Today', order: 1 };

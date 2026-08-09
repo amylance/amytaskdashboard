@@ -56,10 +56,26 @@ export function toPacificDateKey(value) {
   return parts;
 }
 
+// Today, on the dashboard's clock (Pacific) — never the browser's.
+export function pacificTodayKey() {
+  return toPacificDateKey(new Date());
+}
+
+// Whole days from the Pacific today to a plain due date. Compares dates as dates, so no
+// timezone conversion is applied to a value that has no time in it.
+export function daysUntilPT(dateStr) {
+  if (!dateStr) return null;
+  const toUTC = (k) => {
+    const [y, m, d] = k.split('-').map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((toUTC(dateStr) - toUTC(pacificTodayKey())) / 86400000);
+}
+
 export function isOverdue(dateStr, status) {
   if (!dateStr || status === 'done') return false;
-  const due = new Date(`${dateStr}T23:59:59`);
-  return due.getTime() < Date.now();
+  const days = daysUntilPT(dateStr);
+  return days != null && days < 0;
 }
 
 export function shortId(id) {
