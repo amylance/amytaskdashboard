@@ -57,6 +57,11 @@ For every candidate, check it against the record before filing:
   and say so in the note, with the quote as evidence.
 - **Is the wording right?** Fireflies is often garbled. Put a clean version in `title`
   and keep the original verbatim in `source_raw`.
+- **Is the timestamp the real instant?** Slack's API renders times in Amy's *local*
+  timezone while labelling them `CST`. Taking that at face value pushes work forward a
+  day — an "Aug 9" Slack message is usually Aug 8 Pacific. Always convert from the epoch
+  in `message_ts`, never from the displayed string. Gmail and Fireflies both return true
+  UTC and need no correction.
 
 Always write a short, specific `claude_note`. That note is the whole point — it's what
 lets Amy trust the queue at a glance.
