@@ -43,9 +43,9 @@ function Row({ flag, label, p }) {
     <span className="inline-flex items-center gap-1 whitespace-nowrap">
       <span aria-hidden>{flag}</span>
       <span className="w-5">{label}</span>
-      <span className="w-8 text-ink">{p.day}</span>
+      <span className="w-[4.5rem] text-ink tabular-nums">{p.time}</span>
       <span className="w-12 text-ink">{p.date}</span>
-      <span className="text-ink tabular-nums">{p.time}</span>
+      <span className="w-8 text-ink">{p.day}</span>
     </span>
   );
 }
