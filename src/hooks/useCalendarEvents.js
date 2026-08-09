@@ -4,11 +4,13 @@ import { getSupabaseClient } from '../lib/supabaseClient.js';
 
 export function useCalendarEvents(config) {
   const [events, setEvents] = useState([]);
+  const [meetings, setMeetings] = useState([]);
 
   const refresh = useCallback(async () => {
     try {
-      const { events } = await api.getCalendar();
+      const { events, meetings } = await api.getCalendar();
       setEvents(events ?? []);
+      setMeetings(meetings ?? []);
     } catch {
       // ignore
     }
@@ -28,5 +30,5 @@ export function useCalendarEvents(config) {
     return () => client.removeChannel(channel);
   }, [config, refresh]);
 
-  return { events };
+  return { events, meetings };
 }

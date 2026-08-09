@@ -13,8 +13,9 @@ function toKey(date) {
 // Calendar = Amy's proof-of-work: what she DID (activity events, on their real dates)
 // plus task deadlines (what's coming). Bucketed by day.
 export default function CalendarView({ todos, onOpen, config }) {
-  const { events } = useCalendarEvents(config);
+  const { events, meetings } = useCalendarEvents(config);
   const [openDay, setOpenDay] = useState(null);
+  const [openMeeting, setOpenMeeting] = useState(null);
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -26,9 +27,12 @@ export default function CalendarView({ todos, onOpen, config }) {
   const byDate = useMemo(() => {
     const map = new Map();
     const bucket = (key) => {
-      if (!map.has(key)) map.set(key, { events: [], done: [], tasks: [] });
+      if (!map.has(key)) map.set(key, { meetings: [], events: [], done: [], tasks: [] });
       return map.get(key);
     };
+    for (const m of meetings) {
+      bucket(toPacificDateKey(m.occurred_at)).meetings.push(m);
+    }
     for (const ev of events) {
       if (ev.event_date) bucket(ev.event_date).events.push(ev);
     }
@@ -40,7 +44,7 @@ export default function CalendarView({ todos, onOpen, config }) {
       }
     }
     return map;
-  }, [events, todos]);
+  }, [events, meetings, todos]);
 
   const cells = useMemo(() => {
     const year = cursor.getFullYear();
@@ -99,13 +103,20 @@ export default function CalendarView({ todos, onOpen, config }) {
         {cells.map((date, idx) => {
           if (!date) return <div key={idx} className="bg-panel min-h-[110px]" />;
           const key = toKey(date);
-          const cell = byDate.get(key) ?? { events: [], done: [], tasks: [] };
+          const cell = byDate.get(key) ?? { meetings: [], events: [], done: [], tasks: [] };
           const isToday = key === todayKey;
-          const total = cell.events.length + cell.done.length + cell.tasks.length;
-          const shownEvents = cell.events.slice(0, 4);
-          const shownDone = cell.done.slice(0, Math.max(0, 4 - shownEvents.length));
-          const shownTasks = cell.tasks.slice(0, Math.max(0, 4 - shownEvents.length - shownDone.length));
-          const overflow = total - shownEvents.length - shownDone.length - shownTasks.length;
+          const total = cell.meetings.length + cell.events.length + cell.done.length + cell.tasks.length;
+          // Meetings claim the top slots — they are the anchor of a day, and everything
+          // else that day usually came out of one.
+          const shownMeetings = cell.meetings.slice(0, 4);
+          let left = 4 - shownMeetings.length;
+          const shownEvents = cell.events.slice(0, Math.max(0, left));
+          left -= shownEvents.length;
+          const shownDone = cell.done.slice(0, Math.max(0, left));
+          left -= shownDone.length;
+          const shownTasks = cell.tasks.slice(0, Math.max(0, left));
+          const overflow =
+            total - shownMeetings.length - shownEvents.length - shownDone.length - shownTasks.length;
 
           return (
             <div
@@ -123,6 +134,22 @@ export default function CalendarView({ todos, onOpen, config }) {
                 {date.getDate()}
               </span>
               <div className="flex flex-col gap-0.5 overflow-hidden">
+                {shownMeetings.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMeeting(m);
+                    }}
+                    title={`${m.items?.length ?? 0} things discussed`}
+                    className={`tap-scale flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-left hover:bg-black/[0.05] ${
+                      m.is_upcoming ? 'text-ink-muted italic' : 'text-ink font-medium'
+                    }`}
+                  >
+                    <span className="shrink-0">🎙</span>
+                    <span className="truncate">{m.title}</span>
+                  </button>
+                ))}
                 {shownEvents.map((ev) => {
                   const inner = (
                     <>
@@ -183,11 +210,78 @@ export default function CalendarView({ todos, onOpen, config }) {
       {openDay && (
         <DayPanel
           dayKey={openDay}
-          cell={byDate.get(openDay) ?? { events: [], done: [], tasks: [] }}
+          cell={byDate.get(openDay) ?? { meetings: [], events: [], done: [], tasks: [] }}
           onClose={() => setOpenDay(null)}
           onOpen={onOpen}
+          onOpenMeeting={setOpenMeeting}
         />
       )}
+
+      {openMeeting && <MeetingPanel meeting={openMeeting} onClose={() => setOpenMeeting(null)} />}
+    </div>
+  );
+}
+
+// Click a meeting → the checklist of what was actually discussed. This is the thing Amy
+// asked for: go back to any meeting and see the points covered, not just that it happened.
+function MeetingPanel({ meeting, onClose }) {
+  const items = meeting.items ?? [];
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 frosted overlay-in" onClick={onClose} />
+      <div className="glass-panel relative slide-in-panel w-full max-w-md h-full border-l flex flex-col">
+        <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-hairline shrink-0">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-ink">🎙 {meeting.title}</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">
+              {formatDateTimePT(meeting.occurred_at)}
+              {meeting.with_whom && <> · {meeting.with_whom}</>}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="tap-scale shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-muted hover:bg-black/10"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
+          {meeting.is_upcoming && (
+            <p className="rounded-lg border border-dashed border-hairline px-3 py-2 text-[11px] text-ink-muted">
+              Hasn&apos;t happened yet. This fills in once the recording is processed.
+            </p>
+          )}
+
+          {meeting.summary && <p className="text-sm text-ink leading-relaxed">{meeting.summary}</p>}
+
+          {items.length > 0 && (
+            <Group title={`What was discussed (${items.length})`}>
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-2 rounded-lg border border-hairline bg-panel px-3 py-2"
+                >
+                  <span className="shrink-0 text-emerald-600 text-[11px] leading-5">✓</span>
+                  <p className="text-[13px] text-ink leading-snug">{item.label}</p>
+                </div>
+              ))}
+            </Group>
+          )}
+
+          {meeting.source_url && (
+            <a
+              href={meeting.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] text-clay hover:underline"
+            >
+              Open the full recording →
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -195,7 +289,7 @@ export default function CalendarView({ todos, onOpen, config }) {
 // Click a day → the wrap-up: what happened, what was finished (and when it was first
 // asked of her), and what's due. This is the "index" Amy wanted — go back to any day and
 // see what was actually discussed and closed.
-function DayPanel({ dayKey, cell, onClose, onOpen }) {
+function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting }) {
   const label = new Date(`${dayKey}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -217,6 +311,29 @@ function DayPanel({ dayKey, cell, onClose, onOpen }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
+          {cell.meetings.length > 0 && (
+            <Group title={`Meetings (${cell.meetings.length})`}>
+              {cell.meetings.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => onOpenMeeting(m)}
+                  className="tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-ink truncate">🎙 {m.title}</p>
+                    <span className="shrink-0 text-[10px] font-mono text-ink-muted">
+                      {m.items?.length ?? 0} points
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-ink-muted mt-0.5">
+                    {formatDateTimePT(m.occurred_at)}
+                    {m.with_whom && <> · {m.with_whom}</>}
+                  </p>
+                </button>
+              ))}
+            </Group>
+          )}
+
           {cell.events.length > 0 && (
             <Group title="What happened">
               {cell.events.map((ev) => (

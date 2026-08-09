@@ -182,18 +182,26 @@ async function handleInbox(req, res, db) {
   res.status(405).json({ error: 'Method not allowed' });
 }
 
-// --- Activity events for the calendar (Amy's "what I did" record). ---
+// --- Activity events for the calendar (Amy's "what I did" record), plus meetings
+// with the checklist of what was actually discussed. One fetch serves both. ---
 async function handleCalendar(req, res, db) {
   if (req.method === 'GET') {
-    const { data, error } = await db
-      .from('activity_events')
-      .select('*')
-      .order('event_date', { ascending: false });
-    if (error) {
-      res.status(500).json({ error: error.message });
+    const [{ data, error }, { data: meetings, error: meetErr }] = await Promise.all([
+      db.from('activity_events').select('*').order('event_date', { ascending: false }),
+      db
+        .from('meetings')
+        .select('*, items:meeting_items(id, label, discussed, sort_order, todo_id)')
+        .order('occurred_at', { ascending: false }),
+    ]);
+    if (error || meetErr) {
+      res.status(500).json({ error: (error ?? meetErr).message });
       return;
     }
-    res.status(200).json({ events: data ?? [] });
+    // Keep each checklist in the order it was written; Supabase does not sort embeds.
+    for (const m of meetings ?? []) {
+      m.items?.sort((a, b) => a.sort_order - b.sort_order);
+    }
+    res.status(200).json({ events: data ?? [], meetings: meetings ?? [] });
     return;
   }
 
