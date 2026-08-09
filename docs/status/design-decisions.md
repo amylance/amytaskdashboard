@@ -185,3 +185,34 @@ case a schedule is ever created again, by her or by anyone helping her.
 on the phrase "morning brief", and two skills competing for the same words is what made
 this confusing in the first place. `skill-creator` stays — it is the tool that builds
 skills, and it only fires when explicitly asked.
+
+---
+
+## Aug 9, 2026 — Meeting wrap-ups on the calendar
+
+Amy's ask, verbatim: *"when a meeting is done to the period of calendar and when you click
+it, it should show a checklist of things that was discussed."* Built.
+
+**Schema fix first.** `meeting_items` had `todo_id NOT NULL`, so every checklist line had to
+be a task. Most of what gets discussed in a meeting is not a task, which made the table
+unusable for its stated purpose. `todo_id` is now nullable, a free-text `label` was added,
+and a check constraint requires each line to carry one or the other. Ordering comes from a
+new `sort_order`.
+
+**Seeded** from the three Fireflies meetings Amy actually attended (onboarding, and both
+Isaac syncs) plus the two upcoming Townhalls pulled from Google Calendar. Checklist content
+comes from the transcript summaries, not invented.
+
+**Served from the existing `/api/hq/calendar` route** rather than a new endpoint — the
+project sits at Vercel's 12-function ceiling, and one fetch serving both events and meetings
+is fewer round trips anyway.
+
+Past meetings render solid, upcoming ones muted and italic, so the calendar never implies
+something has happened when it has not.
+
+### Gap this surfaced
+
+Amy's Google Calendar contains **nothing but the weekly Townhall**. The Monday sync with
+Gavin — where codebase access and Gmail delegation both get resolved — exists only as an
+intention in a Slack message. It is not on anyone's calendar, so nothing will remind either
+of them. Worth booking rather than trusting to memory.
