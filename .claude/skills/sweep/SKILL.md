@@ -34,9 +34,15 @@ An item reaches the Inbox **only if it is a commitment**:
 - Someone asked Amy to do something, **or**
 - Amy said she would do something.
 
-**Everything else stays in its tool.** Announcements, FYIs, chatter, things assigned to
-other people, notifications — these do NOT belong on the dashboard. Slack is already live;
-the dashboard is not a second feed. When in doubt, leave it out.
+**One deliberate exception — announcements that may involve Amy.** If an announcement in
+a channel she's in could plausibly require something *from her* (she's named, her team is
+named, or it changes something she owns), file it with a `claude_note` saying why it might
+be hers and that it needs verifying. She'd rather see it and dismiss it than miss it. If
+an announcement clearly has nothing to do with her, leave it out.
+
+**Everything else stays in its tool.** General FYIs, chatter, things assigned to other
+people, notifications — these do NOT belong on the dashboard. Slack is already live; the
+dashboard is not a second feed. When in doubt about a non-announcement, leave it out.
 
 ## 4. Verify each item (the Claude layer)
 
