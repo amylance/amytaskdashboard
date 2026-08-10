@@ -54,6 +54,11 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    convert from the epoch in `message_ts`, never the displayed string. Never write a
    timestamp (especially `sweep_state.last_swept_at`) without reading the actual clock;
    when unsure, err earlier — dedupe is free, a blind window is not.
+4b. **Finished-times.** `completed_at` = when the work actually finished, per best
+   evidence; `completed_source` says which ('click' provisional, 'evidence', 'manual').
+   A Done click stamps immediately so work is never invisible; sweeps propose day-level
+   corrections as `kind='correction'` Inbox cards — evidence quoted, Amy arbitrates.
+   Never flag mere absence of evidence, and never rewrite her record directly.
 5. **Minimal but efficient.** No feature without a job. She cut tabs deliberately.
    Suggest something better if it exists; don't add surface area.
 6. **Nothing is ever destroyed.** Every table she can delete from soft-deletes

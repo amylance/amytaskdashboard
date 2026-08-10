@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-09b.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-10b.
 ---
 
 # Sweep
@@ -66,7 +66,28 @@ For every candidate, check it against the record before filing:
 Always write a short, specific `claude_note`. That note is the whole point — it's what
 lets Amy trust the queue at a glance.
 
-## 4b. Also propose disclosures (memory)
+## 4b. Verify finished-times on done tasks
+
+Amy's timestamp protocol: `completed_at` is when the work actually finished, per best
+evidence; `completed_source` says which evidence ('click', 'evidence', 'manual'). A
+'click' stamp is provisional testimony — she often batch-updates the dashboard hours
+after the work, and her 15-hour offset makes crossing the Pacific midnight routine.
+
+For each done task with `completed_source = 'click'`, check the swept window for
+completion evidence (the Slack message announcing it, the email that shipped it).
+**File a correction only when the evidence disagrees with the click on which Pacific
+day the work happened.** Same PT day → the click stands, silently. No evidence at
+all → the click stands, silently; absence is not a finding, and flags she learns to
+ignore are worse than none.
+
+A correction is an inbox item with `kind: 'correction'`, `target_todo_id`,
+`proposed_completed_at` (the evidenced instant, UTC), the evidence quoted verbatim in
+`source_raw`, and a `claude_note` naming both days plainly: "Your Slack message landed
+Fri 4:12 PM PT; your click stamped Sat. The Calendar currently shows Saturday." Never
+update the todo directly — she arbitrates from the Inbox, where the card offers
+"Move to <day>" and "Keep as is". Both answers are legitimate.
+
+## 4c. Also propose disclosures (memory)
 
 Alongside commitments, capture **what Amy gave the Lance network** — her stated purpose
 for the Profile tab: *"what I've poured in, what I've given Claude, the tools, my emails."*

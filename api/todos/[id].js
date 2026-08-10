@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { PRIORITY_RANK, STATUSES, PRIORITIES } from '../_lib/priority.js';
 
 const EDITABLE_FIELDS = [
+  'completed_at',
   'waiting_on',
   'waiting_since',
   'title',
@@ -82,16 +83,25 @@ export default async function handler(req, res) {
       updates.priority_rank = PRIORITY_RANK[updates.priority];
     }
 
+    // Amy editing the Finished time directly is her overruling weaker evidence.
+    if ('completed_at' in updates && !updates.status) {
+      updates.completed_source = updates.completed_at ? 'manual' : null;
+    }
+
     if (updates.status && updates.status !== current.status) {
       const now = new Date().toISOString();
       if (updates.status === 'doing' && !current.started_at) {
         updates.started_at = now;
       }
       if (updates.status === 'done') {
+        // The click is provisional testimony, not verified fact — a sweep may later
+        // propose a correction from tool evidence, and Amy arbitrates in the Inbox.
         updates.completed_at = now;
+        updates.completed_source = 'click';
         updates.decided_at = now;
       } else if (current.status === 'done') {
         updates.completed_at = null;
+        updates.completed_source = null;
       }
       if (updates.status === 'review') {
         updates.decided_at = now;

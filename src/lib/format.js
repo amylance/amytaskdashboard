@@ -81,3 +81,30 @@ export function isOverdue(dateStr, status) {
 export function shortId(id) {
   return id ? id.slice(0, 8) : '';
 }
+
+// The Finished field edits a timestamp as Pacific wall time — the dashboard's clock —
+// regardless of the browser being in Manila. Round-trips at minute precision.
+export function pacificInputValue(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  const date = new Intl.DateTimeFormat('en-CA', {
+    timeZone: PT, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d);
+  const time = new Intl.DateTimeFormat('en-GB', {
+    timeZone: PT, hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(d);
+  return `${date}T${time}`;
+}
+
+export function pacificToISO(wall) {
+  if (!wall) return null;
+  // Interpret the wall time as UTC, then shift by however far PT is from UTC at that
+  // moment. Two passes so a DST boundary lands on the right side.
+  let guess = new Date(`${wall}:00Z`);
+  for (let i = 0; i < 2; i++) {
+    const seen = pacificInputValue(guess.toISOString());
+    const drift = new Date(`${wall}:00Z`) - new Date(`${seen}:00Z`);
+    guess = new Date(guess.getTime() + drift);
+  }
+  return guess.toISOString();
+}

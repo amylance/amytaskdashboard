@@ -82,6 +82,10 @@ async function handleInbox(req, res, db) {
             claude_note: it.claude_note ?? null,
             suggested_status: it.suggested_status === 'done' ? 'done' : 'todo',
             received_at: it.received_at,
+            kind: ['task', 'memory', 'correction'].includes(it.kind) ? it.kind : 'task',
+            to_whom: it.to_whom ?? null,
+            target_todo_id: it.target_todo_id ?? null,
+            proposed_completed_at: it.proposed_completed_at ?? null,
           })
           .select()
           .single();
@@ -114,6 +118,30 @@ async function handleInbox(req, res, db) {
       await db
         .from('inbox_items')
         .update({ state: 'dismissed', resolved_at: new Date().toISOString() })
+        .eq('id', id);
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    // A correction proposes a better finished-time for an existing task. Approving moves
+    // the timestamp to the evidenced moment; dismissing keeps Amy's click. Either way she
+    // arbitrated — the machine never rewrites her record on its own.
+    if (item.kind === 'correction') {
+      if (!item.target_todo_id || !item.proposed_completed_at) {
+        res.status(400).json({ error: 'Correction item is missing its target or proposal' });
+        return;
+      }
+      const { error: fixErr } = await db
+        .from('todos')
+        .update({ completed_at: item.proposed_completed_at, completed_source: 'evidence' })
+        .eq('id', item.target_todo_id);
+      if (fixErr) {
+        res.status(500).json({ error: fixErr.message });
+        return;
+      }
+      await db
+        .from('inbox_items')
+        .update({ state: 'approved', resolved_at: new Date().toISOString(), created_todo_id: item.target_todo_id })
         .eq('id', id);
       res.status(200).json({ ok: true });
       return;
@@ -168,6 +196,7 @@ async function handleInbox(req, res, db) {
         // current time drops days-old work onto today's calendar. The moment it arose is
         // the closest defensible evidence we have, and Amy can correct it.
         completed_at: status === 'done' ? item.received_at : null,
+        completed_source: status === 'done' ? 'evidence' : null,
       })
       .select()
       .single();

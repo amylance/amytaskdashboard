@@ -385,3 +385,38 @@ Mechanics:
   affordance-hiding is just honesty. Failed writes (e.g. a viewer dragging a Kanban card)
   roll back optimistically with a clear error message.
 - Editor passphrase rotates by updating one hash row — no code, no env vars, no redeploy.
+
+---
+
+## Aug 10, 2026 — Timestamp protocol unified: evidence over click, Amy arbitrates
+
+Amy noticed the gap: work evidenced in Slack at one time, Done clicked hours later — which
+timestamp wins? The answer was "two different rules depending on the path," which is no
+protocol at all.
+
+**The principle, now explicit:** `completed_at` is when the work actually finished, per
+best available evidence. `completed_source` records which evidence:
+- `click` — provisional; the moment she hit Done. Stamped immediately.
+- `evidence` — a tool showed when it happened (sweep-approved dones, approved corrections).
+- `manual` — Amy set it herself via the new editable Finished field (rendered and edited
+  in PT regardless of the browser's Manila clock).
+
+**Amy's original proposal** was Done-without-timestamp until a sweep supplies evidence.
+Rejected with her agreement, for one reason: the Calendar and the Done column place work
+by timestamp, and sweeps are on-demand — an unstamped done would be *invisible* until the
+next sweep, exactly inverting "when anyone checks what I've done, it's right there."
+
+**What was built instead** keeps her intent without the hole:
+1. Done click stamps now, tagged provisional.
+2. Sweeps verify 'click' stamps against tool evidence and file `kind='correction'` Inbox
+   cards — but **only for day-level PT disagreements**. Same day → silence. No evidence →
+   silence: much real work leaves no tool trace, and flags she learns to ignore are worse
+   than none.
+3. The card quotes the evidence and offers "Move to <day>" / "Keep as is" — both
+   legitimate, because sometimes the Slack message isn't the finish. Approving moves the
+   timestamp and flips the source to 'evidence'. The machine never rewrites her record
+   directly; the Inbox-is-the-gate rule now covers timestamps.
+
+Her related instinct — that sweep-discovered dones should pass through the Inbox as an
+end-of-shift accomplishment reminder — was already the design; confirmed rather than
+built. The fuller recap is `brief`'s backward-looking mode.

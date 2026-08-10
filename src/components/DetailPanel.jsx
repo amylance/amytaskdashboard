@@ -10,7 +10,7 @@ const SOURCE_LABEL = {
   lance_live: 'Lance Live',
   email: 'Email',
 };
-import { formatDateTime, shortId } from '../lib/format.js';
+import { formatDateTime, shortId, pacificInputValue, pacificToISO } from '../lib/format.js';
 import { useTodoDetail } from '../hooks/useTodoDetail.js';
 
 const ACTIVITY_LABEL = {
@@ -225,6 +225,27 @@ export default function DetailPanel({
             )}
           </LabeledField>
 
+          {/* When the work actually finished — the click is only the default evidence.
+              Rendered and edited in Pacific, the dashboard's clock. */}
+          {todo.status === 'done' && (
+            <LabeledField label="Finished (PT)">
+              <input
+                type="datetime-local"
+                value={pacificInputValue(todo.completed_at)}
+                onChange={(e) => {
+                  const iso = pacificToISO(e.target.value);
+                  if (iso && iso !== todo.completed_at) patch({ completed_at: iso });
+                }}
+                className={textFieldClass}
+              />
+              {todo.completed_source && (
+                <p className="mt-1 text-[10px] text-ink-muted">
+                  {FINISHED_CAPTION[todo.completed_source]}
+                </p>
+              )}
+            </LabeledField>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <LabeledField label="Contact">
               <input
@@ -401,6 +422,13 @@ export default function DetailPanel({
     </div>
   );
 }
+
+
+const FINISHED_CAPTION = {
+  click: 'stamped when you hit Done — edit if it actually finished earlier',
+  evidence: 'per evidence from your tools',
+  manual: 'set by you',
+};
 
 function LabeledField({ label, children }) {
   return (

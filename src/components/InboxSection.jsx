@@ -48,12 +48,79 @@ export default function InboxSection({ items, sweep, onResolve }) {
   );
 }
 
+function dayLabel(value) {
+  return new Date(value).toLocaleDateString('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+// A correction never creates work — it asks one question about an existing task's
+// finished-time, with the evidence quoted so Amy can judge it. Both buttons are
+// legitimate: sometimes the Slack message is not the finish.
+function CorrectionCard({ item, onResolve }) {
+  return (
+    <div className="rounded-xl border border-clay/25 bg-clay-soft p-3.5">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">
+          🕐 finished-time · {SOURCE_LABEL[item.source] ?? item.source}
+          {item.source_context ? ` · ${item.source_context}` : ''}
+        </span>
+      </div>
+
+      <p className="text-sm font-medium text-ink mb-2">{item.title}</p>
+
+      {item.source_raw && (
+        <p className="text-[11px] text-ink-muted italic mb-1">“{item.source_raw}”</p>
+      )}
+      {item.claude_note && (
+        <p className="text-[11px] text-ink mb-2">
+          <span className="font-mono uppercase text-ink-muted">🤖 Claude</span> · {item.claude_note}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          onClick={() => onResolve(item.id, 'approve')}
+          className="tap-scale inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-white"
+        >
+          <Check size={12} />
+          Move to {dayLabel(item.proposed_completed_at)}
+        </button>
+        <button
+          onClick={() => onResolve(item.id, 'dismiss')}
+          className="tap-scale inline-flex items-center gap-1 rounded-full border border-hairline bg-panel px-3 py-1.5 text-xs text-ink-muted"
+        >
+          <X size={12} />
+          Keep as is
+        </button>
+        {item.source_url && (
+          <a
+            href={item.source_url}
+            target="_blank"
+            rel="noreferrer"
+            className="ml-auto inline-flex items-center gap-1 text-[11px] text-clay hover:underline"
+          >
+            <ExternalLink size={11} /> source
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function InboxCard({ item, onResolve }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
   // Claude only SUGGESTS the status — Amy makes the call before it becomes a task.
   const [status, setStatus] = useState(item.suggested_status ?? 'todo');
   const isMemory = item.kind === 'memory';
+
+  if (item.kind === 'correction') {
+    return <CorrectionCard item={item} onResolve={onResolve} />;
+  }
 
   return (
     <div className="rounded-xl border border-clay/25 bg-clay-soft p-3.5">
