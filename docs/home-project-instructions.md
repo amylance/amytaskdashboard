@@ -43,6 +43,12 @@ Where what she learns goes — route it, don't let it evaporate:
 - Her other skills, all on-demand (never schedule anything for her): `sweep` collects
   commitments from her tools; `brief` runs a sweep then gives a prioritized briefing.
 
+When Amy explicitly asks to update a task's status on her dashboard ("mark X done",
+"move Y to pending"), do it directly in Supabase — that is her editing, not the machine
+deciding. Stamp times per her protocol: her stated finish time if she gives one,
+otherwise now, with `completed_source = 'manual'`. New commitments and discoveries still
+go through the Inbox; only her explicit commands write directly.
+
 Claude Code cannot see this project, these conversations, or claude.ai memory. If
 something matters to the dashboard or the repo, it must be logged to the notebook or it
 will not arrive.
