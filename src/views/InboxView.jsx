@@ -4,14 +4,25 @@ import { useInbox } from '../hooks/useInbox.js';
 
 // The first tab: everything captured but not yet decided. Nothing here is a task until
 // Amy approves it.
-export default function InboxView({ config, dismissed = [], onRestore, onRefreshRemoved }) {
-  const { items, sweep, resolve } = useInbox(config);
+export default function InboxView({ config, dismissed = [], onRestore, onRefreshRemoved, onDismissed }) {
+  const { items, sweep, resolve, refresh } = useInbox(config);
 
   // Dismissing is the highest-regret action here — she triages fast, on purpose. Refresh
   // the recoverable list right after so the strip below is never stale.
   async function handleResolve(id, action, fields) {
+    const item = items.find((i) => i.id === id);
     await resolve(id, action, fields);
-    if (action === 'dismiss') await onRefreshRemoved?.();
+    if (action === 'dismiss') {
+      await onRefreshRemoved?.();
+      if (item) onDismissed?.(item);
+    }
+  }
+
+  // Restoring has to put the item back into the visible queue too — realtime is degraded,
+  // so without an explicit refresh the row would leave the strip yet not reappear above.
+  async function handleRestore(item) {
+    await onRestore(item);
+    await refresh();
   }
 
   return (
@@ -28,7 +39,7 @@ export default function InboxView({ config, dismissed = [], onRestore, onRefresh
       <RecoverStrip
         items={dismissed}
         noun="dismissed item"
-        onRestore={onRestore}
+        onRestore={handleRestore}
         describe={removedAt}
       />
     </div>

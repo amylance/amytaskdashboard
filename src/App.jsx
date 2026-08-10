@@ -213,6 +213,9 @@ export default function App() {
         dismissed={removed.inbox}
         onRefreshRemoved={refreshRemoved}
         onRestore={(item) => handleRestore('inbox', item.id)}
+        onDismissed={(item) =>
+          setUndo({ label: `Dismissed "${item.title}"`, onUndo: () => handleRestore('inbox', item.id) })
+        }
       />
     ),
     kanban: (

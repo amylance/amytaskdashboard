@@ -65,6 +65,12 @@ export default function TopNav({ active, onChange, onLogout, onCreate, createLab
           </button>
         </div>
       </div>
+
+      {/* On phones the inline clocks don't fit next to the nav, but Amy needs the
+          timezone pair most when she's on her phone half-awake. Own row, below the bar. */}
+      <div className="sm:hidden max-w-6xl mx-auto px-6 pb-2.5">
+        <Clocks className="flex" />
+      </div>
     </header>
   );
 }

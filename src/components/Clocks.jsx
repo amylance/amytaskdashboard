@@ -22,7 +22,7 @@ function parts(tz) {
 // Stacked world-clock. Amy is 15 hours ahead of the team, so her date is often a day
 // ahead — showing weekday and date on both rows makes that impossible to lose track of,
 // and the dashboard itself runs on Pacific.
-export default function Clocks() {
+export default function Clocks({ className = 'hidden sm:flex' }) {
   const [, tick] = useState(0);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function Clocks() {
   }, []);
 
   return (
-    <div className="hidden sm:flex flex-col gap-0.5 leading-tight font-mono text-[10px] text-ink-muted">
+    <div className={`${className} flex-col gap-0.5 leading-tight font-mono text-[10px] text-ink-muted`}>
       <Row flag="🇺🇸" label="SF" p={parts(PT)} />
       <Row flag="🇵🇭" label="PH" p={parts(PH)} />
     </div>
