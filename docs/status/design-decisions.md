@@ -420,3 +420,21 @@ next sweep, exactly inverting "when anyone checks what I've done, it's right the
 Her related instinct — that sweep-discovered dones should pass through the Inbox as an
 end-of-shift accomplishment reminder — was already the design; confirmed rather than
 built. The fuller recap is `brief`'s backward-looking mode.
+
+---
+
+## Aug 10, 2026 — Inbox approves into any status
+
+Amy: approving as to-do and then dragging the card to Doing or Pending on the Kanban is
+a pointless detour. The Inbox picker now offers all four statuses (○ To do · ◐ Doing ·
+⏳ Pending · ✓ Done) and the save button's label follows the pick.
+
+Her follow-up question — why keep both the picker and the save button instead of four
+one-tap buttons — got a deliberate answer: the picker is the decision, the button is the
+commit. Collapsing them would mean six actions per card (crowded on a phone, misclick =
+instant task), and would lose the preselected display of Claude's suggested status.
+
+Approving into a status carries the same side effects a Kanban drag would: doing stamps
+started_at, pending starts the waiting_since clock (who it waits on gets added in the
+detail panel), done keeps the evidence-based completed_at. The shortcut must never
+produce a different record than the long way.

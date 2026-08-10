@@ -176,7 +176,9 @@ async function handleInbox(req, res, db) {
       return;
     }
 
-    const status = body.status === 'done' ? 'done' : body.status || item.suggested_status;
+    const status = ['todo', 'doing', 'waiting', 'done'].includes(body.status)
+      ? body.status
+      : item.suggested_status;
     const edited = title !== item.title;
 
     const { data: todo, error: todoErr } = await db
@@ -197,6 +199,10 @@ async function handleInbox(req, res, db) {
         // the closest defensible evidence we have, and Amy can correct it.
         completed_at: status === 'done' ? item.received_at : null,
         completed_source: status === 'done' ? 'evidence' : null,
+        // Approving straight into doing/pending carries the same side effects a Kanban
+        // drag would have applied — the shortcut must not produce a different record.
+        started_at: status === 'doing' ? new Date().toISOString() : null,
+        waiting_since: status === 'waiting' ? new Date().toISOString() : null,
       })
       .select()
       .single();

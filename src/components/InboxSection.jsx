@@ -155,11 +155,14 @@ function InboxCard({ item, onResolve }) {
         </p>
       )}
 
-      {/* Amy picks the status — Claude's suggestion is just the default. */}
+      {/* Amy picks the status — Claude's suggestion is just the default. All four states,
+          so approving never needs a follow-up drag on the Kanban. */}
       {!isMemory && (
         <div className="mb-2 inline-flex items-center gap-1 rounded-full border border-hairline bg-panel p-0.5">
           {[
             { id: 'todo', label: '○ To do' },
+            { id: 'doing', label: '◐ Doing' },
+            { id: 'waiting', label: '⏳ Pending' },
             { id: 'done', label: '✓ Done' },
           ].map((opt) => (
             <button
@@ -181,7 +184,9 @@ function InboxCard({ item, onResolve }) {
           className="tap-scale inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-white"
         >
           <Check size={12} />
-          {isMemory ? 'Add to my ledger' : status === 'done' ? 'Save as done' : 'Save as to-do'}
+          {isMemory
+            ? 'Add to my ledger'
+            : { todo: 'Save as to-do', doing: 'Save as doing', waiting: 'Save as pending', done: 'Save as done' }[status]}
         </button>
         <button
           onClick={() => (editing ? onResolve(item.id, 'approve', { title, status }) : setEditing(true))}
