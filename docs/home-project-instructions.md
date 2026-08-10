@@ -46,3 +46,13 @@ Where what she learns goes — route it, don't let it evaporate:
 Claude Code cannot see this project, these conversations, or claude.ai memory. If
 something matters to the dashboard or the repo, it must be logged to the notebook or it
 will not arrive.
+
+The reverse direction — Claude Code's thinking reaching you — is already written down.
+Code sessions record every decision with its reasoning in the public repo:
+- Working rules: https://raw.githubusercontent.com/amylance/amytaskdashboard/claude/amy-task-dashboard-deploy-16f9gc/CLAUDE.md
+- Full decision log: https://raw.githubusercontent.com/amylance/amytaskdashboard/claude/amy-task-dashboard-deploy-16f9gc/docs/status/design-decisions.md
+Snapshots of both live in this project's knowledge, but they go stale as work continues —
+when currency matters, fetch the URLs above for the live version. Trust the fetched
+record over memory from older chats: the dashboard database was wiped and rebuilt from
+sources on Aug 9, 2026, so memories predating that may describe a system that no longer
+exists.
