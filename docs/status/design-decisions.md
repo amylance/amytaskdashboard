@@ -334,3 +334,27 @@ a diffable, evolving record rather than a memory.
 
 claude.ai Memory (Settings → Customize → Memory) covers Home-to-Home continuity but never
 reaches Code, which is why the notebook and CLAUDE.md carry the load.
+
+---
+
+## Aug 10, 2026 — First cross-surface audit: Home reads the record, Code fixes the path
+
+After Amy grounded her Home project in the live repo record, its first act was to re-audit
+its own claims. It found one real wart and one false alarm, both instructive:
+
+- **False alarm, right instinct:** `sweep_state.last_swept_at` (Aug 9 12:00 UTC) postdated
+  `updated_at` (Aug 8 19:00), which Home read as "swept after last written — possible blind
+  window." Inverted: the row was written twice after Aug 8; `updated_at` was simply
+  unmaintained — no code path ever wrote it. And the watermark was deliberately set
+  *earlier* than the sweep's finish (the "err earlier" rule) — overlap, not gap. Fixed at
+  the write path per Home's own recommendation: a `sweep_state_touch` trigger now stamps
+  `updated_at` on every update, so the meta-column can no longer lie.
+- **Confirmed intentional:** `notebook` has RLS with no policies — service-role only, the
+  browser never reads it. Documented in CLAUDE.md so nobody adds anon policies later.
+- **Stray found:** a second, completely empty Supabase project (`zburuohdunnigvaxdxxk`,
+  created 30 min before the real one during the Aug 6 setup session). Amy's call whether
+  to delete it; Code doesn't delete things in her account unprompted.
+
+Worth keeping: the pattern where Home flags from the record and declines to write, and a
+Code session verifies against history and fixes the *path* rather than the value. That is
+the division of labor the two-surface design intends.

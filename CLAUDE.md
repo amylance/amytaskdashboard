@@ -107,6 +107,11 @@ For each entry: discuss or act per rule 1, then mark it
 If an entry states a durable preference, fold it into this file — that is how this
 document evolves instead of rotting.
 
+`notebook` has RLS enabled with **no policies on purpose** — only service-role callers
+(Code sessions, her Home connector) touch it; the browser never does. Don't "fix" it
+with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
+(`sweep_state_touch`) — it once sat unmaintained and produced a false blind-window alarm.
+
 ## Conventions
 
 - **Build-gated pushes, no exceptions:** `set -e`, `npm run build` must pass before
