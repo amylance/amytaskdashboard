@@ -358,3 +358,30 @@ its own claims. It found one real wart and one false alarm, both instructive:
 Worth keeping: the pattern where Home flags from the record and declines to write, and a
 Code session verifies against history and fixes the *path* rather than the value. That is
 the division of labor the two-surface design intends.
+
+---
+
+## Aug 10, 2026 — Editor/viewer split: demote the leaked credential, don't rotate it
+
+Amy asked whether dashboard access for Gavin and Isaac was view or edit. It was edit —
+one passphrase, one role, every endpoint open to anyone holding it. She wanted that fixed
+("Yes just as I thought!").
+
+**The move: the exposed passphrase became the viewer.** `amylancetaskdashboard` has been
+sitting in Slack plaintext since day 3 and is known to both colleagues — rotating it would
+mean re-telling everyone a new secret, which lands in Slack again. Instead it keeps
+working exactly as before for viewing, and a new editor passphrase (hash in `access_gate`,
+never shared anywhere) is now required for writes. The leaked secret is now the harmless
+one, and nobody had to be told anything.
+
+Mechanics:
+- Session tokens carry a role prefix; tokens with no prefix are viewers, so every cookie
+  issued before the split — including the ones already in Gavin's and Isaac's browsers —
+  demoted automatically on deploy. Amy logs out/in once with the editor passphrase.
+- Every non-GET endpoint checks `requireEditor`. Profile is exempt: its own passphrase is
+  stronger and only Amy holds it; gating unlock behind editor could strand her out of her
+  private tab over a role bug.
+- Viewers see a "view only" chip and no New button; server enforcement is the security,
+  affordance-hiding is just honesty. Failed writes (e.g. a viewer dragging a Kanban card)
+  roll back optimistically with a clear error message.
+- Editor passphrase rotates by updating one hash row — no code, no env vars, no redeploy.

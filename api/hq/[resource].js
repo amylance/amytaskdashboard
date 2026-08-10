@@ -1,5 +1,6 @@
 import {
   requireAuth,
+  requireEditor,
   hashPassphrase,
   createProfileToken,
   setProfileCookie,
@@ -14,6 +15,11 @@ export default async function handler(req, res) {
   if (!requireAuth(req, res)) return;
   const db = supabaseAdmin();
   const { resource } = req.query;
+
+  // Writes are editor-only. Profile is exempt: it has its own, stronger passphrase that
+  // only Amy holds, and locking its unlock action behind editor would let a role problem
+  // strand her out of her own private tab.
+  if (req.method !== 'GET' && resource !== 'profile' && !requireEditor(req, res)) return;
 
   if (resource === 'status') return handleStatus(req, res, db);
   if (resource === 'pending') return handlePending(req, res, db);

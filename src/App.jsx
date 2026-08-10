@@ -23,6 +23,9 @@ import ProfileView from './views/ProfileView.jsx';
 export default function App() {
   const session = useSession();
   const config = session.status === 'ready' ? session.config : null;
+  // Gavin and Isaac hold the shared passphrase, which is view-only. Hiding the write
+  // affordances is honesty, not security — the server enforces the role on every write.
+  const readOnly = session.status === 'ready' && session.role !== 'editor';
   const { todos, setTodos, loading: todosLoading } = useTodos(config);
   const { people, setPeople, loading: peopleLoading } = usePeople(config);
   const [activeView, setActiveView] = useState('inbox');
@@ -258,7 +261,8 @@ export default function App() {
         onLogout={session.logout}
         onCreate={() => setShowCreate(true)}
         createLabel={activeView === 'people' ? 'New person' : 'New task'}
-        canCreate={activeView !== 'profile' && activeView !== 'inbox'}
+        canCreate={!readOnly && activeView !== 'profile' && activeView !== 'inbox'}
+        readOnly={readOnly}
       />
 
       {error && (

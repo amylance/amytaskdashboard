@@ -31,6 +31,14 @@ her), Kanban ("Pending" not "Waiting"; Done column shows today only), List, Time
 (due dates, forward-looking), Calendar (proof-of-work: what she did, meetings with
 discussion checklists, deadlines), People, Profile (passphrase-gated, hers to write).
 
+**Access model (three passphrases):** the original shared passphrase
+(`DASHBOARD_PASSPHRASE` env var — known to Gavin and Isaac, present in Slack history) is
+**view-only**; the editor passphrase (hash in `access_gate`, never shared, never in
+Slack) grants writes — every non-GET endpoint checks `requireEditor`, profile excepted
+since its own passphrase is stronger; the profile passphrase gates her private tab.
+Tokens without a role prefix are viewers, so pre-split cookies demoted automatically.
+Rotate the editor passphrase by updating the hash in `access_gate`.
+
 ## Standing rules — the ones that are really hers
 
 1. **Discussion before execution.** Talk the design through with her before building

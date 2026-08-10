@@ -4,12 +4,14 @@ import { api } from '../lib/api.js';
 export function useSession() {
   const [status, setStatus] = useState('loading'); // loading | gate | ready
   const [config, setConfig] = useState(null);
+  const [role, setRole] = useState(null); // 'editor' | 'viewer'
   const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
       const session = await api.getSession();
       if (session.authenticated) {
+        setRole(session.role ?? 'viewer');
         // config stays null when realtime isn't usable — every live-update hook already
         // guards on it, so they skip cleanly rather than retrying a doomed handshake.
         setConfig(
@@ -48,8 +50,9 @@ export function useSession() {
   const logout = useCallback(async () => {
     await api.logout();
     setConfig(null);
+    setRole(null);
     setStatus('gate');
   }, []);
 
-  return { status, config, error, login, logout };
+  return { status, config, role, error, login, logout };
 }

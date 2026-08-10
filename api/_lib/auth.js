@@ -15,23 +15,37 @@ function sign(payload) {
   return createHmac('sha256', secret()).update(payload).digest('base64url');
 }
 
-export function createSessionToken() {
+// Editor tokens carry an 'e' prefix; a bare-expiry payload is a viewer. Tokens issued
+// before roles existed have no prefix, so every cookie already out there — including the
+// ones in Gavin's and Isaac's browsers — quietly becomes view-only on deploy.
+export function createSessionToken(role = 'viewer') {
   const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const payload = String(exp);
+  const payload = role === 'editor' ? `e${exp}` : String(exp);
   return `${payload}.${sign(payload)}`;
 }
 
-export function verifySessionToken(token) {
-  if (!token || typeof token !== 'string') return false;
+function parseSessionToken(token) {
+  if (!token || typeof token !== 'string') return null;
   const parts = token.split('.');
-  if (parts.length !== 2) return false;
+  if (parts.length !== 2) return null;
   const [payload, signature] = parts;
   const expected = sign(payload);
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
-  const exp = Number(payload);
-  return Number.isFinite(exp) && exp > Math.floor(Date.now() / 1000);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  const role = payload.startsWith('e') ? 'editor' : 'viewer';
+  const exp = Number(role === 'editor' ? payload.slice(1) : payload);
+  if (!Number.isFinite(exp) || exp <= Math.floor(Date.now() / 1000)) return null;
+  return { role };
+}
+
+export function verifySessionToken(token) {
+  return parseSessionToken(token) !== null;
+}
+
+export function sessionRole(req) {
+  const cookies = parseCookies(req);
+  return parseSessionToken(cookies[COOKIE_NAME])?.role ?? null;
 }
 
 export function checkPassphrase(candidate) {
@@ -77,6 +91,16 @@ export function isAuthenticated(req) {
 export function requireAuth(req, res) {
   if (!isAuthenticated(req)) {
     res.status(401).json({ error: 'Not authenticated' });
+    return false;
+  }
+  return true;
+}
+
+// Writes need the editor passphrase. The shared passphrase — the one that has been
+// sitting in Slack since day 3 — grants viewing only.
+export function requireEditor(req, res) {
+  if (sessionRole(req) !== 'editor') {
+    res.status(403).json({ error: 'View-only access — editing needs the editor passphrase.' });
     return false;
   }
   return true;

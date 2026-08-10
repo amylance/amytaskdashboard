@@ -1,8 +1,9 @@
-import { requireAuth } from '../_lib/auth.js';
+import { requireAuth, requireEditor } from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 
 export default async function handler(req, res) {
   if (!requireAuth(req, res)) return;
+  if (req.method !== 'GET' && !requireEditor(req, res)) return;
   const db = supabaseAdmin();
 
   if (req.method === 'GET') {

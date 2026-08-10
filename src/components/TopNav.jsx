@@ -3,7 +3,7 @@ import { LogOut, Plus } from 'lucide-react';
 import { VIEWS } from '../lib/constants.js';
 import Clocks from './Clocks.jsx';
 
-export default function TopNav({ active, onChange, onLogout, onCreate, createLabel = 'New', canCreate = true }) {
+export default function TopNav({ active, onChange, onLogout, onCreate, createLabel = 'New', canCreate = true, readOnly = false }) {
   const tabRefs = useRef({});
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
@@ -20,6 +20,11 @@ export default function TopNav({ active, onChange, onLogout, onCreate, createLab
         <div className="flex items-center gap-3 shrink-0">
           <span className="font-mono text-xs text-ink tracking-tight font-semibold">HQ</span>
           <Clocks />
+          {readOnly && (
+            <span className="rounded-full border border-hairline bg-panel px-2 py-0.5 text-[10px] font-mono text-ink-muted">
+              view only
+            </span>
+          )}
         </div>
 
         <nav className="relative flex items-center gap-1 bg-panel border border-hairline rounded-full p-1">

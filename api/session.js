@@ -1,4 +1,4 @@
-import { isAuthenticated } from './_lib/auth.js';
+import { isAuthenticated, sessionRole } from './_lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -20,6 +20,7 @@ export default async function handler(req, res) {
 
   res.status(200).json({
     authenticated: true,
+    role: sessionRole(req),
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseAnonKey: looksValid ? anonKey : null,
     realtime: looksValid,
