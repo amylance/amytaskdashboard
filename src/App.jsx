@@ -257,7 +257,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-backdrop">
+    <div className="min-h-screen bg-backdrop overflow-x-clip">
       <TopNav
         active={activeView}
         onChange={setActiveView}
