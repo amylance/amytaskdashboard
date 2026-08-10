@@ -78,10 +78,16 @@ discussion checklists, deadlines), People, Profile (passphrase-gated, hers to wr
 - `docs/status/sweep-log.md` — what each full sweep did and the judgement calls made.
 - `docs/backups/` — database snapshots before destructive operations. Always snapshot
   before a wipe.
-- `.claude/skills/` — `sweep` and `brief`. Same files are uploaded to her claude.ai
-  account; keep the `Version YYYY-MM-DDx.` stamp in each description current so the
-  installed copy is verifiable remotely (the description is the only field readable via
-  ListSkills).
+- `.claude/skills/` — `sweep`, `brief`, and `log`. Same files are uploaded to her
+  claude.ai account; keep the `Version YYYY-MM-DDx.` stamp in each description current
+  so the installed copy is verifiable remotely (the description is the only field
+  readable via ListSkills).
+- Amy's Home project ("Lance EA — HQ") holds snapshot copies of this file and
+  `design-decisions.md` in its project knowledge; its instructions also point at the
+  live GitHub raw URLs. The snapshots rot as work continues and Amy must never have to
+  remember to refresh them: **when a session meaningfully grows either file, end by
+  sending her fresh copies** (SendUserFile) with a one-line "re-upload these to the
+  project when convenient." Her cost is one click; the remembering is ours.
 
 ## The notebook — how her thinking reaches you from Home
 
