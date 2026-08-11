@@ -106,7 +106,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             {cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
           <p className="text-[11px] text-ink-muted mt-0.5">
-            <span className="mr-3 rounded bg-clay px-1.5 py-0.5 text-white">🎙 meeting</span>
+            <span className="mr-3 rounded border-l-2 border-l-clay/60 bg-clay-soft/70 px-1.5 py-0.5">🎙 meeting</span>
             <span className="mr-3">✦ milestone</span>
             <span className="mr-3">• what I did</span>
             <span className="mr-3">✓ completed</span>
@@ -162,7 +162,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
               key={idx}
               onClick={() => openable && setOpenDay(key)}
               className={`min-h-[110px] p-1.5 flex flex-col gap-1 transition-shadow ${
-                cell.meetings.length > 0 ? 'bg-clay-soft/40' : 'bg-panel'
+                cell.meetings.length > 0 ? 'bg-clay-soft/20' : 'bg-panel'
               } ${
                 openable ? 'cursor-pointer hover:bg-black/[0.03]' : ''
               } ${
@@ -197,16 +197,16 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                       setOpenMeeting(m);
                     }}
                     title={`${m.items?.length ?? 0} things discussed`}
-                    className={`tap-scale flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-[11px] leading-tight text-left font-medium ${
+                    className={`tap-scale flex w-full items-center gap-1 rounded-md border-l-2 px-1.5 py-1 text-[11px] leading-tight text-left font-medium text-ink ${
                       m.is_upcoming
-                        ? 'border border-dashed border-clay/45 text-clay hover:bg-clay-soft'
-                        : 'bg-clay text-white hover:bg-clay/90'
+                        ? 'border-l-clay/40 bg-clay-soft/40 border-dashed'
+                        : 'border-l-clay/60 bg-clay-soft/70 hover:bg-clay-soft'
                     }`}
                   >
                     <span className="shrink-0">🎙</span>
                     <span className="truncate">{m.title}</span>
                     {(m.items?.length ?? 0) > 0 && (
-                      <span className={`ml-auto shrink-0 font-mono text-[9px] ${m.is_upcoming ? 'text-clay/70' : 'text-white/70'}`}>
+                      <span className="ml-auto shrink-0 font-mono text-[9px] text-ink-muted">
                         {m.items.length}
                       </span>
                     )}
