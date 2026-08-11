@@ -35,6 +35,18 @@ export default function KanbanView({
     return ptKey(today);
   })();
 
+  // Every column reads newest-activity-first. "Activity" is the last thing that actually
+  // happened to a task — finished, started, blocked, or edited — not when it arrived. A
+  // task someone touched an hour ago sits above one untouched since Wednesday, whatever
+  // its status. This replaces manual within-column ordering: dragging still moves a card
+  // between columns, but position inside a column is decided by the record, not by hand.
+  const lastActivity = (t) =>
+    Math.max(
+      ...[t.completed_at, t.started_at, t.waiting_since, t.updated_at, t.received_at, t.created_at]
+        .filter(Boolean)
+        .map((v) => new Date(v).getTime()),
+    );
+
   const columns = STATUSES.map((s) => ({
     ...s,
     items: todos
@@ -44,7 +56,7 @@ export default function KanbanView({
         if (!t.completed_at) return true;
         return ptKey(new Date(t.completed_at)) >= weekStartKey;
       })
-      .sort((a, b) => a.sort_order - b.sort_order),
+      .sort((a, b) => lastActivity(b) - lastActivity(a)),
   }));
 
   function handleDrop(status, targetIndex) {
@@ -52,33 +64,22 @@ export default function KanbanView({
     const dragged = todos.find((t) => t.id === draggingId);
     if (!dragged) return;
 
-    const columnItems = todos
-      .filter((t) => t.status === status && t.id !== draggingId)
-      .sort((a, b) => a.sort_order - b.sort_order);
-
-    const before = columnItems[targetIndex - 1];
-    const after = columnItems[targetIndex];
-    const newSortOrder =
-      before && after
-        ? (before.sort_order + after.sort_order) / 2
-        : before
-          ? before.sort_order + 1
-          : after
-            ? after.sort_order - 1
-            : 0;
-
     setDraggingId(null);
     setOverColumn(null);
 
-    // Single call carrying both status and sort_order so the server-side
-    // status-change side effects (started_at/completed_at/decided_at,
-    // activity log) always run — a separate reorder call racing a separate
-    // status call let the reorder win and silently skip those side effects.
-    onReorder(draggingId, { status, sort_order: newSortOrder });
+    // A drop decides status and nothing else — order comes from activity, so there is no
+    // position to persist. The status change still runs its server-side side effects
+    // (started_at / completed_at / decided_at, activity log).
+    if (dragged.status === status) return;
+    onReorder(draggingId, { status });
   }
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
+      <p className="mb-3 text-[11px] text-ink-muted">
+        Every column is ordered by most recent activity, newest first — finished, started,
+        blocked or edited, whichever happened last.
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {columns.map((col) => (
           <div
