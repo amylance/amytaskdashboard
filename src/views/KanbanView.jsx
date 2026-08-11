@@ -14,14 +14,26 @@ export default function KanbanView({
   const [draggingId, setDraggingId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
 
-  // Done shows TODAY's completions only — older finished work lives in the Calendar,
-  // on the day it happened, so the board stays about live work.
-  const todayKey = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Los_Angeles",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  // Done shows THIS WEEK's completions — Monday to now, Pacific. A week is long enough
+  // that Amy (and Gavin, who can see this board) can look back over the last few days,
+  // and short enough that the column never becomes an archive. Monday morning it empties
+  // on its own; everything older lives in the Calendar on the day it happened.
+  const ptKey = (d) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+
+  // Most recent Monday in Pacific. getDay() on the PT-keyed date avoids the browser's
+  // own timezone deciding which day it is.
+  const weekStartKey = (() => {
+    const today = new Date(`${ptKey(new Date())}T12:00:00`);
+    const back = (today.getDay() + 6) % 7; // Sunday counts as 6 days into the week
+    today.setDate(today.getDate() - back);
+    return ptKey(today);
+  })();
 
   const columns = STATUSES.map((s) => ({
     ...s,
@@ -30,14 +42,7 @@ export default function KanbanView({
         if (t.status !== s.id) return false;
         if (s.id !== "done") return true;
         if (!t.completed_at) return true;
-        return (
-          new Intl.DateTimeFormat("en-CA", {
-            timeZone: "America/Los_Angeles",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }).format(new Date(t.completed_at)) === todayKey
-        );
+        return ptKey(new Date(t.completed_at)) >= weekStartKey;
       })
       .sort((a, b) => a.sort_order - b.sort_order),
   }));
