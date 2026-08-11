@@ -125,6 +125,11 @@ For each entry: discuss or act per rule 1, then mark it
 If an entry states a durable preference, fold it into this file — that is how this
 document evolves instead of rotting.
 
+`kind='method'` entries are her **SOP library** — repeatable procedures with the failure
+each step prevents. Read them before rebuilding anything they cover, and treat a stable,
+recurring method as the candidate for its own skill (that is how `checkin` was proposed).
+`select title, body from notebook where kind = 'method' order by created_at;`
+
 `notebook` has RLS enabled with **no policies on purpose** — only service-role callers
 (Code sessions, her Home connector) touch it; the browser never does. Don't "fix" it
 with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained

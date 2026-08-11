@@ -1,6 +1,6 @@
 ---
 name: log
-description: Capture a decision, idea, feature request, or preference from Amy's current conversation into her dashboard notebook (Supabase), in her own words with the reasoning attached, so her Claude Code sessions pick it up with full context. Use when Amy says "log this", "note this", "add to my notebook", "remember this for the dashboard", "I want a feature — log it", or asks to save a thought or decision for later. Not for tasks or commitments — those go through sweep. Version 2026-08-11a.
+description: Capture a decision, idea, feature request, or preference from Amy's current conversation into her dashboard notebook (Supabase), in her own words with the reasoning attached, so her Claude Code sessions pick it up with full context. Use when Amy says "log this", "note this", "add to my notebook", "remember this for the dashboard", "I want a feature — log it", or asks to save a thought or decision for later. Not for tasks or commitments — those go through sweep. Version 2026-08-11b.
 ---
 
 # Log
@@ -26,7 +26,27 @@ One insert per logged thought:
   ("while dissecting the Aug 5 onboarding transcript").
 - **kind** — `decision` (she chose something), `feature` (she wants something built),
   `idea` (worth keeping, not yet chosen), `preference` (how she wants Claude or the
-  dashboard to behave), `context` (background a Code session would need).
+  dashboard to behave), `context` (background a Code session would need), `method`
+  (see below).
+
+### `method` — the one that compounds
+
+Use `method` when she is describing **how to do a thing again**, not what happened once.
+The tell: numbered or ordered steps, a trap named and avoided, a check she insists is
+mandatory, a "next time I would…".
+
+This is her SOP library — the entries she'll reread before repeating a task, and the
+feeder for which skills are worth building. Keeping them mixed in with `context` makes
+them unfindable, which is exactly what happened to her weekly-check-in procedure.
+
+A good `method` body carries: the steps in order, **the failure each step prevents**
+(that is what makes it worth rereading), anything deliberately left open, and the version
+if she has iterated ("v1", "v2"). Title it for the task, not the occasion — "Booking
+travel for Gavin — v1", not "the DC flight thing".
+
+If an episode later hardens into a procedure, log a **new** `method` entry rather than
+rewriting the episode. The episode is what happened; the method is what she learned. Both
+are worth keeping.
 
 - **related_todo_id** — when the thought belongs to a task she is working (a booking, a
   write-up), attach it. Match on the task title:
