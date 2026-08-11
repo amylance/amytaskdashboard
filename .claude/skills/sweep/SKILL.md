@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-11a.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-11c.
 ---
 
 # Sweep
@@ -30,9 +30,21 @@ execution and confirmation. Sweep in that order so the later sources can settle 
    action items are the day's asks. Hold as candidates; do not file yet.
 2. **Slack** — DMs, threads, @-mentions since the window. Her ID is `U0BMZ75ANDT`.
    **This is where she says a thing is finished**, and where a task gets pivoted.
-3. **Notebook** — `select * from public.notebook order by created_at`. Her Home sessions
-   are where the work actually happened; entries carry her process and often settle or
-   redirect a task the tools only hint at. Evidence and method, not new commitments.
+3. **Notebook** — **not windowed.** Read every entry not yet acted on:
+
+   ```sql
+   select * from public.notebook where processed_at is null order by created_at;
+   ```
+
+   A note she wrote days ago is no less unread than one from an hour ago, and the
+   watermark once cut seven minutes after she logged her most valuable procedure. Her
+   Home sessions are where the work actually happened; entries carry her process and
+   often settle or redirect a task the tools only hint at. Evidence and method, not new
+   commitments — never turn a note into a task by itself.
+
+   Stamp what you use: `update notebook set processed_at = now(), outcome = '<one line>'`
+   for any entry that changed a filing decision or fed a story. Leave the rest unstamped
+   — a Code session will handle them.
 4. **Gmail** — `in:sent` plus anything awaiting a reply.
 
 Then **cross-reference every candidate from step 1 against steps 2–4 before filing.** A
