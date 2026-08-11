@@ -110,7 +110,7 @@ Rules for the story:
 `claude_note` stays a one-line verdict for the card ("already done", "looks
 mis-attributed"). If the note would run past a line, it belongs in the story instead.
 
-## 4b. Verify finished-times on done tasks
+## 4c. Verify finished-times on done tasks
 
 Amy's timestamp protocol: `completed_at` is when the work actually finished, per best
 evidence; `completed_source` says which evidence ('click', 'evidence', 'manual'). A
@@ -131,7 +131,7 @@ Fri 4:12 PM PT; your click stamped Sat. The Calendar currently shows Saturday." 
 update the todo directly — she arbitrates from the Inbox, where the card offers
 "Move to <day>" and "Keep as is". Both answers are legitimate.
 
-## 4c. Also propose disclosures (memory)
+## 4d. Also propose disclosures (memory)
 
 Alongside commitments, capture **what Amy gave the Lance network** — her stated purpose
 for the Profile tab: *"what I've poured in, what I've given Claude, the tools, my emails."*
@@ -163,7 +163,8 @@ POST to `/api/hq/inbox` with `action: "create"` (dedupes on source + source_raw)
       "source_raw": "exactly what the source said",
       "source_url": "https://app.fireflies.ai/view/<id>",
       "source_context": "Sync II, Aug 6",
-      "claude_note": "Verification finding — already done / mis-attributed / open",
+      "claude_note": "One-line verdict for the card",
+      "story": "**From** · …\n**Asked** · …\n\n**What happened**\n• …",
       "suggested_status": "todo|done",
       "received_at": "2026-08-06T23:23:33Z"
     }
