@@ -130,6 +130,22 @@ export default function App() {
     }
   }
 
+  // A manual move rewrites the pinned ranks for the top of a column. Applied optimistically
+  // so the card lands where she dropped it instantly, then persisted card by card.
+  async function handleMove(updates) {
+    setTodos((prev) =>
+      prev.map((t) => {
+        const u = updates.find((x) => x.id === t.id);
+        return u ? { ...t, manual_rank: u.manual_rank } : t;
+      }),
+    );
+    try {
+      await Promise.all(updates.map((u) => api.updateTodo(u.id, { manual_rank: u.manual_rank })));
+    } catch (err) {
+      showError(`Couldn't reorder — ${err.message}`);
+    }
+  }
+
   async function handleCreate(payload) {
     try {
       const { todo } = await api.createTodo(payload);
@@ -223,6 +239,7 @@ export default function App() {
         todos={todos}
         onOpen={openTodoDetail}
         onReorder={handlePatch}
+        onMove={handleMove}
         removed={removedTodos}
         onRestore={restoreTodo}
       />

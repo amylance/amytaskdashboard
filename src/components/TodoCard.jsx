@@ -1,9 +1,9 @@
-import { Lock, Calendar } from 'lucide-react';
+import { Lock, Calendar, ChevronUp, ChevronDown, Pin } from 'lucide-react';
 import PriorityBadge from './PriorityBadge.jsx';
 import { formatDueDate, isOverdue } from '../lib/format.js';
 import { sourceOf, statusOf, waitingAge } from '../lib/visuals.js';
 
-export default function TodoCard({ todo, onClick, draggable, onDragStart, onDragEnd, dragging, showStatus }) {
+export default function TodoCard({ todo, onClick, draggable, onDragStart, onDragEnd, dragging, showStatus, onMoveUp, onMoveDown }) {
   const overdue = isOverdue(todo.due_date, todo.status);
   const src = sourceOf(todo.source);
   const st = statusOf(todo.status);
@@ -30,7 +30,32 @@ export default function TodoCard({ todo, onClick, draggable, onDragStart, onDrag
           {/* Who it came from or is for — the second question after "what is this". */}
           {todo.contact && <span className="normal-case text-ink">· {todo.contact}</span>}
         </span>
-        {todo.is_private && <Lock size={11} className="text-ink-muted shrink-0" />}
+        <span className="flex items-center gap-1 shrink-0">
+          {/* Pinned means Amy placed this by hand; it holds its spot while everything
+              below it reorders itself by activity. */}
+          {todo.manual_rank != null && (
+            <Pin size={10} className="text-clay" aria-label="held in place" />
+          )}
+          {todo.is_private && <Lock size={11} className="text-ink-muted" />}
+          {(onMoveUp || onMoveDown) && (
+            <span className="flex items-center">
+              <button
+                onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
+                title="Move up — holds this card in place"
+                className="tap-scale inline-flex h-4 w-4 items-center justify-center rounded text-ink-muted hover:bg-black/10 hover:text-ink"
+              >
+                <ChevronUp size={12} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
+                title="Move down — releases it back to activity order at the bottom"
+                className="tap-scale inline-flex h-4 w-4 items-center justify-center rounded text-ink-muted hover:bg-black/10 hover:text-ink"
+              >
+                <ChevronDown size={12} />
+              </button>
+            </span>
+          )}
+        </span>
       </div>
 
       <h3 className={`text-sm font-medium leading-snug line-clamp-2 mb-2 ${isDone ? 'text-ink-muted line-through' : 'text-ink'}`}>

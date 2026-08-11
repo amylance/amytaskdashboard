@@ -471,3 +471,30 @@ opening the task.
 recent work, and — because Gavin and Isaac can see this board — an empty Monday column read
 as a quiet week rather than a fresh one. The column now runs Monday→now in Pacific and
 carries a standing note saying so, for whoever else is looking.
+
+---
+
+## Aug 11, 2026 — Kanban ordering: activity by default, pinned by hand
+
+Amy asked for columns ordered by most recent evidence of activity, newest first — then,
+immediately after, for the ability to move cards herself. Both, not either.
+
+**Activity** is the last thing that actually happened to a task: completed, started,
+blocked, edited, or received, whichever is latest. Not arrival order. A card touched an
+hour ago sits above one untouched since last week, whatever its status.
+
+**Manual placement coexists** via a nullable `manual_rank`. Pinned cards hold the top of
+the column in the order she set; unpinned cards flow beneath by activity. Null means "let
+the record decide", which stays the default — she never has to maintain a list.
+
+Moving a card up pins it *and everything above it*, so the top of a column becomes
+hand-ordered down to wherever she stopped and the rest keeps flowing. Pushing the
+bottom-most pinned card down releases it back to the flow — undo without a separate
+control. A pin glyph marks held cards.
+
+Dragging between columns still changes status and fires its side effects; it no longer
+writes a position, since position is either pinned or derived.
+
+Rejected: pure activity ordering (took away "this one first") and pure manual ordering (a
+list she has to maintain by hand). The ordering rule is stated in one line above the board
+rather than repeated per column — one rule, four applications.

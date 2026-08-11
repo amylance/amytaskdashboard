@@ -35,18 +35,6 @@ export default function KanbanView({
     return ptKey(today);
   })();
 
-  // Every column reads newest-activity-first. "Activity" is the last thing that actually
-  // happened to a task — finished, started, blocked, or edited — not when it arrived. A
-  // task someone touched an hour ago sits above one untouched since Wednesday, whatever
-  // its status. This replaces manual within-column ordering: dragging still moves a card
-  // between columns, but position inside a column is decided by the record, not by hand.
-  const lastActivity = (t) =>
-    Math.max(
-      ...[t.completed_at, t.started_at, t.waiting_since, t.updated_at, t.received_at, t.created_at]
-        .filter(Boolean)
-        .map((v) => new Date(v).getTime()),
-    );
-
   const columns = STATUSES.map((s) => ({
     ...s,
     items: todos
@@ -56,8 +44,13 @@ export default function KanbanView({
         if (!t.completed_at) return true;
         return ptKey(new Date(t.completed_at)) >= weekStartKey;
       })
-      .sort((a, b) => lastActivity(b) - lastActivity(a)),
-  }));
+      .sort(() => 0),
+  })).map((col) => ({ ...col, items: orderColumn(col.items) }));
+
+  function move(colItems, id, direction) {
+    const updates = reorderWithin(colItems, id, direction);
+    if (updates) onMove(updates);
+  }
 
   function handleDrop(status, targetIndex) {
     if (!draggingId) return;
@@ -77,8 +70,9 @@ export default function KanbanView({
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
       <p className="mb-3 text-[11px] text-ink-muted">
-        Every column is ordered by most recent activity, newest first — finished, started,
-        blocked or edited, whichever happened last.
+        Ordered by most recent activity, newest first — finished, started, blocked or edited,
+        whichever happened last. Use the arrows to hold a card in place; pinned cards stay on
+        top and everything else keeps flowing beneath them.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {columns.map((col) => (
@@ -138,6 +132,10 @@ export default function KanbanView({
                       setDraggingId(null);
                       setOverColumn(null);
                     }}
+                    onMoveUp={idx > 0 ? () => move(col.items, todo.id, 'up') : undefined}
+                    onMoveDown={
+                      idx < col.items.length - 1 ? () => move(col.items, todo.id, 'down') : undefined
+                    }
                   />
                 </div>
               ))}
