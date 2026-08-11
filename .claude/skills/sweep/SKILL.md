@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-11c.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-11d.
 ---
 
 # Sweep
@@ -86,7 +86,20 @@ For every candidate, check it against the record before filing:
   in `message_ts`, never from the displayed string. Gmail and Fireflies both return true
   UTC and need no correction.
 
-## 4b. Write the story — this is the record
+## 4b. Meetings — file them, and mark her 1:1s
+
+A meeting Amy attended belongs in `public.meetings` with its discussion points in
+`meeting_items`. Without this the Calendar shows a day where work appeared with no cause.
+
+- **`is_one_on_one = true`** when it is her and exactly one other person. Her 1:1s are the
+  spine of her week — they hand her the work — and the Calendar highlights them so she can
+  find them at a glance. Group calls and all-hands stay false; a mark every meeting carries
+  is a mark that says nothing.
+- **Title 1:1s as `Sync — Amy & <first name>`** so the series reads as a series. Everything
+  else keeps its real name.
+- `with_whom` is the other person's full name for a 1:1, or a short description for a group.
+
+## 4c. Write the story — this is the record
 
 Every filed item carries a `story`: the whole history in markdown, succinct. The card
 stays short; the story is what she sees when she clicks in. Bullets, never paragraphs.
@@ -122,7 +135,7 @@ Rules for the story:
 `claude_note` stays a one-line verdict for the card ("already done", "looks
 mis-attributed"). If the note would run past a line, it belongs in the story instead.
 
-## 4c. Verify finished-times on done tasks
+## 4d. Verify finished-times on done tasks
 
 Amy's timestamp protocol: `completed_at` is when the work actually finished, per best
 evidence; `completed_source` says which evidence ('click', 'evidence', 'manual'). A
@@ -143,7 +156,7 @@ Fri 4:12 PM PT; your click stamped Sat. The Calendar currently shows Saturday." 
 update the todo directly — she arbitrates from the Inbox, where the card offers
 "Move to <day>" and "Keep as is". Both answers are legitimate.
 
-## 4d. Also propose disclosures (memory)
+## 4e. Also propose disclosures (memory)
 
 Alongside commitments, capture **what Amy gave the Lance network** — her stated purpose
 for the Profile tab: *"what I've poured in, what I've given Claude, the tools, my emails."*

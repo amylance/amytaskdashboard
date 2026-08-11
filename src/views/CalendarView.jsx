@@ -107,6 +107,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           </h2>
           <p className="text-[11px] text-ink-muted mt-0.5">
             <span className="mr-3">🎙 meeting</span>
+            <span className="mr-3 rounded border-l-2 border-l-clay/60 bg-clay-soft/60 pl-1 pr-1.5">1:1</span>
             <span className="mr-3">✦ milestone</span>
             <span className="mr-3">• what I did</span>
             <span className="mr-3">✓ completed</span>
@@ -195,9 +196,11 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                       setOpenMeeting(m);
                     }}
                     title={`${m.items?.length ?? 0} things discussed`}
-                    className={`tap-scale flex w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-left hover:bg-black/[0.05] ${
-                      m.is_upcoming ? 'text-ink-muted italic' : 'text-ink font-medium'
-                    }`}
+                    className={`tap-scale flex w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-left ${
+                      m.is_one_on_one
+                        ? 'border-l-2 border-l-clay/60 bg-clay-soft/60 hover:bg-clay-soft'
+                        : 'hover:bg-black/[0.05]'
+                    } ${m.is_upcoming ? 'text-ink-muted italic' : 'text-ink font-medium'}`}
                   >
                     <span className="shrink-0">🎙</span>
                     <span className="truncate">{m.title}</span>
@@ -382,9 +385,9 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
                 <button
                   key={m.id}
                   onClick={() => onOpenMeeting(m)}
-                  className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
-                    highlightId === m.id ? LIT : ''
-                  }`}
+                  className={`tap-scale w-full text-left rounded-lg border border-hairline px-3 py-2 ${
+                    m.is_one_on_one ? 'border-l-2 border-l-clay/60 bg-clay-soft/60' : 'bg-panel'
+                  } ${highlightId === m.id ? LIT : ''}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm text-ink truncate">🎙 {m.title}</p>
