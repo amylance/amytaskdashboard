@@ -11,6 +11,7 @@ const SOURCE_LABEL = {
   email: 'Email',
 };
 import { formatDateTime, shortId, pacificInputValue, pacificToISO } from '../lib/format.js';
+import Story from './Story.jsx';
 import { useTodoDetail } from '../hooks/useTodoDetail.js';
 
 const ACTIVITY_LABEL = {
@@ -123,6 +124,15 @@ export default function DetailPanel({
               className="mt-1 w-full resize-none rounded-lg border border-hairline bg-panel px-3 py-2 text-lg font-semibold text-ink outline-none leading-snug hover:border-ink/25 focus:border-ink/40"
             />
           </div>
+
+          {/* The history — how it arrived, what happened, what changed, what's left.
+              Written by the sweep in Amy's bullet format; the card stays short and this
+              is where the whole thing lives. */}
+          {todo.story && (
+            <div className="rounded-xl border border-hairline bg-panel px-3.5 py-3">
+              <Story text={todo.story} />
+            </div>
+          )}
 
           {(todo.source_raw || todo.claude_note) && (
             <div className="rounded-xl border border-hairline bg-black/[0.02] p-3 flex flex-col gap-2.5">

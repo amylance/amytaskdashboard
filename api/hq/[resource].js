@@ -80,6 +80,7 @@ async function handleInbox(req, res, db) {
             source_url: it.source_url ?? null,
             source_context: it.source_context ?? null,
             claude_note: it.claude_note ?? null,
+            story: it.story ?? null,
             suggested_status: it.suggested_status === 'done' ? 'done' : 'todo',
             received_at: it.received_at,
             kind: ['task', 'memory', 'correction'].includes(it.kind) ? it.kind : 'task',
@@ -192,6 +193,7 @@ async function handleInbox(req, res, db) {
         source_url: item.source_url,
         source_raw: item.source_raw,
         claude_note: item.claude_note,
+        story: item.story ?? null,
         edited_from_source: edited,
         received_at: item.received_at,
         // An item approved as "already done" was NOT finished now — stamping it with the

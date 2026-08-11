@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-10b.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-11a.
 ---
 
 # Sweep
@@ -20,13 +20,24 @@ select last_swept_at from public.sweep_state where id = true;
 
 Sweep from that timestamp to now. If it's null, use the last 24 hours.
 
-## 2. Pull from each source
+## 2. Pull from each source — in this order, it matters
 
-- **Fireflies** — `fireflies_get_transcripts` with `participants: ["amy@lance.live"]` and
-  `fromDate`. **Only meetings Amy actually attended.** Take her action items.
-- **Slack** — messages to/from Amy since the window: DMs, threads she's in, @-mentions.
-  Her Slack ID is `U0BMZ75ANDT`.
-- **Gmail** — `in:sent` plus anything requiring a reply since the window.
+Amy's day opens with a cadence meeting that hands her the asks; everything after is
+execution and confirmation. Sweep in that order so the later sources can settle the first.
+
+1. **Fireflies first** — `fireflies_get_transcripts` with
+   `participants: ["amy@lance.live"]`, `fromDate`. **Only meetings she attended.** Her
+   action items are the day's asks. Hold as candidates; do not file yet.
+2. **Slack** — DMs, threads, @-mentions since the window. Her ID is `U0BMZ75ANDT`.
+   **This is where she says a thing is finished**, and where a task gets pivoted.
+3. **Notebook** — `select * from public.notebook order by created_at`. Her Home sessions
+   are where the work actually happened; entries carry her process and often settle or
+   redirect a task the tools only hint at. Evidence and method, not new commitments.
+4. **Gmail** — `in:sent` plus anything awaiting a reply.
+
+Then **cross-reference every candidate from step 1 against steps 2–4 before filing.** A
+task asked and finished the same day must arrive already marked done — never as an open
+to-do she has to remember she already did.
 
 ## 3. Filter — this is what keeps the noise out
 
@@ -63,8 +74,41 @@ For every candidate, check it against the record before filing:
   in `message_ts`, never from the displayed string. Gmail and Fireflies both return true
   UTC and need no correction.
 
-Always write a short, specific `claude_note`. That note is the whole point — it's what
-lets Amy trust the queue at a glance.
+## 4b. Write the story — this is the record
+
+Every filed item carries a `story`: the whole history in markdown, succinct. The card
+stays short; the story is what she sees when she clicks in. Bullets, never paragraphs.
+
+```
+**From** · Gavin — Monday sync, Aug 10 11:15 AM PT
+**Asked** · Cheapest flight to DC, matched to Caleb's itinerary
+
+**What happened**
+• Searched, shortlisted, pre-filled the booking
+• Blocked — no way to book without his login; he confirmed in-app himself
+• Booked **LE6HZR**, SFO→IAD, Wed Aug 12 8:10 AM
+
+⚠ **Changed** · *"I'll send you the details for the flight that Caleb…"* — Caleb flies
+into **DCA**, Gavin is booked into **IAD**. Flagged, **not resolved**.
+
+**Open** · Confirm IAD vs DCA with Gavin
+**Related** · Fix the flight-booking workflow — notebook, Aug 10
+```
+
+Rules for the story:
+- **Titles are short and plain.** "Book Gavin's flight to DC" — not the sentence someone
+  said, not the meeting's phrasing. The detail carries the nuance; the title carries none.
+- **Verbatim only at a pivot.** Quote someone — her included — only where their words
+  *changed* the task or created the caveat. One quote per story is usually right; zero is
+  common and fine. Never quote to prove you read the source.
+- **`⚠` marks an unresolved consequence**, and nothing else. It renders as a callout.
+- **Compress ruthlessly.** Each bullet is one clause. No narration of the search, no
+  restating the title, no "as discussed".
+- **Related** lists notebook entries that belong to this task, by title and date.
+- A trivial task needs no story at all. Do not manufacture history.
+
+`claude_note` stays a one-line verdict for the card ("already done", "looks
+mis-attributed"). If the note would run past a line, it belongs in the story instead.
 
 ## 4b. Verify finished-times on done tasks
 

@@ -1,6 +1,6 @@
 ---
 name: brief
-description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-10b."
+description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-11a."
 ---
 
 ## Origin
@@ -33,7 +33,9 @@ Run the `sweep` skill's process first — follow that skill's current SKILL.md, 
 summary, if the two ever disagree. In short: pull Fireflies (meetings she attended),
 Slack (DMs, threads, @-mentions), and Gmail (sent + awaiting reply) since
 `sweep_state.last_swept_at`; filter to genuine commitments; verify each (is it hers?
-already done?); file to `inbox_items` as pending. Verify finished-times on click-stamped
+already done?); cross-reference each ask against Slack, the notebook and Gmail so
+same-day finishes arrive already marked done; write each item's `story`; file to
+`inbox_items` as pending. Verify finished-times on click-stamped
 done tasks and file day-level disagreements as `kind='correction'` cards — never patch a
 todo directly. Also propose factual disclosures as `kind='memory'`, and add any new
 person as **unverified** with a citation.

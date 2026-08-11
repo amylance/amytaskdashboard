@@ -59,6 +59,11 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    A Done click stamps immediately so work is never invisible; sweeps propose day-level
    corrections as `kind='correction'` Inbox cards — evidence quoted, Amy arbitrates.
    Never flag mere absence of evidence, and never rewrite her record directly.
+4c. **Short front, deep behind.** Task titles are plain and short; the whole history
+   lives in `todos.story` (markdown, bullets, written by the sweep) and shows when she
+   opens the task. Quote verbatim only where someone's words *changed* the task. `⚠`
+   marks an unresolved consequence and nothing else. A queue she must read twice is a
+   queue she stops trusting.
 5. **Minimal but efficient.** No feature without a job. She cut tabs deliberately.
    Suggest something better if it exists; don't add surface area.
 6. **Nothing is ever destroyed.** Every table she can delete from soft-deletes
