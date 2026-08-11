@@ -1,6 +1,6 @@
 ---
 name: log
-description: Capture a decision, idea, feature request, or preference from Amy's current conversation into her dashboard notebook (Supabase), in her own words with the reasoning attached, so her Claude Code sessions pick it up with full context. Use when Amy says "log this", "note this", "add to my notebook", "remember this for the dashboard", "I want a feature — log it", or asks to save a thought or decision for later. Not for tasks or commitments — those go through sweep. Version 2026-08-10a.
+description: Capture a decision, idea, feature request, or preference from Amy's current conversation into her dashboard notebook (Supabase), in her own words with the reasoning attached, so her Claude Code sessions pick it up with full context. Use when Amy says "log this", "note this", "add to my notebook", "remember this for the dashboard", "I want a feature — log it", or asks to save a thought or decision for later. Not for tasks or commitments — those go through sweep. Version 2026-08-11a.
 ---
 
 # Log
@@ -28,10 +28,26 @@ One insert per logged thought:
   `idea` (worth keeping, not yet chosen), `preference` (how she wants Claude or the
   dashboard to behave), `context` (background a Code session would need).
 
+- **related_todo_id** — when the thought belongs to a task she is working (a booking, a
+  write-up), attach it. Match on the task title:
+
 ```sql
-insert into public.notebook (kind, title, body, context)
-values ('feature', '...', '...', '...');
+select id, title, status from public.todos
+where deleted_at is null and title ilike '%flight%';
 ```
+
+  Attach when she names the task ("log this for the flight booking"), or when the
+  conversation is plainly about one open task and there is a single obvious match. If two
+  tasks could match, ask which — one short question, then log. If none match, leave it
+  null; an unattached entry is fine and still reaches Claude Code.
+
+```sql
+insert into public.notebook (kind, title, body, context, related_todo_id)
+values ('feature', '...', '...', '...', null);
+```
+
+Attaching matters: the sweep pulls attached entries into that task's **story** under
+**Related**, so her process becomes part of the task's history instead of a loose note.
 
 ## Rules
 
