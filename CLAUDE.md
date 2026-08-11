@@ -125,6 +125,13 @@ For each entry: discuss or act per rule 1, then mark it
 If an entry states a durable preference, fold it into this file — that is how this
 document evolves instead of rotting.
 
+**Her notebook rules govern your recommendations, not just your filing.** A `preference`
+or `method` entry is a standing rule: check every nudge, flag and suggestion against them
+before offering it. Two that have already been broken once — never recommend a reminder
+without opening the thread to confirm it is genuinely unanswered and she has not closed it
+herself, and never call something a contradiction without first comparing the timestamps
+of the two things supposedly in conflict.
+
 `kind='method'` entries are her **SOP library** — repeatable procedures with the failure
 each step prevents. Read them before rebuilding anything they cover, and treat a stable,
 recurring method as the candidate for its own skill (that is how `checkin` was proposed).

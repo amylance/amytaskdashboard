@@ -1,6 +1,6 @@
 ---
 name: brief
-description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-11a."
+description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-11e."
 ---
 
 ## Origin
@@ -173,6 +173,36 @@ exists as a ticket. Neither generates its own section unless it surfaces somethi
 The same item will surface from three tools at once. A meeting action item, a dashboard
 task, and an email thread are usually one thing. Merge into one line and cite every place
 it appeared. Deduplicate before placing anything, not after.
+
+## Obey her own rules before recommending anything
+
+Phase 1 already read every unprocessed `notebook` entry. Those are not only evidence for
+filing — the `preference` and `method` entries are **standing rules that govern this
+briefing's own recommendations.** Before writing Do now or Blind spots, run every
+recommendation against them and drop the ones they forbid.
+
+This has failed once in a real run: the briefing recommended nudging Gavin about an
+airport discrepancy while quoting, two paragraphs earlier, her logged rule that a reminder
+on an already-closed item costs more trust than it saves. Her own words closed the item
+("though it's an hour away") and it was recommended anyway.
+
+Two checks that catch most of it:
+
+- **Before recommending any nudge, chase or reminder** — open the actual thread and
+  confirm no reply exists, including plain messages near the original that were never
+  formally threaded. Then confirm Amy did not already close it herself. If either is true,
+  say nothing.
+- **Before flagging a contradiction** — compare the timestamps of the two things that
+  supposedly conflict. A reminder email that predates the work it "contradicts" is not
+  evidence of anything. Sequence first, then judgement.
+
+## Search every DM, not just the obvious ones
+
+Amy runs parallel threads with different people by design — her own logged ownership maps
+say so (Gatik owns tool legitimacy, Isaac owns configuration, Gavin owns his own inbox).
+Sweeping only the Gavin and Isaac DMs and calling it done produced a false blind-spot flag
+about work she had already verified with Gatik. Enumerate her DM conversations and check
+each; the answer is often in the thread you did not think to open.
 
 ## Prioritize
 
