@@ -106,7 +106,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             {cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
           <p className="text-[11px] text-ink-muted mt-0.5">
-            <span className="mr-3 rounded border-l-2 border-l-clay/60 bg-clay-soft/70 px-1.5 py-0.5">🎙 meeting</span>
+            <span className="mr-3">🎙 meeting</span>
             <span className="mr-3">✦ milestone</span>
             <span className="mr-3">• what I did</span>
             <span className="mr-3">✓ completed</span>
@@ -161,9 +161,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             <div
               key={idx}
               onClick={() => openable && setOpenDay(key)}
-              className={`min-h-[110px] p-1.5 flex flex-col gap-1 transition-shadow ${
-                cell.meetings.length > 0 ? 'bg-clay-soft/20' : 'bg-panel'
-              } ${
+              className={`bg-panel min-h-[110px] p-1.5 flex flex-col gap-1 transition-shadow ${
                 openable ? 'cursor-pointer hover:bg-black/[0.03]' : ''
               } ${
                 highlight?.dayKey === key ? 'ring-2 ring-inset ring-clay bg-clay-soft/40' : ''
@@ -197,16 +195,16 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                       setOpenMeeting(m);
                     }}
                     title={`${m.items?.length ?? 0} things discussed`}
-                    className={`tap-scale flex w-full items-center gap-1 rounded-md border-l-2 px-1.5 py-1 text-[11px] leading-tight text-left font-medium text-ink ${
-                      m.is_upcoming
-                        ? 'border-l-clay/40 bg-clay-soft/40 border-dashed'
-                        : 'border-l-clay/60 bg-clay-soft/70 hover:bg-clay-soft'
+                    className={`tap-scale flex w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-left hover:bg-black/[0.05] ${
+                      m.is_upcoming ? 'text-ink-muted italic' : 'text-ink font-medium'
                     }`}
                   >
                     <span className="shrink-0">🎙</span>
                     <span className="truncate">{m.title}</span>
+                    {/* The one detail worth keeping: how much was discussed, so a heavy
+                        meeting is distinguishable from a five-minute one before opening it. */}
                     {(m.items?.length ?? 0) > 0 && (
-                      <span className="ml-auto shrink-0 font-mono text-[9px] text-ink-muted">
+                      <span className="ml-auto shrink-0 font-mono text-[9px] text-ink-muted/70">
                         {m.items.length}
                       </span>
                     )}
