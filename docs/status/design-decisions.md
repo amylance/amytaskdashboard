@@ -438,3 +438,36 @@ Approving into a status carries the same side effects a Kanban drag would: doing
 started_at, pending starts the waiting_since clock (who it waits on gets added in the
 detail panel), done keeps the evidence-based completed_at. The shortcut must never
 produce a different record than the long way.
+
+---
+
+## Aug 11, 2026 — Stories, methods, and the weekly Done window
+
+**The task story.** Amy: titles should be short and scannable; clicking a task should show
+"what was discussed, what happened, who I got it from, what needs to be done" — succinct,
+bullets, verbatim only where someone's words *changed* the task. Built as a single markdown
+`story` field on `todos`, written by the sweep, rendered by a ~50-line component. One field
+rather than columns per section, so the shape can evolve without a migration.
+
+All 49 existing tasks were backfilled by hand rather than left half-old — Amy asked for
+uniformity, and a format you can only see on tomorrow's work is a format you cannot judge.
+Titles were shortened at the same time ("Book Gavin's United flight to Washington D.C. for
+the Marriott meetings" → "Book Gavin's flight to DC").
+
+**`method` in the notebook.** Her weekly hotel check-in SOP was filed as `context`, next to
+trivia like a name misspelling — so her playbooks were unfindable. `method` now labels a
+repeatable procedure, and `log` is told the tell: ordered steps, a trap named, a mandatory
+check. The rule that makes them worth rereading: **every step carries the failure it
+prevents**. This is the feeder for which skills to build next — `checkin` is already on it.
+
+**Notebook ↔ task link.** `related_todo_id` lets a logged process attach to the task it
+belongs to, so the sweep pulls it into that task's story under **Related**.
+
+**Contact on the card.** `contact` existed but was only searchable. Now visible beside the
+source label on every card — List, Kanban and Timeline all answer "whose is this" without
+opening the task.
+
+**Kanban Done spans the week, clearing each Monday.** A single day was too short to review
+recent work, and — because Gavin and Isaac can see this board — an empty Monday column read
+as a quiet week rather than a fresh one. The column now runs Monday→now in Pacific and
+carries a standing note saying so, for whoever else is looking.
