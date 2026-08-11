@@ -27,6 +27,8 @@ export default function TodoCard({ todo, onClick, draggable, onDragStart, onDrag
         <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wide text-ink-muted">
           <span aria-hidden>{src.mark}</span>
           {src.label}
+          {/* Who it came from or is for — the second question after "what is this". */}
+          {todo.contact && <span className="normal-case text-ink">· {todo.contact}</span>}
         </span>
         {todo.is_private && <Lock size={11} className="text-ink-muted shrink-0" />}
       </div>
