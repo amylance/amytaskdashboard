@@ -3,11 +3,13 @@ import { useState } from "react";
 import { STATUSES } from "../lib/constants.js";
 import { statusOf } from "../lib/visuals.js";
 import TodoCard from "../components/TodoCard.jsx";
+import { orderColumn, reorderWithin } from "../lib/columnOrder.js";
 
 export default function KanbanView({
   todos,
   onOpen,
   onReorder,
+  onMove,
   removed = [],
   onRestore,
 }) {
@@ -44,7 +46,7 @@ export default function KanbanView({
         if (!t.completed_at) return true;
         return ptKey(new Date(t.completed_at)) >= weekStartKey;
       })
-      .sort(() => 0),
+      .slice(),
   })).map((col) => ({ ...col, items: orderColumn(col.items) }));
 
   function move(colItems, id, direction) {
