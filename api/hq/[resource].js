@@ -197,9 +197,11 @@ async function handleInbox(req, res, db) {
         edited_from_source: edited,
         received_at: item.received_at,
         // An item approved as "already done" was NOT finished now — stamping it with the
-        // current time drops days-old work onto today's calendar. The moment it arose is
-        // the closest defensible evidence we have, and Amy can correct it.
-        completed_at: status === 'done' ? item.received_at : null,
+        // current time drops days-old work onto today's calendar. Prefer the instant the
+        // sweep actually evidenced; received_at is only a floor, and on a card filed from a
+        // meeting it is when the work was *assigned*, which reads as finished-before-started.
+        completed_at:
+          status === 'done' ? (item.proposed_completed_at ?? item.received_at) : null,
         completed_source: status === 'done' ? 'evidence' : null,
         // Approving straight into doing/pending carries the same side effects a Kanban
         // drag would have applied — the shortcut must not produce a different record.

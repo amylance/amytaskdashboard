@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-11d.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12a.
 ---
 
 # Sweep
@@ -156,7 +156,42 @@ Fri 4:12 PM PT; your click stamped Sat. The Calendar currently shows Saturday." 
 update the todo directly — she arbitrates from the Inbox, where the card offers
 "Move to <day>" and "Keep as is". Both answers are legitimate.
 
-## 4e. Also propose disclosures (memory)
+## 4e. Refresh the cards already waiting — they go stale
+
+A card sitting pending in the Inbox is **not finished business**. Amy may not review it for
+a day, and the work keeps moving in Slack while it waits. Filing it once and never looking
+again produced a card whose story stopped at *"you said soon"* hours after she had actually
+delivered the thing.
+
+So on every sweep, after step 2 and before filing anything new:
+
+```sql
+select id, title, source_context, suggested_status, received_at, story
+from public.inbox_items where state = 'pending' order by received_at;
+```
+
+For each one, check the window you just pulled for anything that moved it. If something
+did, **update that card in place** — extend the `story`, correct `suggested_status`, refresh
+`claude_note`. Do not file a second card for the same thing. Say in the report which pending
+cards you refreshed, so she knows the queue was re-read and not just appended to.
+
+The same applies to the `Open` line of any story: if it names something that has since
+happened, it is no longer open and must not still say so.
+
+## 4f. Every "done" card needs the instant it finished
+
+A card filed with `suggested_status: 'done'` must also carry **`proposed_completed_at`** —
+the UTC instant the evidence shows the work finished. Approval writes this straight through
+to `todos.completed_at`, and the Kanban Done column ranks on that value alone.
+
+Without it, approval falls back to `received_at`, which on a Fireflies card is when the task
+was **assigned**. That stamps the work as finished at the moment it was handed to her, sorts
+it above things genuinely finished later, and puts it on the wrong day of her Calendar.
+
+Name the evidence in the story. "Delivered 3:38 PM PT" is a finish; "he asked at 10:17 AM"
+is not.
+
+## 4g. Also propose disclosures (memory)
 
 Alongside commitments, capture **what Amy gave the Lance network** — her stated purpose
 for the Profile tab: *"what I've poured in, what I've given Claude, the tools, my emails."*
@@ -191,7 +226,8 @@ POST to `/api/hq/inbox` with `action: "create"` (dedupes on source + source_raw)
       "claude_note": "One-line verdict for the card",
       "story": "**From** · …\n**Asked** · …\n\n**What happened**\n• …",
       "suggested_status": "todo|done",
-      "received_at": "2026-08-06T23:23:33Z"
+      "received_at": "2026-08-06T23:23:33Z",
+      "proposed_completed_at": "2026-08-06T23:41:02Z"
     }
   ]
 }
