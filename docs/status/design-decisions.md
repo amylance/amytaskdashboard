@@ -833,3 +833,35 @@ What still cannot be enforced: verifying before concluding, treating a search's 
 evidence, quoting only retrieved text, discussing before executing, changing only what was
 asked. No query can check those. They remain the risk, and saying so is more useful than
 another promise.
+
+## 2026-08-12 (evening) — closing out the timestamps
+
+### The last five ask-times
+
+Amy answered the five cards whose ask-time and finish-time were still guesses, and her
+answers did what the forensics could not: they told us which records should not exist.
+
+- **Share the dashboard with Isaac** — sent *after* he asked. The literal ask is not in the
+  DM; what is there is Isaac sending his own dashboard and password at 4:41 PM PT, twenty
+  minutes before she reciprocated. That is the anchor, and the story says so rather than
+  implying a sentence nobody typed.
+- **Fix SUPABASE_ANON_KEY · Customize the dashboard · Install the dashboard skills** — her
+  ruling: *"dont put this as an entry no need."* Soft-deleted. Three cards stamped with the
+  same invented Aug-8 4:00 PM were three guesses wearing a timestamp.
+- **Rebuild the dashboard** — Saturday into Sunday. Her line: *"Saturday and sunday all
+  work-weekend-days."* The start is evidenced (her Slack DM flagging the modifications); the
+  finish day is her own word, so `completed_source` reads `manual`, not `evidence`.
+
+### Quotes now carry their permalink
+
+The last six cards flagged by `hq_enforce()` quoted someone with nothing to check the quote
+against. Each thread was reopened and each quote reproduced **exactly as typed** — Isaac's
+`enalbe`, `internla`, `recieve`, `regardling` all restored. A tidied quote reads better and
+is still a quote nobody said, which is the same defect the fabricated-quote incident was.
+
+Two quotes were also wrong about *when*: Isaac's *"The dashboard looks great!"* was Aug 8
+5:06 PM PT, not the moment she shared it, and Gavin's *"This will be very helpful"* was
+6:18 PM PT, not 5:37. Both corrected against the epoch, never the displayed string.
+
+`hq_enforce()` and `todo_audit` both return empty. That is the first time they have done so
+without something being deferred to get there.
