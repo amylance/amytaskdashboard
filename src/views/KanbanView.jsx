@@ -144,12 +144,6 @@ export default function KanbanView({
               </span>
             </div>
 
-            {col.id === "done" && (
-              <p className="-mt-1 mb-2 px-1 text-[10px] leading-snug text-ink-muted/70">
-                Clears every Monday. Older work is in the Calendar.
-              </p>
-            )}
-
             <div className="flex flex-col gap-2">
               {col.id === "done"
                 ? groupByDay(col.items).map((group, gi, groups) => {
@@ -212,6 +206,11 @@ export default function KanbanView({
                     ? "Nothing finished yet this week"
                     : "Nothing here"}
                 </div>
+              )}
+              {col.id === "done" && col.items.length > 0 && (
+                <p className="text-[10px] text-ink-muted/70 text-center pt-1">
+                  Clears every Monday. Older work is in the Calendar.
+                </p>
               )}
             </div>
           </div>
