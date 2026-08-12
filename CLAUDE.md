@@ -73,6 +73,11 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    read as a duplicate. **Silent edits are for *when*, never for *whether*** — evidence that
    disputes the task is done at all still goes to the Inbox as `kind='correction'`.
    Never flag mere absence of evidence.
+   **An identical ask-time and finish-time is always wrong, with no exemptions.** The check
+   used to skip 'app' and 'email' sources, and to skip titles starting with ask/send/share on
+   the theory that for those the asking is the finishing. Between them those two exemptions
+   hid ten cards, and Amy found them by opening her Calendar and seeing work filed on the
+   day it was requested. A guessed exemption protects exactly the records it should catch.
    **The ask is not the finish.** `received_at` is when the work was handed over;
    collapsing it into `completed_at` produced eleven wrong records in week one, including
    Isaac's unanswered question marked done at the moment she asked it. `public.todo_audit`
