@@ -9,19 +9,14 @@ import { CATEGORIES } from '../lib/constants.js';
 
 const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
 
-// On a phone the table is far wider than the screen, so the four lowest-value columns drop
-// out rather than forcing a sideways swipe to reach Status. What survives is what she reads
-// a list for: what it is, when it ran, where it stands.
-const HIDE_SM = 'hidden sm:table-cell';
-
 const COLUMNS = [
-  { key: 'source', label: 'From', cls: HIDE_SM },
+  { key: 'source', label: 'From' },
   { key: 'title', label: 'Task' },
   { key: 'when', label: 'Asked → Done' },
-  { key: 'category', label: 'Category', cls: HIDE_SM },
+  { key: 'category', label: 'Category' },
   { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority', cls: HIDE_SM },
-  { key: 'due_date', label: 'Due', cls: HIDE_SM },
+  { key: 'priority', label: 'Priority' },
+  { key: 'due_date', label: 'Due' },
 ];
 
 // The full record of every task, with filters. This doubles as Gavin's and Isaac's view:
@@ -85,7 +80,7 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6">
       {/* Person filter — deliberately plain, so Gavin or Isaac see their own name and click it. */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <Chip label="Everything" active={person === 'all'} onClick={() => setPerson('all')} />
@@ -112,12 +107,16 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
         </span>
       </div>
 
+      {/* Said out loud on phones, because a table that scrolls sideways gives no sign that
+          it does and the columns past Status look simply missing. */}
+      <p className="sm:hidden mb-2 text-[11px] text-ink-muted">Swipe the table sideways for category, priority and due.</p>
+
       <div className="rounded-2xl border border-hairline bg-panel overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="border-b border-hairline">
               {COLUMNS.map((col) => (
-                <th key={col.key} className={`text-left px-4 py-3 ${col.cls ?? ''}`}>
+                <th key={col.key} className="text-left px-4 py-3">
                   <button
                     onClick={() => toggleSort(col.key)}
                     className="tap-scale inline-flex items-center gap-1 text-xs font-semibold text-ink-muted uppercase tracking-wide hover:text-ink"
@@ -138,7 +137,7 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
                   onClick={() => onOpen(todo.id)}
                   className="tap-scale cursor-pointer border-b border-hairline last:border-0 hover:bg-black/[0.03]"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className="inline-flex items-center gap-1 text-[11px] text-ink-muted">
                       <span aria-hidden>{sourceOf(todo.source).mark}</span>
                       {sourceOf(todo.source).label}
@@ -174,19 +173,19 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
                       );
                     })()}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-[11px] text-ink-muted hidden sm:table-cell">{todo.category ?? '—'}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-[11px] text-ink-muted">{todo.category ?? '—'}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1 text-[12px] ${statusOf(todo.status).text}`}>
                       <span aria-hidden>{statusOf(todo.status).mark}</span>
                       {statusOf(todo.status).label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
+                  <td className="px-4 py-3">
                     <PriorityBadge priority={todo.priority} />
                     {todo.priority === 'normal' && <span className="text-xs text-ink-muted/50">—</span>}
                   </td>
                   <td
-                    className={`px-4 py-3 font-mono text-xs hidden sm:table-cell ${
+                    className={`px-4 py-3 font-mono text-xs ${
                       isOverdue(todo.due_date, todo.status) ? 'text-clay' : 'text-ink-muted'
                     }`}
                   >
