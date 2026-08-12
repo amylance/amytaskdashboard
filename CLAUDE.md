@@ -222,6 +222,12 @@ with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
   hides the `Thread: N replies` marker) and follows every thread. It records
   `threads_found` / `threads_read` / `sources_checked` in `sweep_state`, and `hq_enforce()`
   reports any gap. Nine threaded replies sat unread in the Gavin DM before this existed.
+- **A sweep must prove it read every source.** `sweep_required_sources` names the five —
+  Fireflies, Slack, Gmail, Calendar, notebook — and `hq_enforce()` refuses to come back
+  clean until `sweep_state.sources_checked` accounts for all of them plus every active row
+  of `slack_sources`. A run once read Slack, corrected what it found, and reported itself
+  swept having touched nothing else. **Empty is a finding; skipped is a failure. They must
+  never look alike.**
 - **Reconcile before filing.** Every piece of evidence resolves to exactly one of three
   outcomes: update a task already on the board, file as a step of an existing goal, or file
   as new. Never a fourth. Reading a source is not reconciling it — her Vanta timestamp was

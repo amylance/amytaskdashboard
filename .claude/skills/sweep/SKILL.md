@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12i.
+description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12j.
 ---
 
 # Sweep
@@ -370,6 +370,20 @@ Name the evidence in the story. "Delivered 3:38 PM PT" is a finish; "he asked at
 is not.
 
 ## 0. Enforce the rules — first thing, before anything else
+
+**The run cannot claim to be finished until `hq_enforce()` comes back empty, and it now
+refuses to while any source is unaccounted for.** `public.sweep_required_sources` lists the
+five that must be read every time — fireflies, slack, gmail, calendar, notebook — and every
+active row of `public.slack_sources` must be named individually in `sweep_state.sources_checked`.
+
+This exists because a run read Slack, found something interesting, corrected it, and reported
+itself swept. Fireflies, Gmail, Calendar and the notebook were never reached. Nothing caught
+it; Amy asked. Her words: *"why did you exclude the fireflies when you said that you include
+all tools during the sweep?"*
+
+**Record what you read as you read it, not at the end from memory.** A source that returned
+nothing is still a source you read — say so. Empty is a finding; skipped is a failure, and
+the two must never look alike.
 
 ```sql
 select * from public.hq_enforce();
