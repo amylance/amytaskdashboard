@@ -28,18 +28,32 @@ export default function App() {
   const readOnly = session.status === 'ready' && session.role !== 'editor';
   const { todos, setTodos, loading: todosLoading } = useTodos(config);
   const { people, setPeople, loading: peopleLoading } = usePeople(config);
-  // Refreshing dumped her back on the Inbox from wherever she was. The view lives in the
-  // URL hash so a reload, a back button, and a link she sends herself all land in the same
-  // place. localStorage would survive the reload but would not survive a shared link.
+  // Refreshing dumped her back on the Inbox from wherever she was. Two layers, because the
+  // hash alone was not enough: a tab opened before the hash existed, or a bookmark saved
+  // without one, still lands on a bare URL and loses the view. The hash wins when it is
+  // there so a link still points where it says; localStorage catches every other case.
   const VIEW_KEYS = ['inbox', 'kanban', 'list', 'timeline', 'calendar', 'people', 'profile'];
-  const [activeView, setActiveView] = useState(() => {
+  const readView = () => {
     const fromHash = window.location.hash.replace(/^#\/?/, '');
-    return VIEW_KEYS.includes(fromHash) ? fromHash : 'inbox';
-  });
+    if (VIEW_KEYS.includes(fromHash)) return fromHash;
+    try {
+      const stored = window.localStorage.getItem('hq.view');
+      if (VIEW_KEYS.includes(stored)) return stored;
+    } catch {
+      // Private-mode browsers throw on localStorage. The hash still works.
+    }
+    return 'inbox';
+  };
+  const [activeView, setActiveView] = useState(readView);
 
   useEffect(() => {
     if (window.location.hash.replace(/^#\/?/, '') !== activeView) {
       window.history.replaceState(null, '', `#/${activeView}`);
+    }
+    try {
+      window.localStorage.setItem('hq.view', activeView);
+    } catch {
+      // See above.
     }
   }, [activeView]);
 
