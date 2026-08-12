@@ -25,6 +25,12 @@ Sweep from that timestamp to now. If it's null, use the last 24 hours.
 Amy's day opens with a cadence meeting that hands her the asks; everything after is
 execution and confirmation. Sweep in that order so the later sources can settle the first.
 
+**Her ruling on which source wins a timestamp dispute:** *"the most reliable source of
+timestamps is my slack, and my log activities within claude home."* Fireflies gives you the
+ask; Slack and the notebook give you the finish. When a Fireflies action item and a Slack
+message disagree about when something happened, Slack is right — converted from the epoch,
+never from the displayed string.
+
 1. **Fireflies first** — `fireflies_get_transcripts` with
    `participants: ["amy@lance.live"]`, `fromDate`. **Only meetings she attended.** Her
    action items are the day's asks. Hold as candidates; do not file yet.
