@@ -54,7 +54,18 @@ export default function KanbanView({
         return ptKey(new Date(t.completed_at)) >= weekStartKey;
       })
       .slice(),
-  })).map((col) => ({ ...col, items: orderColumn(col.items) }));
+  }))
+    // A step does not get its own card in a column its goal is already sitting in. The goal
+    // card lists every step with its status, so showing the step beside it printed the same
+    // work twice — Pending held "Process Gavin's inbox" plus both of the steps it was
+    // already listing. Drag a step into Doing and it appears there as its own card, while
+    // the goal stays in Pending showing that step as Doing. Nothing is hidden; it is only
+    // ever drawn once.
+    .map((col) => {
+      const goalsHere = new Set(col.items.filter((t) => stepsOf(t.id).length > 0).map((t) => t.id));
+      return { ...col, items: col.items.filter((t) => !(t.parent_id && goalsHere.has(t.parent_id))) };
+    })
+    .map((col) => ({ ...col, items: orderColumn(col.items) }));
 
   // Done keeps a full week, so by Friday it is a wall of cards. Grouping by the day the
   // work finished turns it into a week at a glance: four on Monday, six on Tuesday. The
@@ -75,16 +86,6 @@ export default function KanbanView({
       else out.push({ label, items: [t] });
     }
     return out;
-  }
-
-  // Once a goal lands in Done its steps fold into it — one card for one piece of work,
-  // not four fragments of it. Nothing is deleted: the steps still open from the goal, and
-  // each still sits on the Calendar on the day it was actually finished. A step whose goal
-  // is still open keeps its own row, because that work genuinely is separate from the
-  // goal's own line on the board.
-  function foldFinishedSteps(items) {
-    const doneGoals = new Set(items.filter((t) => stepsOf(t.id).length > 0).map((t) => t.id));
-    return items.filter((t) => !(t.parent_id && doneGoals.has(t.parent_id)));
   }
 
   function dayIsOpen(groups, label, idx) {
@@ -152,7 +153,7 @@ export default function KanbanView({
 
             <div className="flex flex-col gap-2">
               {col.id === "done"
-                ? groupByDay(foldFinishedSteps(col.items)).map((group, gi, groups) => {
+                ? groupByDay(col.items).map((group, gi, groups) => {
                     const open = dayIsOpen(groups, group.label, gi);
                     return (
                       <div key={group.label} className="flex flex-col gap-2">

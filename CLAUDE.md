@@ -49,6 +49,15 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    one option, don't survey.
 3. **Accuracy over speed.** She chose the slow-but-verified path explicitly. Verify
    against sources; never present a guess as a fact.
+3b. **A search that returns nothing is not evidence of absence.** It is evidence about the
+   query. This cost her real trust once: a Slack search for *"let's do this"* came back
+   empty and was reported as a fabricated quote; the phrase was *"lets do it"*, said by
+   Gavin, sitting in the thread the whole time. **Before concluding something was never
+   said, open the actual thread and read it.** And never write a quote that is not present
+   verbatim in retrieved text — not a paraphrase promoted to a quote, not a remembered one.
+3c. **Verify before you conclude, not after she checks.** Every correction this file
+   records was caught by Amy, not by the work. Her standard: *"I don't want to keep
+   checking your work."*
 4. **Time.** The dashboard renders **Pacific**; her tools stay Manila-local. Timestamps
    are absolute instants converted deliberately. **Plain dates never timezone-shift.**
    The Slack API prints times in her local zone while labelling them `CST` — always
@@ -204,7 +213,12 @@ with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
 
 ## Known live threads (check, don't assume)
 
-Vanta security tasks due **Aug 18**. Codebase access + Gmail delegation both sit with
-Gavin. Isaac's unanswered day-1 question: does an EA get Fireflies access to calls she
-isn't on? Lance Live password is still `testing`. Passphrases have been shared in Slack —
-flag exposure when relevant, don't lecture.
+**This section rots. Verify every line against the board before repeating it.** As of
+2026-08-12: Gmail delegation is live and browser access works; codebase, Supabase and the
+Lance tool were all provisioned by Isaac; the three separate access cards were one tool and
+are deleted. What is actually open — Gavin owes the shape of a read API key so Claude can
+reach his inbox, and Gavin owes an introduction to Gatik so Claude can reach the Lance
+tool. Vanta security tasks are due **Aug 18** and the card is marked done by click, which
+is testimony rather than evidence — worth one look before the deadline. Lance Live password
+is still `testing`. Passphrases have been shared in Slack — flag exposure when relevant,
+don't lecture.

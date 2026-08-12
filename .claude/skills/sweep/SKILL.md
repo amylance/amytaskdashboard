@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12d.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12e.
 ---
 
 # Sweep
@@ -24,6 +24,13 @@ Sweep from that timestamp to now. If it's null, use the last 24 hours.
 
 Amy's day opens with a cadence meeting that hands her the asks; everything after is
 execution and confirmation. Sweep in that order so the later sources can settle the first.
+
+**A search that returns nothing proves nothing.** It tells you about your query, not about
+the world. Never conclude a message does not exist because a keyword search missed it —
+open the DM or channel and read it. Never write a quote unless it appears verbatim in text
+you actually retrieved this run. This has already produced a wrong card: a search for
+*"let's do this"* came back empty and was written up as a fabricated quote, when the real
+phrase was *"lets do it"* from the other speaker, present in the thread all along.
 
 **Her ruling on which source wins a timestamp dispute:** *"the most reliable source of
 timestamps is my slack, and my log activities within claude home."* When two sources
@@ -289,6 +296,13 @@ Name the evidence in the story. "Delivered 3:38 PM PT" is a finish; "he asked at
 is not.
 
 ## 4g. Run the audit before you finish — every time
+
+Run `select * from public.todo_audit;` **at the start of the sweep as well as the end.**
+Starting clean tells you which rows this run broke. It now checks the naming ceiling, a
+leading verb, blocked cards with nobody named, finished cards still flagged as blocked,
+goals closed too early, goals left open after their last step, and steps orphaned by a
+deleted goal. Every one of those was a real defect on her board that prose alone did not
+prevent.
 
 ```sql
 select * from public.todo_audit order by issue, title;
