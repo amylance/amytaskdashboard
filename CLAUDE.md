@@ -87,14 +87,20 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    of what pivoted. Routine work — "talk to the tech", "request this" — gets a bullet or
    two. Her words: those *"don't need that verbatim shit."*
 4d. **Goals and steps.** A task with a `parent_id` is a **step** of the goal it points at.
-   Her shape, in her words: *"All these related tasks only lead to one task."* Steps are
-   real, movable cards — she works by dragging one into Doing — and the goal card mirrors
-   where each of its steps sits. The goal stays where she put it (usually Pending) and
-   **closes itself when the last step closes**; reopening a step reopens the goal. One
-   level only: a step needing its own steps means the goal was named too broadly. In the
-   Done column a finished goal's steps fold into it — one card for one piece of work — but
-   nothing is deleted, and each step still sits on the Calendar on the day it finished.
-   Clicking a step anywhere opens the goal with that step lit.
+   Her shape, in her words: *"All these related tasks only lead to one task."*
+   **A step is never its own card** — not in any column, not in Done. It is ticked,
+   re-statused (To Do / Doing / Pending) and read from inside the goal that owns it. She
+   reversed the draggable-step design after watching one goal drawn three times in a single
+   column. The goal's own status decides its column.
+   **Nothing closes a goal on her behalf.** Every step ticked unlocks a confirmation; her
+   click finishes it. The trigger keeps only the protective half — reopening a step reopens
+   the goal, so a goal can never sit in Done above live work.
+   A finished step shows **the day it happened** in place of the word "Done"; open it to
+   set the date if evidence has not supplied one.
+   One level only — the database refuses a step of a step.
+   **Calendar bookends a goal:** the day it landed and the day its last step closed, two
+   entries for one goal, with each step on its own finish day. Clicking a step opens the
+   goal with that step lit.
 4e. **Due dates come from sources, never judgement.** Set `due_date` only when a meeting,
    Slack message, email or her notebook actually named a date; quote it in the story. No
    date is the normal case, not a gap to fill — the Timeline shows dated work only, so an
@@ -211,6 +217,19 @@ with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
 - **12 serverless functions is the ceiling** (Vercel Hobby). New API surface goes inside
   `api/hq/[resource].js`. Currently at 10 — the per-task comments and people-link endpoints
   went with the card cleanup.
+- **Slack is swept from a roster, never a search.** `public.slack_sources` holds every DM
+  and channel by ID; the sweep opens each one in **`detailed`** format (`concise` silently
+  hides the `Thread: N replies` marker) and follows every thread. It records
+  `threads_found` / `threads_read` / `sources_checked` in `sweep_state`, and `hq_enforce()`
+  reports any gap. Nine threaded replies sat unread in the Gavin DM before this existed.
+- **Reconcile before filing.** Every piece of evidence resolves to exactly one of three
+  outcomes: update a task already on the board, file as a step of an existing goal, or file
+  as new. Never a fourth. Reading a source is not reconciling it — her Vanta timestamp was
+  wrong for two days because a sweep read *"Hi Gatik, this is done btw"* and never matched
+  it to the card.
+- **Her click is authoritative.** `completed_source = 'click'` is her testimony. Evidence
+  may contradict it; evidence is never required to confirm it. Never ask her to re-verify
+  something only she can see.
 - **No field without evidence it is used.** The card carried eleven dead columns and eight
   empty tables into week two. Before adding one, say which measurement showed the gap;
   before keeping one, check it is populated. Measured, not assumed.

@@ -714,3 +714,122 @@ Gavin's three email addresses stay in the notebook rather than expanding the Peo
 The weekly hotel write-up does not become a skill yet: it is a live goal whose **final step**
 is to systematise it, and Gavin has since added more steps. Processing Gavin's inbox is a
 separate goal from getting access to it.
+
+---
+
+## 2026-08-12 (late) — Steps stop being cards, and the sweep stops half-reading Slack
+
+A long session of Amy catching defects the work should have caught itself. The decisions
+below are hers; the failures are recorded next to them because the pattern matters more
+than any single fix.
+
+### Steps live inside their goal — a reversal
+
+The morning's design made a step a real, movable card, chosen because she works by dragging
+work into Doing. She reversed it after seeing the result: the Pending column held
+"Process Gavin's inbox" **and** both steps that card was already listing. Three cards for
+one piece of work.
+
+> *"the steps will no longer show up in any other columns or list such as todo, doing,
+> pending, steps remain in the parent card"*
+
+So a step is now never a card. It is ticked, re-statused and read from inside the goal that
+owns it. Ticking replaced dragging. The goal's own status decides its column.
+
+### Nothing closes a goal on her behalf
+
+Also hers, and better than what it replaced. Every step ticked no longer closes the goal —
+it unlocks a confirmation, and her click finishes it.
+
+The trigger keeps only the protective half: reopening a step reopens the goal. A goal
+sitting in Done above live work is a false record, and that direction needs no judgement.
+
+A finished step stops showing the word "Done" and shows the day it happened instead. The
+card stops describing state and becomes a record.
+
+### The Calendar bookends a goal
+
+Her design. Two entries for one goal — the day it landed and the day its last step closed —
+with each step on its own finish day underneath. Searching a goal lights the whole arc.
+
+Limited to goals rather than every task: a landing entry for all thirty-odd standalone
+finished tasks would bury the month in arrivals.
+
+### Slack was being half-read, for a week
+
+The worst finding of the session, and Amy found it by asking a plain question: *"do you also
+read the sub replies?"*
+
+No. Every Slack read used `response_format: 'concise'`, which **silently omits** the
+`Thread: N replies` marker. Threaded replies were not merely unread — they were invisible,
+so nothing ever signalled they existed. Nine sat unread in the Gavin DM alone, including
+Gavin settling that **he** owes the API key rather than Gatik, which had been on the board
+as waiting on Gatik.
+
+Two further limits, both verified rather than assumed:
+
+- **No tool lists the conversations Amy belongs to.** `slack_search_channels` searches
+  channel *names*.
+- **Search is actively untrustworthy.** `from:@Amy` across her own channels returns zero
+  results while she has messages in all of them. This is the same failure that produced the
+  fabricated-quote claim earlier in the day.
+
+So Slack is now swept from `public.slack_sources` — an explicit roster by ID, in detailed
+format, following every thread, recording `threads_found` / `threads_read` /
+`sources_checked`. `hq_enforce()` reports any gap, so an unread thread reaches the top of
+her next brief instead of vanishing. She named **#implementation** as significant going
+forward; it is on the roster with the three DMs and #engineering.
+
+### Reconcile before filing — the step that never existed
+
+Amy identified this precisely:
+
+> *"before it writes candidates to the inbox, it has to be synthesized with the existing
+> data of the dashboard"*
+
+She was right, and the proof was already in her data. The sweep **read** her message to
+Gatik — *"Hi Gatik, this is done btw. Picked US as per Isaac's instruction"* — and never
+matched it to the Vanta card. The card carried her click time, 5:08 PM, when the evidence
+put the finish at 4:45 PM. Reading a source is not reconciling it.
+
+Where I pushed back and she accepted the correction: her instruction was that a sweep should
+*never* create a new entry. That is too absolute — it would block genuinely new steps of
+existing work, which her own design says should arrive in the Inbox marked as a child. So
+three outcomes, never a fourth: update the task already on the board, file as a step of an
+existing goal, or file as new.
+
+### Her click is authoritative
+
+The Vanta card was raised as an unverified blind spot three separate times over work she had
+completed and reported to Gatik. CLAUDE.md already said *"Never flag mere absence of
+evidence"* — the rule existed and was broken anyway.
+
+`completed_source = 'click'` is her testimony. Evidence may contradict it; evidence is never
+required to confirm it. Nothing that only she can see gets re-asked.
+
+### One command
+
+Three skills became two. `sweep` was never something she wanted — it is a step inside
+getting caught up, and `brief` already began by running it. **brief · debrief · sweep ·
+catch me up · what did I miss · update my dashboard** all mean the same thing now, and the
+direction (forward or backward) is read from how she asks. `log` stays separate; it runs at
+Home and writes her notebook.
+
+### The purge
+
+At her instruction, dismissed and deleted items were hard-deleted after a snapshot to
+`docs/backups/purged-2026-08-12.json`. Rule 6 says nothing is ever destroyed, so this was
+her explicit override and is recorded as such.
+
+Her notebook was not touched. Where an entry pointed at a purged task, the pointer was
+cleared and the entry kept whole — 47 entries intact. Her thinking is not collateral.
+
+### Enforcement, honestly
+
+Nine checks this morning; twenty tonight, plus three triggers and a repair pass that runs
+first and last on every run. Every one was added *after* Amy caught something.
+
+What still cannot be enforced: verifying before concluding, treating a search's silence as
+evidence, quoting only retrieved text, discussing before executing, changing only what was
+asked. No query can check those. They remain the risk, and saying so is more useful than
+another promise.
