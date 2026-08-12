@@ -105,6 +105,24 @@ transcript-to-summary automation, and LiveSupervise. Gmail after the watermark h
 Fireflies daily digest. The Gavin, Isaac and Gatik DMs were all read to the bottom of the
 window; nothing after Aug 11 22:51 UTC.
 
+### Correction to this entry, same day
+
+The section below was itself wrong in its conclusion, and Amy caught it. Both halves are
+recorded because the pattern matters more than either mistake.
+
+The invented quote was real: no message from Amy reading *"let's do this"* at 4:52 PM PT
+exists. But the phrase in the thread is **Gavin's**, at 3:45 PM PT, quoting her own question
+back at her — *"do you want to set up Claude access to your inbox?"* → *"yes! lets do it."*
+Searching for the wrong string and finding nothing is not the same as the thing not existing.
+
+And the conclusion drawn from it — "the ball is yours" — was wrong. Gavin asked what the
+artifact meant at 3:49 PM PT and she answered two minutes later with a corrected link. She
+is waiting on him, on the shape of the read API key he floated as a *maybe*. The card has
+been put back on his side.
+
+Two failures, opposite directions, same root: a conclusion stated before the source was
+read properly.
+
 ### One real defect found, and corrected
 
 The card **Set up Claude access to Gavin's inbox** carried this in its story:
