@@ -9,14 +9,19 @@ import { CATEGORIES } from '../lib/constants.js';
 
 const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
 
+// On a phone the table is far wider than the screen, so the four lowest-value columns drop
+// out rather than forcing a sideways swipe to reach Status. What survives is what she reads
+// a list for: what it is, when it ran, where it stands.
+const HIDE_SM = 'hidden sm:table-cell';
+
 const COLUMNS = [
-  { key: 'source', label: 'From' },
+  { key: 'source', label: 'From', cls: HIDE_SM },
   { key: 'title', label: 'Task' },
   { key: 'when', label: 'Asked → Done' },
-  { key: 'category', label: 'Category' },
+  { key: 'category', label: 'Category', cls: HIDE_SM },
   { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'due_date', label: 'Due' },
+  { key: 'priority', label: 'Priority', cls: HIDE_SM },
+  { key: 'due_date', label: 'Due', cls: HIDE_SM },
 ];
 
 // The full record of every task, with filters. This doubles as Gavin's and Isaac's view:
@@ -107,12 +112,12 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
         </span>
       </div>
 
-      <div className="rounded-2xl border border-hairline bg-panel overflow-hidden">
+      <div className="rounded-2xl border border-hairline bg-panel overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-hairline">
               {COLUMNS.map((col) => (
-                <th key={col.key} className="text-left px-4 py-3">
+                <th key={col.key} className={`text-left px-4 py-3 ${col.cls ?? ''}`}>
                   <button
                     onClick={() => toggleSort(col.key)}
                     className="tap-scale inline-flex items-center gap-1 text-xs font-semibold text-ink-muted uppercase tracking-wide hover:text-ink"
@@ -133,7 +138,7 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
                   onClick={() => onOpen(todo.id)}
                   className="tap-scale cursor-pointer border-b border-hairline last:border-0 hover:bg-black/[0.03]"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                     <span className="inline-flex items-center gap-1 text-[11px] text-ink-muted">
                       <span aria-hidden>{sourceOf(todo.source).mark}</span>
                       {sourceOf(todo.source).label}
@@ -169,19 +174,19 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
                       );
                     })()}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-[11px] text-ink-muted">{todo.category ?? '—'}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-[11px] text-ink-muted hidden sm:table-cell">{todo.category ?? '—'}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1 text-[12px] ${statusOf(todo.status).text}`}>
                       <span aria-hidden>{statusOf(todo.status).mark}</span>
                       {statusOf(todo.status).label}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <PriorityBadge priority={todo.priority} />
                     {todo.priority === 'normal' && <span className="text-xs text-ink-muted/50">—</span>}
                   </td>
                   <td
-                    className={`px-4 py-3 font-mono text-xs ${
+                    className={`px-4 py-3 font-mono text-xs hidden sm:table-cell ${
                       isOverdue(todo.due_date, todo.status) ? 'text-clay' : 'text-ink-muted'
                     }`}
                   >

@@ -151,7 +151,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           </div>
         ))}
         {cells.map((date, idx) => {
-          if (!date) return <div key={idx} className="bg-panel min-h-[110px]" />;
+          if (!date) return <div key={idx} className="bg-panel min-h-[68px] sm:min-h-[110px]" />;
           const key = toKey(date);
           const cell = byDate.get(key) ?? { meetings: [], events: [], done: [], tasks: [], removed: [] };
           const isToday = key === todayKey;
@@ -174,7 +174,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             <div
               key={idx}
               onClick={() => openable && setOpenDay(key)}
-              className={`bg-panel min-h-[110px] p-1.5 flex flex-col gap-1 transition-shadow ${
+              className={`bg-panel min-h-[68px] sm:min-h-[110px] p-1 sm:p-1.5 flex flex-col gap-1 transition-shadow ${
                 openable ? 'cursor-pointer hover:bg-black/[0.03]' : ''
               } ${
                 highlight?.dayKey === key ? 'ring-2 ring-inset ring-clay bg-clay-soft/40' : ''
@@ -199,7 +199,23 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                   </span>
                 )}
               </span>
-              <div className="flex flex-col gap-0.5 overflow-hidden">
+              {/* A phone gives each day about 50px of width. Item titles are unreadable at
+                  that size and every tap lands on an item instead of the day, which is why
+                  tapping a day was opening the first task. Mobile shows marks only and the
+                  whole cell opens the day sheet. */}
+              <div className="sm:hidden flex flex-wrap items-center gap-x-1 leading-none">
+                {cell.meetings.slice(0, 2).map((m) => (
+                  <span key={m.id} className={`text-[10px] ${m.is_one_on_one ? 'text-clay' : 'text-ink'}`}>
+                    🎙
+                  </span>
+                ))}
+                {cell.done.length > 0 && <span className="font-mono text-[10px] text-ink">✓{cell.done.length}</span>}
+                {cell.events.length > 0 && <span className="font-mono text-[10px] text-ink">•{cell.events.length}</span>}
+                {cell.tasks.length > 0 && (
+                  <span className="font-mono text-[10px] text-ink-muted">○{cell.tasks.length}</span>
+                )}
+              </div>
+              <div className="hidden sm:flex flex-col gap-0.5 overflow-hidden">
                 {shownMeetings.map((m) => (
                   <button
                     key={m.id}
@@ -384,9 +400,12 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
           <h2 className="text-sm font-semibold text-ink">{label}</h2>
           <button
             onClick={onClose}
-            className="tap-scale inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-muted hover:bg-black/10"
+            aria-label="Back to the calendar"
+            className="tap-scale inline-flex items-center justify-center gap-1 h-8 px-2 rounded-full text-ink-muted hover:bg-black/10"
           >
-            <X size={16} />
+            <ChevronLeft size={16} className="sm:hidden" />
+            <span className="sm:hidden text-xs">Back</span>
+            <X size={16} className="hidden sm:block" />
           </button>
         </div>
 

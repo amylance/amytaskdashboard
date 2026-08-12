@@ -28,7 +28,29 @@ export default function App() {
   const readOnly = session.status === 'ready' && session.role !== 'editor';
   const { todos, setTodos, loading: todosLoading } = useTodos(config);
   const { people, setPeople, loading: peopleLoading } = usePeople(config);
-  const [activeView, setActiveView] = useState('inbox');
+  // Refreshing dumped her back on the Inbox from wherever she was. The view lives in the
+  // URL hash so a reload, a back button, and a link she sends herself all land in the same
+  // place. localStorage would survive the reload but would not survive a shared link.
+  const VIEW_KEYS = ['inbox', 'kanban', 'list', 'timeline', 'calendar', 'people', 'profile'];
+  const [activeView, setActiveView] = useState(() => {
+    const fromHash = window.location.hash.replace(/^#\/?/, '');
+    return VIEW_KEYS.includes(fromHash) ? fromHash : 'inbox';
+  });
+
+  useEffect(() => {
+    if (window.location.hash.replace(/^#\/?/, '') !== activeView) {
+      window.history.replaceState(null, '', `#/${activeView}`);
+    }
+  }, [activeView]);
+
+  useEffect(() => {
+    const onNav = () => {
+      const key = window.location.hash.replace(/^#\/?/, '');
+      if (VIEW_KEYS.includes(key)) setActiveView(key);
+    };
+    window.addEventListener('hashchange', onNav);
+    return () => window.removeEventListener('hashchange', onNav);
+  }, []);
   const [openTodoId, setOpenTodoId] = useState(null);
   const [openPersonId, setOpenPersonId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
