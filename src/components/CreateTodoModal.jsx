@@ -13,8 +13,6 @@ export default function CreateTodoModal({ onClose, onCreate }) {
   const [contact, setContact] = useState('');
   const [category, setCategory] = useState('');
   const [notes, setNotes] = useState('');
-  const [linkUrl, setLinkUrl] = useState('');
-  const [linkLabel, setLinkLabel] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,8 +29,6 @@ export default function CreateTodoModal({ onClose, onCreate }) {
         contact: contact.trim(),
         category: category.trim(),
         description: notes.trim(),
-        link_url: linkUrl.trim(),
-        link_label: linkLabel.trim(),
         is_private: isPrivate,
       });
     } finally {
@@ -132,25 +128,6 @@ export default function CreateTodoModal({ onClose, onCreate }) {
             className={`${fieldClass} resize-none`}
           />
         </Field>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Link URL">
-            <input
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="https://"
-              className={fieldClass}
-            />
-          </Field>
-          <Field label="Link label">
-            <input
-              value={linkLabel}
-              onChange={(e) => setLinkLabel(e.target.value)}
-              placeholder="e.g. LAN-100"
-              className={fieldClass}
-            />
-          </Field>
-        </div>
 
         <div className="flex items-center justify-between gap-3 mt-1 mb-5">
           <button

@@ -12,10 +12,7 @@ export default async function handler(req, res) {
     // the row still went over the wire to anyone holding the view-only passphrase, which
     // Gavin and Isaac have and which sits in Slack history. Private tasks are filtered out
     // server-side so a viewer never receives them, story and comments included.
-    let query = db
-      .from('todos')
-      .select('*, todo_assignees(user_id), todo_people(people(id, name))')
-      .is('deleted_at', null);
+    let query = db.from('todos').select('*').is('deleted_at', null);
 
     if (sessionRole(req) !== 'editor') query = query.eq('is_private', false);
 
@@ -26,13 +23,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const todos = data.map(({ todo_assignees, todo_people, ...todo }) => ({
-      ...todo,
-      assignee_ids: todo_assignees.map((a) => a.user_id),
-      people: todo_people.map((tp) => tp.people).filter(Boolean),
-    }));
-
-    res.status(200).json({ todos });
+    res.status(200).json({ todos: data ?? [] });
     return;
   }
 
@@ -69,8 +60,9 @@ export default async function handler(req, res) {
         is_private: Boolean(body.is_private),
         contact: body.contact || null,
         category: body.category || null,
-        link_url: body.link_url || null,
-        link_label: body.link_label || null,
+        // A step names its goal. Everything else is a goal in its own right.
+        parent_id: body.parent_id || null,
+        is_method: Boolean(body.is_method),
         sort_order,
       })
       .select()
@@ -80,12 +72,6 @@ export default async function handler(req, res) {
       res.status(500).json({ error: error.message });
       return;
     }
-
-    await db.from('todo_activity').insert({
-      todo_id: data.id,
-      action: 'created',
-      detail: { title, status, priority },
-    });
 
     res.status(201).json({ todo: data });
     return;

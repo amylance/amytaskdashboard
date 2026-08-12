@@ -3,7 +3,6 @@ import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { PRIORITY_RANK, STATUSES, PRIORITIES } from '../_lib/priority.js';
 
 const EDITABLE_FIELDS = [
-  'manual_rank',
   'story',
   'completed_at',
   'waiting_on',
@@ -17,8 +16,8 @@ const EDITABLE_FIELDS = [
   'sort_order',
   'contact',
   'category',
-  'link_url',
-  'link_label',
+  'parent_id',
+  'is_method',
 ];
 
 export default async function handler(req, res) {
@@ -28,29 +27,19 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'GET') {
-    const [{ data: todo, error }, { data: comments }, { data: activity }, { data: assignees }, { data: links }] =
-      await Promise.all([
-        db.from('todos').select('*').eq('id', id).is('deleted_at', null).single(),
-        db.from('todo_comments').select('*').eq('todo_id', id).order('created_at', { ascending: true }),
-        db.from('todo_activity').select('*').eq('todo_id', id).order('created_at', { ascending: false }),
-        db.from('todo_assignees').select('user_id').eq('todo_id', id),
-        db.from('todo_people').select('people(id, name, company, role)').eq('todo_id', id),
-      ]);
+    const { data: todo, error } = await db
+      .from('todos')
+      .select('*')
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single();
 
     if (error || !todo) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
 
-    res.status(200).json({
-      todo: {
-        ...todo,
-        assignee_ids: (assignees ?? []).map((a) => a.user_id),
-        people: (links ?? []).map((l) => l.people).filter(Boolean),
-      },
-      comments: comments ?? [],
-      activity: activity ?? [],
-    });
+    res.status(200).json({ todo });
     return;
   }
 
@@ -127,13 +116,6 @@ export default async function handler(req, res) {
       return;
     }
 
-    const statusOrPriorityChange = changes.find((c) => c.field === 'status' || c.field === 'priority');
-    await db.from('todo_activity').insert({
-      todo_id: id,
-      action: statusOrPriorityChange ? `${statusOrPriorityChange.field}_changed` : 'updated',
-      detail: { changes },
-    });
-
     res.status(200).json({ todo: data });
     return;
   }
@@ -148,8 +130,6 @@ export default async function handler(req, res) {
       res.status(500).json({ error: error.message });
       return;
     }
-
-    await db.from('todo_activity').insert({ todo_id: id, action: 'deleted', detail: {} });
 
     res.status(200).json({ ok: true });
     return;

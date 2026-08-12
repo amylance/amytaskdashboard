@@ -5,6 +5,7 @@ import PriorityBadge from '../components/PriorityBadge.jsx';
 import { activitySpan, formatDueDate, isOverdue } from '../lib/format.js';
 import { lastActivity } from '../lib/columnOrder.js';
 import { sourceOf, statusOf, waitingAge } from '../lib/visuals.js';
+import { indexSteps } from '../lib/steps.js';
 import { CATEGORIES } from '../lib/constants.js';
 
 const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
@@ -22,6 +23,7 @@ const COLUMNS = [
 // The full record of every task, with filters. This doubles as Gavin's and Isaac's view:
 // they click their own name and see what they asked for and where it stands.
 export default function ListView({ todos, onOpen, removed = [], onRestore }) {
+  const { goalOf, stepsOf } = indexSteps(todos);
   // Newest work first. Due dates are mostly null on this board, so sorting by them left the
   // List in effectively insertion order and buried what just moved.
   const [sortKey, setSortKey] = useState('when');
@@ -151,7 +153,18 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
                       >
                         {todo.title}
                       </span>
+                      {/* The List is flat by design — it is the full record. A step still has
+                          to say what it belongs to, or it reads as its own commitment. */}
+                      {stepsOf(todo.id).length > 0 && (
+                        <span className="shrink-0 font-mono text-[10px] text-ink-muted">
+                          {stepsOf(todo.id).filter((x) => x.status === 'done').length}/
+                          {stepsOf(todo.id).length} steps
+                        </span>
+                      )}
                     </div>
+                    {goalOf(todo) && (
+                      <span className="block text-[11px] text-ink-muted">↳ {goalOf(todo).title}</span>
+                    )}
                     {todo.waiting_on && (
                       <span className={`text-[11px] ${age?.stale ? 'text-clay' : 'text-violet-700'}`}>
                         ⏳ {todo.waiting_on}

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { X, Lock, Trash2, Send, Clock, Link2, UserPlus, ExternalLink } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, Trash2, ExternalLink, CornerDownRight, BookOpen, Plus } from 'lucide-react';
 import { STATUSES, PRIORITIES } from '../lib/constants.js';
+import { statusOf } from '../lib/visuals.js';
 
 const SOURCE_LABEL = {
   app: 'App',
@@ -13,63 +14,36 @@ const SOURCE_LABEL = {
 import { formatDateTime, shortId, pacificInputValue, pacificToISO } from '../lib/format.js';
 import Story from './Story.jsx';
 import BackButton from './BackButton.jsx';
-import { useTodoDetail } from '../hooks/useTodoDetail.js';
-
-const ACTIVITY_LABEL = {
-  created: 'created this task',
-  status_changed: 'changed status',
-  priority_changed: 'changed priority',
-  updated: 'updated this task',
-  commented: 'left a comment',
-  deleted: 'deleted this task',
-};
 
 const textFieldClass =
   'glass-field w-full rounded-lg border border-hairline px-3 py-2 text-sm text-ink outline-none focus:border-ink/30';
 
 export default function DetailPanel({
   todo,
-  config,
-  people,
+  goal,
+  steps = [],
   onClose,
   onChange,
   onDelete,
-  onLinkPerson,
-  onUnlinkPerson,
-  onOpenPerson,
+  onOpen,
+  onAddStep,
+  highlightStepId = null,
   readOnly = false,
 }) {
-  const { comments, activity, addComment } = useTodoDetail(todo?.id, config);
   const [title, setTitle] = useState(todo?.title ?? '');
   const [description, setDescription] = useState(todo?.description ?? '');
   const [contact, setContact] = useState(todo?.contact ?? '');
   const [category, setCategory] = useState(todo?.category ?? '');
-  const [linkUrl, setLinkUrl] = useState(todo?.link_url ?? '');
-  const [linkLabel, setLinkLabel] = useState(todo?.link_label ?? '');
   const [waitingOn, setWaitingOn] = useState(todo?.waiting_on ?? '');
-  const [commentText, setCommentText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [personQuery, setPersonQuery] = useState('');
-
-  const linkedPeople = todo?.people ?? [];
-  const linkedIds = new Set(linkedPeople.map((p) => p.id));
-  const suggestions = useMemo(() => {
-    const q = personQuery.trim().toLowerCase();
-    if (!q) return [];
-    return (people ?? [])
-      .filter((p) => !linkedIds.has(p.id) && p.name.toLowerCase().includes(q))
-      .slice(0, 5);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personQuery, people, todo?.people]);
+  const [newStep, setNewStep] = useState('');
 
   useEffect(() => {
     setTitle(todo?.title ?? '');
     setDescription(todo?.description ?? '');
     setContact(todo?.contact ?? '');
     setCategory(todo?.category ?? '');
-    setLinkUrl(todo?.link_url ?? '');
-    setLinkLabel(todo?.link_label ?? '');
     setWaitingOn(todo?.waiting_on ?? '');
+    setNewStep('');
   }, [todo?.id]);
 
   if (!todo) return null;
@@ -82,14 +56,7 @@ export default function DetailPanel({
     onChange(todo.id, fields);
   }
 
-  async function handleSendComment() {
-    const body = commentText.trim();
-    if (readOnly || !body || sending) return;
-    setSending(true);
-    await addComment(body);
-    setCommentText('');
-    setSending(false);
-  }
+  const doneSteps = steps.filter((s) => s.status === 'done').length;
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
@@ -113,6 +80,18 @@ export default function DetailPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
+          {/* A step opens with its goal above it, and the goal is one tap away. Amy reaches
+              a step from the Calendar, where the only context is the day it happened. */}
+          {goal && (
+            <button
+              onClick={() => onOpen(goal.id)}
+              className="tap-scale -mb-2 flex items-center gap-1.5 self-start text-[11px] text-ink-muted hover:text-ink"
+            >
+              <CornerDownRight size={11} />
+              step of <span className="font-medium text-ink underline">{goal.title}</span>
+            </button>
+          )}
+
           {/* The title has to LOOK editable — it was styled as plain text and locked to one
               line, so long titles were clipped and nobody could tell it was a field. */}
           <div>
@@ -126,6 +105,88 @@ export default function DetailPanel({
               className="mt-1 w-full resize-none rounded-lg border border-hairline bg-panel px-3 py-2 text-lg font-semibold text-ink outline-none leading-snug hover:border-ink/25 focus:border-ink/40"
             />
           </div>
+
+          {/* The steps. Each one is a real card on the board — this is the mirror, so she can
+              see from the goal where every piece of it currently sits without hunting the
+              columns. Clicking one opens it. */}
+          {(steps.length > 0 || !readOnly) && !goal && (
+            <div className="rounded-xl border border-hairline bg-panel px-3.5 py-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">
+                  Steps
+                </span>
+                {steps.length > 0 && (
+                  <span className="font-mono text-[10px] text-ink-muted">
+                    {doneSteps}/{steps.length} done
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1">
+                {steps.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => onOpen(s.id)}
+                    className={`tap-scale flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/[0.04] ${
+                      highlightStepId === s.id ? 'ring-2 ring-clay bg-clay-soft/50' : ''
+                    }`}
+                  >
+                    <span className={s.status === 'done' ? 'text-emerald-600' : 'text-ink-muted/60'}>
+                      {s.status === 'done' ? '✓' : '○'}
+                    </span>
+                    <span
+                      className={`flex-1 truncate text-[13px] ${
+                        s.status === 'done' ? 'text-ink-muted line-through' : 'text-ink'
+                      }`}
+                    >
+                      {s.title}
+                    </span>
+                    <span className={`shrink-0 font-mono text-[10px] ${statusOf(s.status).text}`}>
+                      {statusOf(s.status).label}
+                    </span>
+                  </button>
+                ))}
+                {steps.length === 0 && (
+                  <p className="text-xs text-ink-muted">
+                    No steps. Add one and this becomes a goal that closes when they all do.
+                  </p>
+                )}
+              </div>
+
+              {!readOnly && (
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    value={newStep}
+                    onChange={(e) => setNewStep(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter' || !newStep.trim()) return;
+                      onAddStep(todo.id, newStep.trim());
+                      setNewStep('');
+                    }}
+                    placeholder="Add a step — verb first, e.g. Ask Google tech"
+                    className="glass-field flex-1 rounded-full border border-hairline px-3.5 py-1.5 text-[13px] outline-none focus:border-ink/30"
+                  />
+                  <button
+                    onClick={() => {
+                      if (!newStep.trim()) return;
+                      onAddStep(todo.id, newStep.trim());
+                      setNewStep('');
+                    }}
+                    disabled={!newStep.trim()}
+                    className="tap-scale inline-flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white disabled:opacity-30"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              )}
+
+              {steps.length > 0 && (
+                <p className="mt-2 text-[10px] text-ink-muted/80">
+                  This closes itself when the last step does.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* The history — how it arrived, what happened, what changed, what's left.
               Written by the sweep in Amy's bullet format; the card stays short and this
@@ -165,11 +226,6 @@ export default function DetailPanel({
                   <p className="text-xs text-ink">{todo.claude_note}</p>
                 </div>
               )}
-              {todo.edited_from_source && (
-                <span className="inline-flex w-fit items-center gap-1 text-[10px] text-clay">
-                  ✎ you edited this from the source
-                </span>
-              )}
             </div>
           )}
 
@@ -185,6 +241,7 @@ export default function DetailPanel({
               type="date"
               value={todo.due_date ?? ''}
               onChange={(e) => patch({ due_date: e.target.value || null })}
+              title="Only set this when a source actually named a date"
               className="glass-field rounded-full border border-hairline px-3 py-1.5 text-xs font-mono text-ink outline-none"
             />
             <button
@@ -195,6 +252,18 @@ export default function DetailPanel({
             >
               <Lock size={11} />
               Private
+            </button>
+            {/* Amy's rule: routine work does not need a paper trail. Only the tasks that will
+                become a repeatable method keep the full history of what pivoted and why. */}
+            <button
+              onClick={() => patch({ is_method: !todo.is_method })}
+              title="Keep the full history — this one is going to become a method"
+              className={`tap-scale inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs ${
+                todo.is_method ? 'border-clay bg-clay-soft text-clay' : 'glass-field border-hairline text-ink-muted'
+              }`}
+            >
+              <BookOpen size={11} />
+              Method
             </button>
           </div>
 
@@ -279,59 +348,6 @@ export default function DetailPanel({
             </LabeledField>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5 block">
-              People
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {linkedPeople.map((p) => (
-                <span
-                  key={p.id}
-                  className="glass-field inline-flex items-center gap-1.5 rounded-full border border-hairline pl-3 pr-1.5 py-1 text-xs text-ink"
-                >
-                  <button type="button" onClick={() => onOpenPerson(p.id)} className="tap-scale hover:underline">
-                    {p.name}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onUnlinkPerson(todo.id, p.id)}
-                    className="tap-scale inline-flex items-center justify-center w-4 h-4 rounded-full text-ink-muted hover:bg-black/10"
-                  >
-                    <X size={10} />
-                  </button>
-                </span>
-              ))}
-              {linkedPeople.length === 0 && <p className="text-xs text-ink-muted">No one linked yet.</p>}
-            </div>
-            <div className="relative">
-              <input
-                value={personQuery}
-                onChange={(e) => setPersonQuery(e.target.value)}
-                placeholder="Link someone from People…"
-                className={textFieldClass}
-              />
-              {suggestions.length > 0 && (
-                <div className="glass-panel absolute z-10 mt-1 w-full rounded-lg border border-hairline overflow-hidden">
-                  {suggestions.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        onLinkPerson(todo.id, p.id);
-                        setPersonQuery('');
-                      }}
-                      className="tap-scale flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-black/5"
-                    >
-                      <UserPlus size={12} className="text-ink-muted shrink-0" />
-                      {p.name}
-                      {p.company && <span className="text-ink-muted text-xs">· {p.company}</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
           <LabeledField label="Description">
             <textarea
               value={description}
@@ -342,95 +358,6 @@ export default function DetailPanel({
               className={`${textFieldClass} resize-none`}
             />
           </LabeledField>
-
-          <div className="grid grid-cols-2 gap-3">
-            <LabeledField label="Link URL">
-              <input
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onBlur={() => linkUrl !== (todo.link_url ?? '') && patch({ link_url: linkUrl })}
-                placeholder="https://"
-                className={textFieldClass}
-              />
-            </LabeledField>
-            <LabeledField label="Link label">
-              <input
-                value={linkLabel}
-                onChange={(e) => setLinkLabel(e.target.value)}
-                onBlur={() => linkLabel !== (todo.link_label ?? '') && patch({ link_label: linkLabel })}
-                placeholder="e.g. LAN-100"
-                className={textFieldClass}
-              />
-            </LabeledField>
-          </div>
-
-          {todo.link_url && (
-            <a
-              href={todo.link_url}
-              target="_blank"
-              rel="noreferrer"
-              className="tap-scale glass-field -mt-2 inline-flex w-fit items-center gap-1.5 rounded-full border border-hairline px-3 py-1.5 text-xs text-ink"
-            >
-              <Link2 size={11} />
-              {todo.link_label || todo.link_url}
-            </a>
-          )}
-
-          <div>
-            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5 block">
-              Comments
-            </label>
-            <div className="flex flex-col gap-2 mb-2">
-              {comments.map((c) => (
-                <div key={c.id} className="glass-field rounded-lg border border-hairline px-3 py-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wide text-ink-muted">
-                      {c.source === 'slack' ? 'Slack' : 'App'}
-                    </span>
-                    <span className="text-[10px] font-mono text-ink-muted">{formatDateTime(c.created_at)}</span>
-                  </div>
-                  <p className="text-sm text-ink whitespace-pre-wrap">{c.body}</p>
-                </div>
-              ))}
-              {comments.length === 0 && <p className="text-xs text-ink-muted">No comments yet.</p>}
-            </div>
-            {!readOnly && (
-              <div className="flex items-center gap-2">
-                <input
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-                  placeholder="Add a comment…"
-                  className="glass-field flex-1 rounded-full border border-hairline px-3.5 py-2 text-sm outline-none focus:border-ink/30"
-                />
-                <button
-                  onClick={handleSendComment}
-                  disabled={!commentText.trim() || sending}
-                  className="tap-scale inline-flex items-center justify-center w-9 h-9 rounded-full bg-ink text-white disabled:opacity-30"
-                >
-                  <Send size={14} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5 block">
-              Activity
-            </label>
-            <div className="flex flex-col gap-2.5">
-              {activity.map((a) => (
-                <div key={a.id} className="flex items-start gap-2 text-xs text-ink-muted">
-                  <Clock size={11} className="mt-0.5 shrink-0" />
-                  <span>
-                    {ACTIVITY_LABEL[a.action] ?? a.action} ·{' '}
-                    <span className="font-mono">{formatDateTime(a.created_at)}</span>
-                  </span>
-                </div>
-              ))}
-              {activity.length === 0 && <p className="text-xs text-ink-muted">No activity yet.</p>}
-            </div>
-          </div>
         </div>
       </div>
     </div>

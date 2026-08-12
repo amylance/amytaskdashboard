@@ -5,6 +5,7 @@ import { useTodos } from './hooks/useTodos.js';
 import { usePeople } from './hooks/usePeople.js';
 import { useRecoverable } from './hooks/useRecoverable.js';
 import { api } from './lib/api.js';
+import { indexSteps } from './lib/steps.js';
 import UndoToast from './components/UndoToast.jsx';
 import PassphraseGate from './components/PassphraseGate.jsx';
 import TopNav from './components/TopNav.jsx';
@@ -66,6 +67,9 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onNav);
   }, []);
   const [openTodoId, setOpenTodoId] = useState(null);
+  // Reaching a goal from the Calendar means arriving with a specific day's step in mind.
+  // The panel lights that step so she does not have to find it in the list herself.
+  const [highlightStepId, setHighlightStepId] = useState(null);
   const [openPersonId, setOpenPersonId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState(null);
@@ -86,14 +90,16 @@ export default function App() {
     return <PassphraseGate onSubmit={session.login} error={session.error} />;
   }
 
+  const { stepsOf, goalOf } = indexSteps(todos);
   const openTodo = todos.find((t) => t.id === openTodoId) ?? null;
   const openPerson = people.find((p) => p.id === openPersonId) ?? null;
   const isLoading =
     activeView === 'people' ? peopleLoading : ['profile','inbox'].includes(activeView) ? false : todosLoading;
 
-  function openTodoDetail(id) {
+  function openTodoDetail(id, stepId = null) {
     setOpenPersonId(null);
     setOpenTodoId(id);
+    setHighlightStepId(stepId);
   }
 
   function openPersonDetail(id) {
@@ -166,22 +172,6 @@ export default function App() {
     }
   }
 
-  // A manual move rewrites the pinned ranks for the top of a column. Applied optimistically
-  // so the card lands where she dropped it instantly, then persisted card by card.
-  async function handleMove(updates) {
-    setTodos((prev) =>
-      prev.map((t) => {
-        const u = updates.find((x) => x.id === t.id);
-        return u ? { ...t, manual_rank: u.manual_rank } : t;
-      }),
-    );
-    try {
-      await Promise.all(updates.map((u) => api.updateTodo(u.id, { manual_rank: u.manual_rank })));
-    } catch (err) {
-      showError(`Couldn't reorder — ${err.message}`);
-    }
-  }
-
   async function handleCreate(payload) {
     try {
       const { todo } = await api.createTodo(payload);
@@ -193,22 +183,25 @@ export default function App() {
     }
   }
 
-  async function handleLinkPerson(todoId, personId) {
+  // A step is an ordinary task that names its goal. It starts in To Do, where every other
+  // piece of unstarted work starts, and shows up on the board immediately.
+  async function handleAddStep(parentId, title) {
     try {
-      await api.linkPerson(todoId, personId);
+      const parent = todos.find((t) => t.id === parentId);
+      const { todo } = await api.createTodo({
+        title,
+        parent_id: parentId,
+        status: 'todo',
+        priority: parent?.priority ?? 'normal',
+        contact: parent?.contact ?? '',
+        category: parent?.category ?? '',
+      });
+      setTodos((prev) => [...prev, todo]);
+      // A goal that was sitting in Done cannot stay there once new work opens under it.
+      if (parent?.status === 'done') await refreshTodoInPlace(parentId);
     } catch (err) {
-      showError(`Couldn't link that person — ${err.message}`);
+      showError(`Couldn't add that step — ${err.message}`);
     }
-    await refreshTodoInPlace(todoId);
-  }
-
-  async function handleUnlinkPerson(todoId, personId) {
-    try {
-      await api.unlinkPerson(todoId, personId);
-    } catch (err) {
-      showError(`Couldn't unlink that person — ${err.message}`);
-    }
-    await refreshTodoInPlace(todoId);
   }
 
   async function handlePatchPerson(id, fields) {
@@ -275,7 +268,6 @@ export default function App() {
         todos={todos}
         onOpen={openTodoDetail}
         onReorder={handlePatch}
-        onMove={handleMove}
         removed={removedTodos}
         onRestore={restoreTodo}
       />
@@ -346,14 +338,17 @@ export default function App() {
       {openTodo && (
         <DetailPanel
           todo={openTodo}
-          config={config}
-          people={people}
-          onClose={() => setOpenTodoId(null)}
+          goal={goalOf(openTodo)}
+          steps={stepsOf(openTodo.id)}
+          highlightStepId={highlightStepId}
+          onClose={() => {
+            setOpenTodoId(null);
+            setHighlightStepId(null);
+          }}
           onChange={handlePatch}
           onDelete={handleDelete}
-          onLinkPerson={handleLinkPerson}
-          onUnlinkPerson={handleUnlinkPerson}
-          onOpenPerson={openPersonDetail}
+          onOpen={openTodoDetail}
+          onAddStep={handleAddStep}
           readOnly={readOnly}
         />
       )}

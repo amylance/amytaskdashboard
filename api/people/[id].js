@@ -27,10 +27,9 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'GET') {
-    const [{ data: person, error }, { data: notes }, { data: links }] = await Promise.all([
+    const [{ data: person, error }, { data: notes }] = await Promise.all([
       db.from('people').select('*').eq('id', id).is('deleted_at', null).single(),
       db.from('person_notes').select('*').eq('person_id', id).order('created_at', { ascending: false }),
-      db.from('todo_people').select('todo_id, todos(id, title, status, due_date)').eq('person_id', id),
     ]);
 
     if (error || !person) {
@@ -38,11 +37,15 @@ export default async function handler(req, res) {
       return;
     }
 
-    const todos = (links ?? [])
-      .map((l) => l.todos)
-      .filter((t) => t && !t.deleted_at);
+    // Nobody ever used the link table — 0 rows across the whole board. The contact field
+    // on a task is what Amy actually fills in, so a person's work is matched by name.
+    const { data: todos } = await db
+      .from('todos')
+      .select('id, title, status, due_date')
+      .is('deleted_at', null)
+      .ilike('contact', `%${person.name}%`);
 
-    res.status(200).json({ person, notes: notes ?? [], todos });
+    res.status(200).json({ person, notes: notes ?? [], todos: todos ?? [] });
     return;
   }
 

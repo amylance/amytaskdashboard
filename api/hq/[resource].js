@@ -8,9 +8,9 @@ import {
 } from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 
-// Consolidated HQ endpoint. Handles both the away/status log and the pending notes
-// from a single serverless function, to stay under Vercel's 12-function limit.
-// Routes: /api/hq/status  ·  /api/hq/pending
+// Consolidated HQ endpoint. Every surface that would otherwise need its own serverless
+// function lives here, to stay under Vercel's 12-function limit.
+// Routes: /api/hq/feed · profile · calendar · inbox · recover
 export default async function handler(req, res) {
   if (!requireAuth(req, res)) return;
   const db = supabaseAdmin();
@@ -21,8 +21,6 @@ export default async function handler(req, res) {
   // strand her out of her own private tab.
   if (req.method !== 'GET' && resource !== 'profile' && !requireEditor(req, res)) return;
 
-  if (resource === 'status') return handleStatus(req, res, db);
-  if (resource === 'pending') return handlePending(req, res, db);
   if (resource === 'feed') return handleFeed(req, res, db);
   if (resource === 'profile') return handleProfile(req, res, db);
   if (resource === 'calendar') return handleCalendar(req, res, db);
@@ -107,6 +105,7 @@ async function handleInbox(req, res, db) {
             kind: ['task', 'memory', 'correction'].includes(it.kind) ? it.kind : 'task',
             to_whom: it.to_whom ?? null,
             target_todo_id: it.target_todo_id ?? null,
+            parent_todo_id: it.parent_todo_id ?? null,
             proposed_completed_at: it.proposed_completed_at ?? null,
           })
           .select()
@@ -201,7 +200,6 @@ async function handleInbox(req, res, db) {
     const status = ['todo', 'doing', 'waiting', 'done'].includes(body.status)
       ? body.status
       : item.suggested_status;
-    const edited = title !== item.title;
 
     const { data: todo, error: todoErr } = await db
       .from('todos')
@@ -215,7 +213,9 @@ async function handleInbox(req, res, db) {
         source_raw: item.source_raw,
         claude_note: item.claude_note,
         story: item.story ?? null,
-        edited_from_source: edited,
+        // A swept step names its goal, so approving it lands under that goal on the board
+        // rather than as another loose card.
+        parent_id: item.parent_todo_id ?? null,
         received_at: item.received_at,
         // An item approved as "already done" was NOT finished now — stamping it with the
         // current time drops days-old work onto today's calendar. Prefer the instant the
@@ -324,63 +324,28 @@ async function handleRecover(req, res, db) {
   res.status(405).json({ error: 'Method not allowed' });
 }
 
-// --- Activity events for the calendar (Amy's "what I did" record), plus meetings
-// with the checklist of what was actually discussed. One fetch serves both. ---
+// --- Meetings for the calendar, with the checklist of what was actually discussed.
+// The calendar's proof-of-work now comes from finished tasks and their steps; the separate
+// activity_events log was never written to once and is gone. ---
 async function handleCalendar(req, res, db) {
-  if (req.method === 'GET') {
-    const [{ data, error }, { data: meetings, error: meetErr }] = await Promise.all([
-      db
-        .from('activity_events')
-        .select('*')
-        .is('deleted_at', null)
-        .order('event_date', { ascending: false }),
-      db
-        .from('meetings')
-        .select('*, items:meeting_items(id, label, discussed, sort_order, todo_id)')
-        .is('deleted_at', null)
-        .order('occurred_at', { ascending: false }),
-    ]);
-    if (error || meetErr) {
-      res.status(500).json({ error: (error ?? meetErr).message });
-      return;
-    }
-    // Keep each checklist in the order it was written; Supabase does not sort embeds.
-    for (const m of meetings ?? []) {
-      m.items?.sort((a, b) => a.sort_order - b.sort_order);
-    }
-    res.status(200).json({ events: data ?? [], meetings: meetings ?? [] });
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
     return;
   }
-
-  if (req.method === 'POST') {
-    const body = req.body ?? {};
-    const title = typeof body.title === 'string' ? body.title.trim() : '';
-    if (!title || !body.event_date) {
-      res.status(400).json({ error: 'title and event_date are required' });
-      return;
-    }
-    const kind = ['meeting', 'action', 'milestone'].includes(body.kind) ? body.kind : 'action';
-    const { data, error } = await db
-      .from('activity_events')
-      .insert({
-        title,
-        detail: body.detail || null,
-        event_date: body.event_date,
-        kind,
-        source: body.source || null,
-        source_url: body.source_url || null,
-      })
-      .select()
-      .single();
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-    res.status(201).json({ event: data });
+  const { data: meetings, error } = await db
+    .from('meetings')
+    .select('*, items:meeting_items(id, label, discussed, sort_order, todo_id)')
+    .is('deleted_at', null)
+    .order('occurred_at', { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
     return;
   }
-
-  res.status(405).json({ error: 'Method not allowed' });
+  // Keep each checklist in the order it was written; Supabase does not sort embeds.
+  for (const m of meetings ?? []) {
+    m.items?.sort((a, b) => a.sort_order - b.sort_order);
+  }
+  res.status(200).json({ meetings: meetings ?? [] });
 }
 
 // --- Profile / Memory sections (public or private). ---
@@ -496,96 +461,3 @@ async function handleFeed(req, res, db) {
   res.status(200).json({ feed });
 }
 
-// --- Away / status log. Current status = the most recent event still open. ---
-async function handleStatus(req, res, db) {
-  if (req.method === 'GET') {
-    const [{ data: openRows }, { data: recent }] = await Promise.all([
-      db.from('status_events').select('*').is('ended_at', null).order('started_at', { ascending: false }).limit(1),
-      db.from('status_events').select('*').order('started_at', { ascending: false }).limit(20),
-    ]);
-    res.status(200).json({ current: openRows?.[0] ?? null, recent: recent ?? [] });
-    return;
-  }
-
-  if (req.method === 'POST') {
-    const body = req.body ?? {};
-    const status = typeof body.status === 'string' ? body.status.trim() : '';
-    if (!status) {
-      res.status(400).json({ error: 'status is required' });
-      return;
-    }
-
-    // Close any currently-open status before starting a new one.
-    await db.from('status_events').update({ ended_at: new Date().toISOString() }).is('ended_at', null);
-
-    if (status === 'available') {
-      res.status(200).json({ current: null });
-      return;
-    }
-
-    const { data, error } = await db
-      .from('status_events')
-      .insert({ status, label: body.label || null, note: body.note || null })
-      .select()
-      .single();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(201).json({ current: data });
-    return;
-  }
-
-  res.status(405).json({ error: 'Method not allowed' });
-}
-
-// --- Per-page "Pending" corner note. ---
-async function handlePending(req, res, db) {
-  if (req.method === 'GET') {
-    const { data, error } = await db
-      .from('pending_items')
-      .select('*')
-      .is('resolved_at', null)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json({ pending: data ?? [] });
-    return;
-  }
-
-  if (req.method === 'POST') {
-    const body = req.body ?? {};
-    const title = typeof body.title === 'string' ? body.title.trim() : '';
-    if (!title) {
-      res.status(400).json({ error: 'title is required' });
-      return;
-    }
-
-    const { data, error } = await db
-      .from('pending_items')
-      .insert({
-        scope: body.scope || 'global',
-        title,
-        reason: body.reason || null,
-        blocked_on: body.blocked_on || null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(201).json({ item: data });
-    return;
-  }
-
-  res.status(405).json({ error: 'Method not allowed' });
-}

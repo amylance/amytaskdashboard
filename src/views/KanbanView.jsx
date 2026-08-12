@@ -3,7 +3,8 @@ import { useState } from "react";
 import { STATUSES } from "../lib/constants.js";
 import { statusOf } from "../lib/visuals.js";
 import TodoCard from "../components/TodoCard.jsx";
-import { orderColumn, reorderWithin } from "../lib/columnOrder.js";
+import { orderColumn } from "../lib/columnOrder.js";
+import { indexSteps } from "../lib/steps.js";
 import { pacificDayLabel } from "../lib/format.js";
 import { ChevronRight } from "lucide-react";
 
@@ -11,10 +12,10 @@ export default function KanbanView({
   todos,
   onOpen,
   onReorder,
-  onMove,
   removed = [],
   onRestore,
 }) {
+  const { stepsOf, goalOf } = indexSteps(todos);
   const [draggingId, setDraggingId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
   // null means "not touched yet" — the newest day opens by itself and the rest stay shut.
@@ -76,6 +77,16 @@ export default function KanbanView({
     return out;
   }
 
+  // Once a goal lands in Done its steps fold into it — one card for one piece of work,
+  // not four fragments of it. Nothing is deleted: the steps still open from the goal, and
+  // each still sits on the Calendar on the day it was actually finished. A step whose goal
+  // is still open keeps its own row, because that work genuinely is separate from the
+  // goal's own line on the board.
+  function foldFinishedSteps(items) {
+    const doneGoals = new Set(items.filter((t) => stepsOf(t.id).length > 0).map((t) => t.id));
+    return items.filter((t) => !(t.parent_id && doneGoals.has(t.parent_id)));
+  }
+
   function dayIsOpen(groups, label, idx) {
     return expandedDays ? expandedDays.has(label) : idx === 0;
   }
@@ -89,12 +100,7 @@ export default function KanbanView({
     });
   }
 
-  function move(colItems, id, direction) {
-    const updates = reorderWithin(colItems, id, direction);
-    if (updates) onMove(updates);
-  }
-
-  function handleDrop(status, targetIndex) {
+  function handleDrop(status) {
     if (!draggingId) return;
     const dragged = todos.find((t) => t.id === draggingId);
     if (!dragged) return;
@@ -122,7 +128,7 @@ export default function KanbanView({
             onDragLeave={() => setOverColumn((c) => (c === col.id ? null : c))}
             onDrop={(e) => {
               e.preventDefault();
-              handleDrop(col.id, col.items.length);
+              handleDrop(col.id);
             }}
             className={`rounded-2xl border border-hairline p-3 min-h-[200px] transition-colors ${
               overColumn === col.id ? "bg-black/[0.03]" : "bg-transparent"
@@ -146,7 +152,7 @@ export default function KanbanView({
 
             <div className="flex flex-col gap-2">
               {col.id === "done"
-                ? groupByDay(col.items).map((group, gi, groups) => {
+                ? groupByDay(foldFinishedSteps(col.items)).map((group, gi, groups) => {
                     const open = dayIsOpen(groups, group.label, gi);
                     return (
                       <div key={group.label} className="flex flex-col gap-2">
@@ -164,12 +170,18 @@ export default function KanbanView({
                         </button>
                         {open &&
                           group.items.map((todo) => (
-                            <TodoCard key={todo.id} todo={todo} onClick={() => onOpen(todo.id)} />
+                            <TodoCard
+                              key={todo.id}
+                              todo={todo}
+                              goal={goalOf(todo)}
+                              steps={stepsOf(todo.id)}
+                              onClick={() => onOpen(todo.id)}
+                            />
                           ))}
                       </div>
                     );
                   })
-                : col.items.map((todo, idx) => (
+                : col.items.map((todo) => (
                     <div
                       key={todo.id}
                       onDragOver={(e) => {
@@ -180,11 +192,13 @@ export default function KanbanView({
                       onDrop={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handleDrop(col.id, idx);
+                        handleDrop(col.id);
                       }}
                     >
                       <TodoCard
                         todo={todo}
+                        goal={goalOf(todo)}
+                        steps={stepsOf(todo.id)}
                         onClick={() => onOpen(todo.id)}
                         draggable
                         dragging={draggingId === todo.id}
@@ -193,10 +207,6 @@ export default function KanbanView({
                           setDraggingId(null);
                           setOverColumn(null);
                         }}
-                        onMoveUp={idx > 0 ? () => move(col.items, todo.id, 'up') : undefined}
-                        onMoveDown={
-                          idx < col.items.length - 1 ? () => move(col.items, todo.id, 'down') : undefined
-                        }
                       />
                     </div>
                   ))}

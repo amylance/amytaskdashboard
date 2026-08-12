@@ -34,14 +34,6 @@ export const api = {
   getTodo: (id) => request(`/api/todos/${id}`),
   updateTodo: (id, patch) => request(`/api/todos/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   deleteTodo: (id) => request(`/api/todos/${id}`, { method: 'DELETE' }),
-  reorderTodos: (updates) => request('/api/todos/reorder', { method: 'POST', body: JSON.stringify({ updates }) }),
-
-  addComment: (id, body) => request(`/api/todos/${id}/comments`, { method: 'POST', body: JSON.stringify({ body }) }),
-
-  linkPerson: (todoId, personId) =>
-    request(`/api/todos/${todoId}/people`, { method: 'POST', body: JSON.stringify({ person_id: personId }) }),
-  unlinkPerson: (todoId, personId) =>
-    request(`/api/todos/${todoId}/people?person_id=${personId}`, { method: 'DELETE' }),
 
   listPeople: () => request('/api/people'),
   createPerson: (payload) => request('/api/people', { method: 'POST', body: JSON.stringify(payload) }),

@@ -607,3 +607,110 @@ Two guardrails keep this from becoming the silent-rewrite problem rule 6 exists 
 
 The `correction` kind stays in the schema for that second case. Same-day agreement and
 absence of evidence still change nothing, silently, as before.
+
+---
+
+## 2026-08-12 — Steps under a goal, and a card audit that cut eleven dead fields
+
+Amy asked for a health check. It surfaced a gap that was never a bug: the dashboard had no
+way to express the shape she had been designing around since week one.
+
+### What she had been assuming, and what was actually true
+
+She believed the notebook fed her Inbox through the brief — that `brief` swept every tool,
+read her notebook, synthesised it, and filed **one** task with its prerequisite work
+attached. Checking the skills against that: the sweep does read every unprocessed notebook
+entry and does cross-reference each ask against Slack, the notebook and Gmail before
+anything reaches the Inbox. That half was built and running.
+
+The half that did not exist was the shape. `todos` had no `parent_id`. Six related asks
+produced six flat cards. Her words:
+
+> *"All these related tasks only lead to one task: to get access to Gavin's inbox. This is
+> why the notebook exists."*
+
+An earlier answer in that session told her the notebook was "not a feed into your
+dashboard." That was wrong and is corrected here so it does not get repeated: it is a feed,
+just not a task-creating one.
+
+### The shape she specified
+
+Not the one first proposed. The suggestion was a single card with a checklist inside it;
+she rejected that by describing how she actually works — she drags a card into Doing. A
+step therefore has to be a real card.
+
+- Goal sits in Pending and **stays there**. Steps are ordinary tasks carrying `parent_id`,
+  moving through the columns on their own.
+- The goal card mirrors where every step currently sits: `✓ Ask Google tech · Doing · To do`.
+- The goal **closes itself when the last step closes** — the one automatic move. Reopening
+  a step reopens the goal, because a goal sitting in Done above live work is exactly the
+  false record `todo_audit` exists to catch. Both directions are a database trigger, not
+  API logic, so an evidence-driven sweep behaves identically to a click.
+- One level only. A step needing its own steps means the goal was named too broadly.
+
+She said the finished steps should "disappear" into one card in Done and, a paragraph
+later, "don't make the steps disappear." Resolved as a fold: in Done a finished goal's
+steps collapse into it — one card for one piece of work — while every step stays clickable
+and stays on the Calendar on the day it finished. She approved this.
+
+### The Calendar is where steps stay individually visible
+
+Her design, better than the proposal it replaced. The Calendar is proof-of-work, permanent,
+where the Kanban's Done column clears every Monday. So each step lands on the day it was
+actually finished, same-day steps of one goal fold under that goal's name, and clicking any
+of them opens the **goal** with that step lit. Searching a goal lights up every day that
+carried a piece of it, ending on the day it closed.
+
+### Due dates only from sources
+
+Her ruling: a date is set only when a meeting, Slack message, email or her notebook
+explicitly named one. Otherwise it stays blank. The Timeline now shows dated work only —
+its "No due date" bucket had made it a second copy of the Kanban and buried the handful of
+real deadlines. An invented deadline is a fact the dashboard did not earn.
+
+### The card audit — measured, not guessed
+
+She asked which of the detail panel's fields were actually being used. Counted across all
+51 live tasks rather than judged by eye:
+
+- **Never used once:** assignee, created-by, last-actor, comments, link URL + label, Slack
+  assignment fields, people-on-task, edited-from-source, waiting-on-person. Eight tables
+  were completely empty.
+- **Barely used:** activity — 11 rows across 51 tasks, and every one of them either a
+  status flip already visible on the card or drag noise. Manual rank — one row, doing the
+  same job as `sort_order`, which had 51.
+- **Carrying the work:** `story` on 51 of 51, `claude_note` on 50, contact/source/received
+  on all 51.
+
+All of it removed, along with hand-pinning, which the manual-rank count showed she had used
+once in a week. Deleting the per-task comments and people-link endpoints also freed two
+serverless slots — the ceiling went from 12/12 used to 10/12.
+
+**Replacing "Activity": the `is_method` flag.** Her insight, and the better rule. History is
+worth keeping only on work that will become a repeatable system — the weekly hotel write-up,
+processing Gavin's inbox. Those keep every pivot. Everything else:
+
+> *"Straightforward tasks like talk to the tech, request this, upload your picture — don't
+> need that verbatim shit."*
+
+### Naming
+
+Delegated to research and synthesis. Verb first, then the object, active voice, 2–5 words,
+no detail in the title, and each goal states what done means. Amy caught the first example
+breaking its own rule — "Get Gavin inbox access" is a three-noun pile-up missing a
+possessive. So: **grammar beats word count**, and a possessive is never dropped to save a
+word. It is "Get access to Gavin's inbox."
+
+### Private tasks locked at the database
+
+The API already hid private tasks from viewers, but the anon realtime policy handed out
+every row, and `todo_audit` was a SECURITY DEFINER view reading straight through RLS. Both
+closed. Nothing was exposed — the anon key is not published and the copy in Vercel is
+broken — but the lock would have failed the first time it was used.
+
+### Not built, on her instruction
+
+Gavin's three email addresses stay in the notebook rather than expanding the People page.
+The weekly hotel write-up does not become a skill yet: it is a live goal whose **final step**
+is to systematise it, and Gavin has since added more steps. Processing Gavin's inbox is a
+separate goal from getting access to it.

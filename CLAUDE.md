@@ -29,7 +29,7 @@ Isaac — "not to make too much noise."
 Views, in her chosen order: **Inbox** (review queue — nothing becomes a task without
 her), Kanban ("Pending" not "Waiting"; Done column shows this week, Monday onward
 Pacific, and empties itself each Monday), List, Timeline
-(due dates, forward-looking), Calendar (proof-of-work: what she did, meetings with
+(dated work only, forward-looking), Calendar (proof-of-work: what she did, meetings with
 discussion checklists, deadlines), People, Profile (passphrase-gated, hers to write).
 
 **Access model (three passphrases):** the original shared passphrase
@@ -73,7 +73,27 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    lives in `todos.story` (markdown, bullets, written by the sweep) and shows when she
    opens the task. Quote verbatim only where someone's words *changed* the task. `⚠`
    marks an unresolved consequence and nothing else. A queue she must read twice is a
-   queue she stops trusting.
+   queue she stops trusting. **Depth follows `is_method`:** only work that will become a
+   repeatable system (weekly hotel write-up, processing Gavin's inbox) keeps a full history
+   of what pivoted. Routine work — "talk to the tech", "request this" — gets a bullet or
+   two. Her words: those *"don't need that verbatim shit."*
+4d. **Goals and steps.** A task with a `parent_id` is a **step** of the goal it points at.
+   Her shape, in her words: *"All these related tasks only lead to one task."* Steps are
+   real, movable cards — she works by dragging one into Doing — and the goal card mirrors
+   where each of its steps sits. The goal stays where she put it (usually Pending) and
+   **closes itself when the last step closes**; reopening a step reopens the goal. One
+   level only: a step needing its own steps means the goal was named too broadly. In the
+   Done column a finished goal's steps fold into it — one card for one piece of work — but
+   nothing is deleted, and each step still sits on the Calendar on the day it finished.
+   Clicking a step anywhere opens the goal with that step lit.
+4e. **Due dates come from sources, never judgement.** Set `due_date` only when a meeting,
+   Slack message, email or her notebook actually named a date; quote it in the story. No
+   date is the normal case, not a gap to fill — the Timeline shows dated work only, so an
+   invented deadline puts phantom pressure on her week. Never flag a task for lacking one.
+4f. **Naming.** Verb first, then the object; active voice. 2–5 words is the target, **not a
+   cap — grammar beats brevity**, and a possessive is never dropped to save a word
+   ("Get access to Gavin's inbox", never "Get Gavin inbox access"). No names, dates or
+   ticket numbers in a title; that is the story's job. A goal states what done means.
 5. **Minimal but efficient.** No feature without a job. She cut tabs deliberately.
    Suggest something better if it exists; don't add surface area.
 5b. **Change what she asked for and nothing else.** She asked for a line of copy to be
@@ -166,7 +186,11 @@ with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
   `claude/amy-task-dashboard-deploy-16f9gc` (Vercel deploys from the repo's default
   branch; ~20s builds).
 - **12 serverless functions is the ceiling** (Vercel Hobby). New API surface goes inside
-  `api/hq/[resource].js`.
+  `api/hq/[resource].js`. Currently at 10 — the per-task comments and people-link endpoints
+  went with the card cleanup.
+- **No field without evidence it is used.** The card carried eleven dead columns and eight
+  empty tables into week two. Before adding one, say which measurement showed the gap;
+  before keeping one, check it is populated. Measured, not assumed.
 - Realtime is degraded until Amy fixes `SUPABASE_ANON_KEY` in Vercel (it holds a URL) —
   the app polls/refreshes fine; don't "fix" this in code.
 - Reference code as `file:line`. Match the existing comment voice — comments explain

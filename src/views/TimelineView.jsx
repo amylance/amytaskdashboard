@@ -2,11 +2,16 @@ import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import { useMemo } from 'react';
 import TodoCard from '../components/TodoCard.jsx';
 import { daysUntilPT } from '../lib/format.js';
+import { indexSteps } from '../lib/steps.js';
 
 // Timeline answers the one thing Kanban can't: what's due, and when — in order.
 // Forward-looking only; finished work lives in the Calendar.
+//
+// Dated work only. A due date is set here exclusively when a source actually named one —
+// a meeting, a Slack message, an email, or Amy's own notebook — so an undated task is not
+// a gap to fill, it is a task nobody put a date on. Listing those under "No due date" made
+// the Timeline a second copy of the Kanban and buried the handful of real deadlines.
 function bucketOf(dueDate) {
-  if (!dueDate) return { key: '9-none', label: 'No due date', order: 9 };
   // "Today" is Pacific — the dashboard's clock — not the browser's.
   const days = daysUntilPT(dueDate);
 
@@ -19,10 +24,11 @@ function bucketOf(dueDate) {
 }
 
 export default function TimelineView({ todos, onOpen, removed = [], onRestore }) {
+  const { goalOf } = indexSteps(todos);
   const groups = useMemo(() => {
     const map = new Map();
     for (const todo of todos) {
-      if (todo.status === 'done') continue;
+      if (todo.status === 'done' || !todo.due_date) continue;
       const b = bucketOf(todo.due_date);
       if (!map.has(b.key)) map.set(b.key, { ...b, items: [] });
       map.get(b.key).items.push(todo);
@@ -38,7 +44,7 @@ export default function TimelineView({ todos, onOpen, removed = [], onRestore })
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-ink">What&apos;s due, and when</h2>
         <p className="text-[11px] text-ink-muted mt-0.5">
-          Open work only, soonest first. Finished work is in the Calendar.
+          Only work someone actually put a date on, soonest first. Finished work is in the Calendar.
         </p>
       </div>
 
@@ -58,12 +64,20 @@ export default function TimelineView({ todos, onOpen, removed = [], onRestore })
             </div>
             <div className="flex flex-col gap-2">
               {g.items.map((todo) => (
-                <TodoCard key={todo.id} todo={todo} onClick={() => onOpen(todo.id)} showStatus />
+                <TodoCard
+                  key={todo.id}
+                  todo={todo}
+                  goal={goalOf(todo)}
+                  onClick={() => onOpen(todo.id)}
+                  showStatus
+                />
               ))}
             </div>
           </div>
         ))}
-        {groups.length === 0 && <p className="pl-6 text-sm text-ink-muted">Nothing open.</p>}
+        {groups.length === 0 && (
+          <p className="pl-6 text-sm text-ink-muted">Nothing is due — no source has named a date.</p>
+        )}
       </div>
 
       <RecoverStrip items={removed} noun="task" onRestore={onRestore} describe={removedAt} />

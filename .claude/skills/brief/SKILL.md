@@ -1,6 +1,6 @@
 ---
 name: brief
-description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-11e."
+description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-12a."
 ---
 
 ## Origin
@@ -98,19 +98,20 @@ Resolve by name at runtime rather than trusting the ref.
 
 Schema worth knowing:
 
-- `todos` — `status` in `todo|doing|review|done`; `priority` in `normal|high|urgent`;
+- `todos` — `status` in `todo|doing|waiting|done`; `priority` in `normal|high|urgent`;
   soft deletes in `deleted_at` (always filter `deleted_at is null`). Provenance lives in
-  `source`, `source_url`, `source_raw`, `claude_note`, `edited_from_source`, and
-  `received_at` (when it landed on her plate).
+  `source`, `source_url`, `source_raw`, `claude_note` and `received_at` (when it landed on
+  her plate). `parent_id` makes a task a **step** of the goal it points at; `is_method`
+  marks the work whose full history is worth keeping.
 - `inbox_items` — **the review queue**. `state` in `pending|approved|dismissed`,
-  `kind` in `task|memory`. Pending items are things she has not yet decided on.
-- `todo_comments` — discussion on a card; `source` distinguishes app from slack.
-- `todo_activity` — the audit trail; how you tell what actually moved.
+  `kind` in `task|memory|correction`. Pending items are things she has not yet decided on.
+  `parent_todo_id` names the goal a swept step belongs under.
 - `people` / `person_notes` — her awareness log. `verification_tier` is `verified` or
   `unverified`; unverified people carry a `verification_source` citation.
-- `activity_events` — what she did each day (her proof-of-work calendar).
+- `meetings` / `meeting_items` — her calendar record and what each meeting covered.
 - `disclosures` — what she has given the Lance network.
 - `sweep_state` — when the tools were last swept.
+- `todo_audit` — the integrity checks. It must come back empty or every row explained.
 
 Read-only queries:
 
@@ -127,9 +128,17 @@ select id, title, kind, source, source_context, claude_note, received_at
 from inbox_items where state = 'pending' order by received_at desc;
 
 -- what moved since yesterday
-select a.todo_id, t.title, a.action, a.detail, a.created_at
-from todo_activity a join todos t on t.id = a.todo_id
-where a.created_at >= current_date - interval '1 day' order by a.created_at desc;
+select id, title, status, completed_at, started_at, waiting_since, updated_at
+from todos
+where deleted_at is null and updated_at >= current_date - interval '1 day'
+order by updated_at desc;
+
+-- goals and how far through their steps they are
+select g.id, g.title, g.status,
+       count(s.id) filter (where s.status = 'done') as done_steps,
+       count(s.id) as total_steps
+from todos g join todos s on s.parent_id = g.id and s.deleted_at is null
+where g.deleted_at is null group by g.id, g.title, g.status;
 
 -- unverified people still needing confirmation
 select name, company, role, verification_source
@@ -143,11 +152,13 @@ Flags that carry signal:
 - **Pending inbox items.** Anything sitting in `inbox_items` unreviewed is undecided work.
   Say how many and name the ones that look time-sensitive.
 - **Drifting.** A task untouched for days with a near due date.
+- **A goal stalled on one step.** Say which step and who it is waiting on, not the goal's
+  name alone — the blocked step is the thing she can act on.
 - **Unverified people.** If she is about to meet or email someone whose record is still
   unverified, flag it — she does not want to state something wrong about a person.
 
-Do **not** flag unassigned tasks. This is a single-person dashboard; `assignee_id` is
-null on everything by design.
+Do **not** flag a task for having no due date. A date is set only when a source named one,
+so an undated task is normal and not a gap to chase.
 
 Ignore obvious test scaffolding unless nothing else is open.
 

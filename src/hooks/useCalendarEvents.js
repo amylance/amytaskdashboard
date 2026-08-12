@@ -3,13 +3,11 @@ import { api } from '../lib/api.js';
 import { getSupabaseClient } from '../lib/supabaseClient.js';
 
 export function useCalendarEvents(config) {
-  const [events, setEvents] = useState([]);
   const [meetings, setMeetings] = useState([]);
 
   const refresh = useCallback(async () => {
     try {
-      const { events, meetings } = await api.getCalendar();
-      setEvents(events ?? []);
+      const { meetings } = await api.getCalendar();
       setMeetings(meetings ?? []);
     } catch {
       // ignore
@@ -24,11 +22,11 @@ export function useCalendarEvents(config) {
     if (!config) return undefined;
     const client = getSupabaseClient(config.supabaseUrl, config.supabaseAnonKey);
     const channel = client
-      .channel('activity-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_events' }, () => refresh())
+      .channel('meetings-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => refresh())
       .subscribe();
     return () => client.removeChannel(channel);
   }, [config, refresh]);
 
-  return { events, meetings };
+  return { meetings };
 }

@@ -1,13 +1,24 @@
-import { Lock, Calendar, ChevronUp, ChevronDown, Pin } from 'lucide-react';
+import { Lock, Calendar, CornerDownRight, BookOpen } from 'lucide-react';
 import PriorityBadge from './PriorityBadge.jsx';
 import { formatDueDate, isOverdue } from '../lib/format.js';
 import { sourceOf, statusOf, waitingAge } from '../lib/visuals.js';
 
-export default function TodoCard({ todo, onClick, draggable, onDragStart, onDragEnd, dragging, showStatus, onMoveUp, onMoveDown }) {
+export default function TodoCard({
+  todo,
+  onClick,
+  draggable,
+  onDragStart,
+  onDragEnd,
+  dragging,
+  showStatus,
+  goal,
+  steps = [],
+}) {
   const overdue = isOverdue(todo.due_date, todo.status);
   const src = sourceOf(todo.source);
   const st = statusOf(todo.status);
   const isDone = todo.status === 'done';
+  const doneSteps = steps.filter((s) => s.status === 'done').length;
 
   return (
     <div
@@ -31,36 +42,56 @@ export default function TodoCard({ todo, onClick, draggable, onDragStart, onDrag
           {todo.contact && <span className="normal-case text-ink">· {todo.contact}</span>}
         </span>
         <span className="flex items-center gap-1 shrink-0">
-          {/* Pinned means Amy placed this by hand; it holds its spot while everything
-              below it reorders itself by activity. */}
-          {todo.manual_rank != null && (
-            <Pin size={10} className="text-clay" aria-label="held in place" />
+          {todo.is_method && (
+            <BookOpen size={11} className="text-clay" aria-label="worth systematising" />
           )}
           {todo.is_private && <Lock size={11} className="text-ink-muted" />}
-          {(onMoveUp || onMoveDown) && (
-            <span className="flex items-center">
-              <button
-                onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
-                title="Move up — holds this card in place"
-                className="tap-scale inline-flex h-4 w-4 items-center justify-center rounded text-ink-muted hover:bg-black/10 hover:text-ink"
-              >
-                <ChevronUp size={12} />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
-                title="Move down — releases it back to activity order at the bottom"
-                className="tap-scale inline-flex h-4 w-4 items-center justify-center rounded text-ink-muted hover:bg-black/10 hover:text-ink"
-              >
-                <ChevronDown size={12} />
-              </button>
-            </span>
-          )}
         </span>
       </div>
+
+      {/* A step says which goal it belongs to. Without this a step reads as a standalone
+          commitment, and "Ask Google tech" on its own means nothing a week later. */}
+      {goal && (
+        <p className="mb-1 flex items-center gap-1 text-[10px] text-ink-muted truncate">
+          <CornerDownRight size={10} className="shrink-0" />
+          <span className="truncate">{goal.title}</span>
+        </p>
+      )}
 
       <h3 className={`text-sm font-medium leading-snug line-clamp-2 mb-2 ${isDone ? 'text-ink-muted line-through' : 'text-ink'}`}>
         {todo.title}
       </h3>
+
+      {/* A goal shows how far through its steps it is, so the board answers "how close is
+          this" without opening anything. */}
+      {steps.length > 0 && (
+        <div className="mb-2 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] text-ink-muted">
+              {doneSteps}/{steps.length} steps
+            </span>
+            <span className="h-1 flex-1 overflow-hidden rounded-full bg-black/[0.07]">
+              <span
+                className="block h-full rounded-full bg-ink/45"
+                style={{ width: `${(doneSteps / steps.length) * 100}%` }}
+              />
+            </span>
+          </div>
+          {steps.map((s) => (
+            <span key={s.id} className="flex items-center gap-1.5 text-[11px] leading-tight">
+              <span className={s.status === 'done' ? 'text-emerald-600' : 'text-ink-muted/60'}>
+                {s.status === 'done' ? '✓' : '○'}
+              </span>
+              <span className={`truncate ${s.status === 'done' ? 'text-ink-muted line-through' : 'text-ink'}`}>
+                {s.title}
+              </span>
+              <span className={`ml-auto shrink-0 font-mono text-[9px] ${statusOf(s.status).text}`}>
+                {statusOf(s.status).label}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Waiting items name who they're stuck on and how long — the chase prompt. */}
       {todo.status === 'waiting' && todo.waiting_on && (

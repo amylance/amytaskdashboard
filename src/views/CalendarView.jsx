@@ -6,18 +6,24 @@ import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import CalendarSearch from '../components/CalendarSearch.jsx';
 import BackButton from '../components/BackButton.jsx';
 import { buildCalendarIndex } from '../lib/calendarSearch.js';
+import { indexSteps } from '../lib/steps.js';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const KIND_MARK = { meeting: '🎙', milestone: '✦', action: '•' };
 
 function toKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-// Calendar = Amy's proof-of-work: what she DID (activity events, on their real dates)
-// plus task deadlines (what's coming). Bucketed by day.
+// Calendar = Amy's proof-of-work: what she DID, on the real dates she did it, plus the
+// deadlines that are coming. Bucketed by day, and permanent — the Kanban Done column
+// clears every Monday, this never does.
+//
+// A finished step shows on the day it finished, under the goal it belongs to. Clicking it
+// opens the goal with that step lit, so a day in the month answers "what is this?" with
+// the whole piece of work, not an orphaned fragment of it.
 export default function CalendarView({ todos, onOpen, config, removed = [], onRestore }) {
-  const { events, meetings } = useCalendarEvents(config);
+  const { meetings } = useCalendarEvents(config);
+  const { goalOf } = indexSteps(todos);
   const [openDay, setOpenDay] = useState(null);
   const [openMeeting, setOpenMeeting] = useState(null);
   const [highlight, setHighlight] = useState(null);
@@ -32,14 +38,11 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
   const byDate = useMemo(() => {
     const map = new Map();
     const bucket = (key) => {
-      if (!map.has(key)) map.set(key, { meetings: [], events: [], done: [], tasks: [], removed: [] });
+      if (!map.has(key)) map.set(key, { meetings: [], done: [], tasks: [], removed: [] });
       return map.get(key);
     };
     for (const m of meetings) {
       bucket(toPacificDateKey(m.occurred_at)).meetings.push(m);
-    }
-    for (const ev of events) {
-      if (ev.event_date) bucket(ev.event_date).events.push(ev);
     }
     for (const todo of todos) {
       if (todo.status === 'done' && todo.completed_at) {
@@ -68,7 +71,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
       cell.removed.sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
     }
     return map;
-  }, [events, meetings, todos, removed]);
+  }, [meetings, todos, removed]);
 
   const cells = useMemo(() => {
     const year = cursor.getFullYear();
@@ -87,8 +90,8 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
   const todayKey = toPacificDateKey(new Date());
 
   const searchIndex = useMemo(
-    () => buildCalendarIndex({ meetings, events, todos, removed }),
-    [meetings, events, todos, removed],
+    () => buildCalendarIndex({ meetings, events: [], todos, removed }),
+    [meetings, todos, removed],
   );
 
   // Jump: move the month into view, open that day, and light up the row. The ring on the
@@ -121,8 +124,6 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           <p className="text-[11px] text-ink-muted mt-0.5">
             <span className="mr-3">🎙 meeting</span>
             <span className="mr-3 rounded border-l-2 border-l-clay/60 bg-clay-soft/60 pl-1 pr-1.5">1:1</span>
-            <span className="mr-3">✦ milestone</span>
-            <span className="mr-3">• what I did</span>
             <span className="mr-3">✓ completed</span>
             <span className="mr-3">○ deadline</span>
             <span className="text-clay">all times PT</span>
@@ -154,22 +155,19 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
         {cells.map((date, idx) => {
           if (!date) return <div key={idx} className="bg-panel min-h-[68px] sm:min-h-[110px]" />;
           const key = toKey(date);
-          const cell = byDate.get(key) ?? { meetings: [], events: [], done: [], tasks: [], removed: [] };
+          const cell = byDate.get(key) ?? { meetings: [], done: [], tasks: [], removed: [] };
           const isToday = key === todayKey;
-          const total = cell.meetings.length + cell.events.length + cell.done.length + cell.tasks.length;
+          const total = cell.meetings.length + cell.done.length + cell.tasks.length;
           // A day holding only removed items still has to be openable.
           const openable = total + cell.removed.length > 0;
           // Meetings claim the top slots — they are the anchor of a day, and everything
           // else that day usually came out of one.
           const shownMeetings = cell.meetings.slice(0, 4);
           let left = 4 - shownMeetings.length;
-          const shownEvents = cell.events.slice(0, Math.max(0, left));
-          left -= shownEvents.length;
           const shownDone = cell.done.slice(0, Math.max(0, left));
           left -= shownDone.length;
           const shownTasks = cell.tasks.slice(0, Math.max(0, left));
-          const overflow =
-            total - shownMeetings.length - shownEvents.length - shownDone.length - shownTasks.length;
+          const overflow = total - shownMeetings.length - shownDone.length - shownTasks.length;
 
           return (
             <div
@@ -211,7 +209,6 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                   </span>
                 ))}
                 {cell.done.length > 0 && <span className="font-mono text-[10px] text-ink">✓{cell.done.length}</span>}
-                {cell.events.length > 0 && <span className="font-mono text-[10px] text-ink">•{cell.events.length}</span>}
                 {cell.tasks.length > 0 && (
                   <span className="font-mono text-[10px] text-ink-muted">○{cell.tasks.length}</span>
                 )}
@@ -242,45 +239,23 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                     )}
                   </button>
                 ))}
-                {shownEvents.map((ev) => {
-                  const inner = (
-                    <>
-                      <span className="shrink-0">{KIND_MARK[ev.kind] ?? '•'}</span>
-                      <span className="truncate">{ev.title}</span>
-                    </>
-                  );
-                  return ev.source_url ? (
-                    <a
-                      key={ev.id}
-                      href={ev.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={ev.detail || ev.title}
-                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-ink hover:bg-black/[0.05]"
+                {shownDone.map((todo) => {
+                  const goal = goalOf(todo);
+                  return (
+                    <button
+                      key={todo.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goal ? onOpen(goal.id, todo.id) : onOpen(todo.id);
+                      }}
+                      title={goal ? `Step of ${goal.title}` : 'Completed'}
+                      className="tap-scale flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-ink hover:bg-black/[0.05] text-left"
                     >
-                      {inner}
-                    </a>
-                  ) : (
-                    <span
-                      key={ev.id}
-                      title={ev.detail || ev.title}
-                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-ink"
-                    >
-                      {inner}
-                    </span>
+                      <span className="shrink-0">✓</span>
+                      <span className="truncate">{todo.title}</span>
+                    </button>
                   );
                 })}
-                {shownDone.map((todo) => (
-                  <button
-                    key={todo.id}
-                    onClick={() => onOpen(todo.id)}
-                    title="Completed"
-                    className="tap-scale flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-ink hover:bg-black/[0.05] text-left"
-                  >
-                    <span className="shrink-0">✓</span>
-                    <span className="truncate">{todo.title}</span>
-                  </button>
-                ))}
                 {shownTasks.map((todo) => (
                   <button
                     key={todo.id}
@@ -302,9 +277,10 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
       {openDay && (
         <DayPanel
           dayKey={openDay}
-          cell={byDate.get(openDay) ?? { meetings: [], events: [], done: [], tasks: [], removed: [] }}
+          cell={byDate.get(openDay) ?? { meetings: [], done: [], tasks: [], removed: [] }}
           onClose={() => setOpenDay(null)}
           onOpen={onOpen}
+          goalOf={goalOf}
           onOpenMeeting={setOpenMeeting}
           removed={byDate.get(openDay)?.removed ?? []}
           onRestore={onRestore}
@@ -386,7 +362,7 @@ function MeetingPanel({ meeting, onClose }) {
 // see what was actually discussed and closed.
 const LIT = 'ring-2 ring-clay bg-clay-soft/50';
 
-function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], onRestore, highlightId }) {
+function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, goalOf, removed = [], onRestore, highlightId }) {
   const label = new Date(`${dayKey}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -428,53 +404,47 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
             </Group>
           )}
 
-          {cell.events.length > 0 && (
-            <Group title="What happened">
-              {cell.events.map((ev) => (
-                <div
-                  key={ev.id}
-                  className={`rounded-lg border border-hairline bg-panel px-3 py-2 ${
-                    highlightId === ev.id ? LIT : ''
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm text-ink">
-                      {KIND_MARK[ev.kind] ?? '•'} {ev.title}
-                    </p>
-                    {ev.source_url && (
-                      <a
-                        href={ev.source_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 text-[11px] text-clay hover:underline"
-                      >
-                        open
-                      </a>
-                    )}
-                  </div>
-                  {ev.detail && <p className="text-[11px] text-ink-muted mt-1">{ev.detail}</p>}
-                </div>
-              ))}
-            </Group>
-          )}
-
           {cell.done.length > 0 && (
             <Group title={`Finished (${cell.done.length})`}>
-              {cell.done.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => onOpen(t.id)}
-                  className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
-                    highlightId === t.id ? LIT : ''
-                  }`}
-                >
-                  <p className="text-sm text-ink">✓ {t.title}</p>
-                  <p className="text-[11px] text-ink-muted mt-0.5">
-                    {t.received_at && <>asked {formatDateTimePT(t.received_at)} · </>}
-                    done {formatDateTimePT(t.completed_at)}
-                  </p>
-                </button>
-              ))}
+              {groupUnderGoals(cell.done, goalOf).map((row) =>
+                row.goal ? (
+                  <div key={row.goal.id} className="rounded-lg border border-hairline bg-panel px-3 py-2">
+                    <p className="text-[11px] font-semibold text-ink-muted">
+                      {row.goal.title} · {row.steps.length} step{row.steps.length === 1 ? '' : 's'}
+                    </p>
+                    <div className="mt-1 flex flex-col gap-0.5">
+                      {row.steps.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => onOpen(row.goal.id, t.id)}
+                          className={`tap-scale w-full rounded px-1 py-0.5 text-left hover:bg-black/[0.04] ${
+                            highlightId === t.id ? LIT : ''
+                          }`}
+                        >
+                          <p className="text-sm text-ink">✓ {t.title}</p>
+                          <p className="text-[11px] text-ink-muted">
+                            done {formatDateTimePT(t.completed_at)}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    key={row.todo.id}
+                    onClick={() => onOpen(row.todo.id)}
+                    className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
+                      highlightId === row.todo.id ? LIT : ''
+                    }`}
+                  >
+                    <p className="text-sm text-ink">✓ {row.todo.title}</p>
+                    <p className="text-[11px] text-ink-muted mt-0.5">
+                      {row.todo.received_at && <>asked {formatDateTimePT(row.todo.received_at)} · </>}
+                      done {formatDateTimePT(row.todo.completed_at)}
+                    </p>
+                  </button>
+                ),
+              )}
             </Group>
           )}
 
@@ -508,6 +478,28 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
       </div>
     </div>
   );
+}
+
+// One row per goal that had steps finish today, one row per standalone task. Order follows
+// the day's own order — whatever finished first leads.
+function groupUnderGoals(done, goalOf) {
+  const rows = [];
+  const seen = new Map();
+  for (const t of done) {
+    const goal = goalOf(t);
+    if (!goal) {
+      rows.push({ todo: t });
+      continue;
+    }
+    if (seen.has(goal.id)) {
+      seen.get(goal.id).steps.push(t);
+      continue;
+    }
+    const row = { goal, steps: [t] };
+    seen.set(goal.id, row);
+    rows.push(row);
+  }
+  return rows;
 }
 
 function Group({ title, children }) {

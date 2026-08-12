@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12b.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12c.
 ---
 
 # Sweep
@@ -121,6 +121,50 @@ A meeting Amy attended belongs in `public.meetings` with its discussion points i
   else keeps its real name.
 - `with_whom` is the other person's full name for a 1:1, or a short description for a group.
 
+## 4c-pre. Is it a step of something already on the board?
+
+Most of what lands is not a new commitment — it is the next move on work that already
+exists. Amy's ruling: *"All these related tasks only lead to one task."* Getting access to
+Gavin's inbox is one goal; asking Google support, chasing Gavin, confirming the delegation
+are steps of it. Six loose cards for one goal is the duplicate problem at a larger scale.
+
+**Before filing anything, check whether it belongs under a live task.**
+
+```sql
+select id, title, status from public.todos
+where deleted_at is null and status <> 'done' and parent_id is null;
+```
+
+If it does, set `parent_todo_id` on the Inbox item. Approving then lands it under that goal
+instead of dropping another card on the Kanban.
+
+- A step is still filed to the **Inbox first**. Attaching to a goal is not approval.
+- **One level only.** A step that needs its own steps means the goal was named too broadly
+  — file it as its own goal instead.
+- **Never invent the goal.** If no live task fits, file it flat. A goal is created when Amy
+  approves one, not because a sweep guessed a theme.
+- The goal closes itself when its last step closes. Never mark a goal done by hand while
+  steps under it are open — `todo_audit` now flags exactly that.
+
+## 4c-name. Naming — verb first, and grammatical
+
+- **Start with a verb, then the object.** "Get access to Gavin's inbox." "Ask Google tech."
+- **Active voice. 2–5 words is the target, not a cap** — grammar wins over brevity. Never
+  drop a possessive to save a word: *"Get Gavin inbox access"* is a noun pile and wrong;
+  *"Get access to Gavin's inbox"* is right.
+- **No detail in the title.** Names, dates, ticket numbers, the reason — all of that is the
+  story's job.
+- **A goal states what done means** in its story, so a step can never be ticked ambiguously.
+
+## 4c-dates. Due dates come from sources, never from judgement
+
+Set `due_date` **only when a source actually named a date** — a meeting, a Slack message, an
+email, or Amy's notebook. Quote it in the story when you do.
+
+If nobody named one, leave it null. An undated task is not an omission to correct, and a
+guessed deadline is a fact the dashboard did not earn. The Timeline shows dated work only,
+so an invented date puts phantom pressure on her week.
+
 ## 4c. Write the story — this is the record
 
 Every filed item carries a `story`: the whole history in markdown, succinct. The card
@@ -153,6 +197,12 @@ Rules for the story:
   restating the title, no "as discussed".
 - **Related** lists notebook entries that belong to this task, by title and date.
 - A trivial task needs no story at all. Do not manufacture history.
+- **Depth follows `is_method`.** Amy's ruling: only the work that will become a repeatable
+  system earns a full history — the weekly hotel write-up, processing Gavin's inbox. Set
+  `is_method = true` on those and keep every pivot, every changed instruction, every
+  verbatim that moved the work. Everything else — "talk to the tech", "request this",
+  "upload your picture" — gets one or two bullets and nothing more. A paper trail on
+  routine work is noise she has to read past to reach the history that matters.
 
 `claude_note` stays a one-line verdict for the card ("already done", "looks
 mis-attributed"). If the note would run past a line, it belongs in the story instead.
@@ -290,7 +340,8 @@ POST to `/api/hq/inbox` with `action: "create"` (dedupes on source + source_raw)
       "story": "**From** · …\n**Asked** · …\n\n**What happened**\n• …",
       "suggested_status": "todo|done",
       "received_at": "2026-08-06T23:23:33Z",
-      "proposed_completed_at": "2026-08-06T23:41:02Z"
+      "proposed_completed_at": "2026-08-06T23:41:02Z",
+      "parent_todo_id": "<goal this is a step of, or omit>"
     }
   ]
 }
