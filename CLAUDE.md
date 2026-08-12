@@ -60,6 +60,11 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    A Done click stamps immediately so work is never invisible; sweeps propose day-level
    corrections as `kind='correction'` Inbox cards — evidence quoted, Amy arbitrates.
    Never flag mere absence of evidence, and never rewrite her record directly.
+   **The ask is not the finish.** `received_at` is when the work was handed over;
+   collapsing it into `completed_at` produced eleven wrong records in week one, including
+   Isaac's unanswered question marked done at the moment she asked it. `public.todo_audit`
+   catches that class and seven others — the sweep must return it empty or explain every
+   row. An unevidenced finish keeps `completed_source` null instead of claiming a source.
 4c. **Short front, deep behind.** Task titles are plain and short; the whole history
    lives in `todos.story` (markdown, bullets, written by the sweep) and shows when she
    opens the task. Quote verbatim only where someone's words *changed* the task. `⚠`

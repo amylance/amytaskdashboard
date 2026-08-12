@@ -537,3 +537,43 @@ UTC so no zone can touch it.
 
 The lesson generalizes: a timezone helper that is correct on the way in can still be
 wrong on the way out. Convert once, then stay in plain-date arithmetic.
+
+## Aug 11, 2026 — The ask is not the finish, and a view that says so
+
+Amy: *"I dont want to keep checking your work every sweep, review all the mistakes and fix
+everything."* A full audit of all 56 tasks against Slack, Gmail, Fireflies and Calendar
+found eleven wrong records. Every one of them was the same mistake wearing a different
+face: **`completed_at` copied from `received_at`.**
+
+The worst cases were not off by minutes. *Fireflies access to calls I'm not on* was marked
+done at the exact instant Amy asked the question, which Isaac has still never answered.
+*Change the Lance Live password* was marked done while the password is still `testing`.
+*Gmail delegate access* was marked done Aug 7, four days before delegation actually worked.
+A record that closes a question by recording that it was asked is worse than no record.
+
+Two other classes showed up: `received_at` on *Enable 2FA on Slack* was fifteen hours out,
+the Manila-labelled-CST error again; and signup tasks had their invite and their welcome
+collapsed into one instant.
+
+**The fix that matters is not the eleven rows.** It is `public.todo_audit`, a view holding
+every error class found: finish before arrival, finish stamped at the moment of the ask
+(only for `fireflies`/`slack` sources, where a person did the asking), done with no finish
+time, a finish with no `completed_source`, blocked with no `waiting_since`, doing with no
+`started_at`, no contact, no story. The sweep runs it every pass and must return it empty
+or explain each row.
+
+Rejected: flagging same-instant stamps on `app` and `email` tasks. A signup confirmation
+really does land in the same minute, and a task Amy set herself has no separate arrival.
+Flagging seventeen correct rows to catch two wrong ones trains the eye to skip the view,
+which is the failure her own rule already names — *flags she learns to ignore are worse
+than none.*
+
+**Unevidenced finishes now carry a null `completed_source`** rather than a fabricated
+'evidence'. *Fill out my Lance internal profile* is the one surviving row: nothing in any
+tool records when she did it. It stays visible as a question for her instead of passing as
+fact. An honest gap beats false precision.
+
+One correction went to the Inbox rather than being applied: the weekly check-in write-up
+was delivered Aug 10 5:37 PM PT but click-stamped Aug 11. That is a day-level disagreement
+on her own click, and rule 4b says she arbitrates those. Everything else was applied
+directly, because she asked for it directly.

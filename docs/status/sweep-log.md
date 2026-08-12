@@ -68,3 +68,27 @@ waits for Amy's review.
 - Who administers the Google Workspace admin console (blocks Gmail delegation)
 - Whether an EA needs Fireflies access to calls she is not on
 - Isaac's end-of-week onboarding form has not been sent yet
+
+## Aug 11, 2026 — full-record audit (not a sweep)
+
+Triggered by Amy after two approval-path bugs surfaced in one evening. Audited all 56
+tasks against the primary sources rather than against the board.
+
+Corrected: Fireflies-access-to-other-calls (done → waiting, still unanswered), Lance Live
+password (done → todo, still `testing`), Gmail delegation (Aug 7 → Aug 11 7:05 PM UTC),
+the promised 24h retest (todo → done), Workspace admin (ask → answer), Fireflies setup
+(Aug 5 ask → Aug 6 session), Slack 2FA received_at (15h timezone error), both 2FA finishes
+(→ the single confirming message), Slack signup, Monday sync (Slack message → meeting end),
+Rippling auto-payment (waiting → todo, blocked on her not Isaac), flight booking and Hilton
+access (→ Gavin's own confirmations), five signup tasks (invite and welcome separated),
+morning-briefing skill (Isaac's spec → her "it's live now"), the Aug 5 inbox commitment
+(waiting → doing), and eight missing contacts.
+
+Filed to Inbox: one `correction` for the weekly check-in write-up, Aug 11 click vs Aug 10
+delivery. Her call.
+
+Left open: *Fill out my Lance internal profile* — no tool records when she completed it.
+`completed_source` is null and the story says so.
+
+Also noted for her: the notebook entry on the check-in write-up cites "~8:28-8:41 AM PT"
+for messages that are actually Aug 10 5:28–5:41 PM PT. Her words, so untouched.

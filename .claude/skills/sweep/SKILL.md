@@ -80,6 +80,11 @@ For every candidate, check it against the record before filing:
   and say so in the note, with the quote as evidence.
 - **Is the wording right?** Fireflies is often garbled. Put a clean version in `title`
   and keep the original verbatim in `source_raw`.
+- **The ask is not the finish.** A task's `received_at` is when someone handed it over;
+  `completed_at` is when the work ended. Collapsing them is the single most common error in
+  this record — it once marked Isaac's unanswered Fireflies question "done" at the moment
+  Amy asked it, and marked Gmail delegation done four days before it worked. Only a title
+  that *is* the act ("Ask Gavin…", "Send Gavin…") legitimately finishes on arrival.
 - **Is the timestamp the real instant?** Slack's API renders times in Amy's *local*
   timezone while labelling them `CST`. Taking that at face value pushes work forward a
   day — an "Aug 9" Slack message is usually Aug 8 Pacific. Always convert from the epoch
@@ -191,7 +196,27 @@ it above things genuinely finished later, and puts it on the wrong day of her Ca
 Name the evidence in the story. "Delivered 3:38 PM PT" is a finish; "he asked at 10:17 AM"
 is not.
 
-## 4g. Also propose disclosures (memory)
+## 4g. Run the audit before you finish — every time
+
+```sql
+select * from public.todo_audit order by issue, title;
+```
+
+`todo_audit` is a view over `todos` holding every class of error found in the Aug 11
+full audit: a finish time before the arrival time, a finish stamped at the exact instant
+someone asked, a done task with no finish time or no `completed_source`, a blocked task
+with no `waiting_since`, a task with no contact, a task with no story.
+
+**A clean run returns nothing.** Resolve every row, or say in the report why a row is
+correct as it stands. Never leave rows in it silently — the whole point is that Amy is not
+the one who notices. She said so plainly: *"I dont want to keep checking your work every
+sweep."*
+
+If a row is genuinely unknowable — the evidence does not exist in any tool — leave
+`completed_source` null, say so in the story, and name it in the report as a one-line
+question for her. An honest gap is fine. False precision is not.
+
+## 4h. Also propose disclosures (memory)
 
 Alongside commitments, capture **what Amy gave the Lance network** — her stated purpose
 for the Profile tab: *"what I've poured in, what I've given Claude, the tools, my emails."*
