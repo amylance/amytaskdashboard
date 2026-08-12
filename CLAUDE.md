@@ -192,6 +192,14 @@ For each entry: discuss or act per rule 1, then mark it
 If an entry states a durable preference, fold it into this file — that is how this
 document evolves instead of rotting.
 
+**Outbound comms need her explicit go.** Slack messages and emails are never sent until she
+has seen the final version and said yes — even when she wrote the text herself. Her words:
+*"do not send right away, ask permission first."* This **reverses** the earlier rule to send
+approved messages directly; she broadened it to all tools, then scoped it back: *"no just
+email, slack, for now."* Everything else — notebook writes, files, read-only fetches — needs
+no pre-approval. Triggered by a Slack DM to Gavin that went out because the draft sounded
+finished.
+
 **Her notebook rules govern your recommendations, not just your filing.** A `preference`
 or `method` entry is a standing rule: check every nudge, flag and suggestion against them
 before offering it. Two that have already been broken once — never recommend a reminder
