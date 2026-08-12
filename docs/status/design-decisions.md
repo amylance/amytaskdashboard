@@ -498,3 +498,42 @@ writes a position, since position is either pinned or derived.
 Rejected: pure activity ordering (took away "this one first") and pure manual ordering (a
 list she has to maintain by hand). The ordering rule is stated in one line above the board
 rather than repeated per column — one rule, four applications.
+
+## Aug 11, 2026 — Ordering ranks work events, not row writes
+
+The Aug 11 ordering rule above counted "edited" as activity, which in practice meant
+`updated_at` and `created_at` joined the ranking. That was wrong in a way that only showed
+once Amy approved a backlog of Inbox cards: approving a card writes a brand new `todos`
+row, so a task finished Aug 10 was stamped created *now* and jumped above work finished
+Aug 11. The Done column asserted a chronology of when she clicked, not of when she worked.
+
+**Done ranks on `completed_at` alone.** Amy's words were "based on evidence when it was
+done", and a finished task has exactly one honest answer. Ranking Done on a max across
+several stamps would let a later-arriving `received_at` outrank the finish time on any
+item the sweep backfills, which is the same bug wearing a different hat.
+
+**Every other column ranks on real events** — completed, started, blocked, received —
+and falls back to `updated_at`/`created_at` only when a task has no event at all. Those
+two columns are database bookkeeping; they move when a sweep rewrites a story or when a
+title is corrected, neither of which is a thing that happened to the work.
+
+The note above the board no longer claims edits count toward ordering.
+
+Rejected: keeping `updated_at` in the ranking so hand-edited cards surface. It conflates
+touching a record with doing the work, and the board is a record of work.
+
+## Aug 11, 2026 — Kanban Done shows the week, and says so
+
+The week-to-date filter Amy asked for was implemented, but every string the reader sees
+still described the old today-only rule — including the note left deliberately for Gavin
+and Isaac. The board was telling its audience one rule while following another.
+
+Separately, the Monday boundary was wrong from Manila. The code resolved today's Pacific
+date correctly, then walked it back to Monday through a browser-local `Date` and re-keyed
+it, applying the local offset a second time. At UTC+15 local noon lands on the previous
+Pacific day, so Amy's week started Sunday while a US viewer's started Monday. The
+boundary is a plain date, and per rule 4 plain dates never shift — it now walks back in
+UTC so no zone can touch it.
+
+The lesson generalizes: a timezone helper that is correct on the way in can still be
+wrong on the way out. Convert once, then stay in plain-date arithmetic.
