@@ -27,7 +27,8 @@ post-auth. Purpose: efficiency, visibility, and transparency between her, Gavin,
 Isaac — "not to make too much noise."
 
 Views, in her chosen order: **Inbox** (review queue — nothing becomes a task without
-her), Kanban ("Pending" not "Waiting"; Done column shows today only), List, Timeline
+her), Kanban ("Pending" not "Waiting"; Done column shows this week, Monday onward
+Pacific, and empties itself each Monday), List, Timeline
 (due dates, forward-looking), Calendar (proof-of-work: what she did, meetings with
 discussion checklists, deadlines), People, Profile (passphrase-gated, hers to write).
 

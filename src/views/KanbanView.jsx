@@ -28,13 +28,15 @@ export default function KanbanView({
       day: "2-digit",
     }).format(d);
 
-  // Most recent Monday in Pacific. getDay() on the PT-keyed date avoids the browser's
-  // own timezone deciding which day it is.
+  // Most recent Monday in Pacific. Once ptKey has told us today's Pacific date, that date
+  // is a plain date and must stay one — walking it back through a local Date and re-keying
+  // it re-applies the browser's offset, which put Amy's week start on Sunday from Manila.
+  // Everything below runs in UTC on the calendar date itself so no zone can shift it.
   const weekStartKey = (() => {
-    const today = new Date(`${ptKey(new Date())}T12:00:00`);
-    const back = (today.getDay() + 6) % 7; // Sunday counts as 6 days into the week
-    today.setDate(today.getDate() - back);
-    return ptKey(today);
+    const day = new Date(`${ptKey(new Date())}T00:00:00Z`);
+    const back = (day.getUTCDay() + 6) % 7; // Sunday counts as 6 days into the week
+    day.setUTCDate(day.getUTCDate() - back);
+    return day.toISOString().slice(0, 10);
   })();
 
   const columns = STATUSES.map((s) => ({
@@ -144,13 +146,13 @@ export default function KanbanView({
               {col.items.length === 0 && (
                 <div className="text-xs text-ink-muted/70 text-center py-6 border border-dashed border-hairline rounded-xl">
                   {col.id === "done"
-                    ? "Nothing finished today"
+                    ? "Nothing finished yet this week"
                     : "Nothing here"}
                 </div>
               )}
               {col.id === "done" && col.items.length > 0 && (
                 <p className="text-[10px] text-ink-muted/70 text-center pt-1">
-                  Today only — earlier work is in the Calendar
+                  This week only, from Monday — earlier work is in the Calendar
                 </p>
               )}
             </div>
