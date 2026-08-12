@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12h.
+description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12i.
 ---
 
 # Sweep
@@ -212,8 +212,10 @@ instead of dropping another card on the Kanban.
   — file it as its own goal instead.
 - **Never invent the goal.** If no live task fits, file it flat. A goal is created when Amy
   approves one, not because a sweep guessed a theme.
-- The goal closes itself when its last step closes. Never mark a goal done by hand while
-  steps under it are open — `todo_audit` now flags exactly that.
+- **A goal never closes itself.** Ticking the last step only unlocks a confirmation; Amy's
+  click finishes it. A sweep must never set a goal to done — tick the steps the evidence
+  supports and leave the goal for her. Only the reopen direction is automatic, so a goal
+  can never sit in Done above live work.
 
 ## 4c-name. Naming — verb first, and grammatical
 

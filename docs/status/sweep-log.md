@@ -105,6 +105,24 @@ transcript-to-summary automation, and LiveSupervise. Gmail after the watermark h
 Fireflies daily digest. The Gavin, Isaac and Gatik DMs were all read to the bottom of the
 window; nothing after Aug 11 22:51 UTC.
 
+### The correction below was itself wrong — resolved 2026-08-12 evening
+
+The message existed. *"let's do this"* was sent by Amy at **4:52 PM PT on Aug 11**, as a
+**threaded reply** to Gavin's API-key offer. The original sweep quoted it correctly and
+timestamped it correctly to the minute.
+
+It was called a fabrication because every Slack read that day used `response_format:
+'concise'`, which omits the `Thread: N replies` marker entirely — so threaded replies were
+not merely unread, they were invisible, and nothing signalled they existed. A search for the
+phrase then returned nothing, and that silence was treated as proof.
+
+Two failures compounding: reading half the source, then treating a search's silence as
+evidence of absence. The accusation was recorded in a commit message and in the card's own
+story before anyone checked the thread.
+
+The original record stands. The card has been restored and the roster-plus-threads sweep
+now exists so this class of blindness cannot recur silently.
+
 ### Correction to this entry, same day
 
 The section below was itself wrong in its conclusion, and Amy caught it. Both halves are
