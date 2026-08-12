@@ -209,7 +209,7 @@ export default function KanbanView({
               )}
               {col.id === "done" && col.items.length > 0 && (
                 <p className="text-[10px] text-ink-muted/70 text-center pt-1">
-                  This week only, from Monday — earlier work is in the Calendar
+                  Clears every Monday. Older work is in the Calendar.
                 </p>
               )}
             </div>
