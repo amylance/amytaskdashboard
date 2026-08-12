@@ -4,6 +4,8 @@ import { STATUSES } from "../lib/constants.js";
 import { statusOf } from "../lib/visuals.js";
 import TodoCard from "../components/TodoCard.jsx";
 import { orderColumn, reorderWithin } from "../lib/columnOrder.js";
+import { pacificDayLabel } from "../lib/format.js";
+import { ChevronRight } from "lucide-react";
 
 export default function KanbanView({
   todos,
@@ -15,6 +17,8 @@ export default function KanbanView({
 }) {
   const [draggingId, setDraggingId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
+  // null means "not touched yet" — the newest day opens by itself and the rest stay shut.
+  const [expandedDays, setExpandedDays] = useState(null);
 
   // Done shows THIS WEEK's completions — Monday to now, Pacific. A week is long enough
   // that Amy (and Gavin, who can see this board) can look back over the last few days,
@@ -51,6 +55,40 @@ export default function KanbanView({
       .slice(),
   })).map((col) => ({ ...col, items: orderColumn(col.items) }));
 
+  // Done keeps a full week, so by Friday it is a wall of cards. Grouping by the day the
+  // work finished turns it into a week at a glance: four on Monday, six on Tuesday. The
+  // newest day is open, older days are one tap away and shut by default.
+  //
+  // Deliberately not a drill-in with a back button. A day is a fold, not a place — nothing
+  // to navigate away from means nothing to navigate back from, and the same gesture works
+  // on a phone and a desktop without a second screen to build.
+  //
+  // Grouped by finish date, not ask date. This column answers "what got done, and when",
+  // and grouping by the ask would scatter one day's output across the whole week.
+  function groupByDay(items) {
+    const out = [];
+    for (const t of items) {
+      const label = pacificDayLabel(t.completed_at);
+      const last = out[out.length - 1];
+      if (last && last.label === label) last.items.push(t);
+      else out.push({ label, items: [t] });
+    }
+    return out;
+  }
+
+  function dayIsOpen(groups, label, idx) {
+    return expandedDays ? expandedDays.has(label) : idx === 0;
+  }
+
+  function toggleDay(groups, label) {
+    setExpandedDays((prev) => {
+      const next = new Set(prev ?? (groups.length ? [groups[0].label] : []));
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  }
+
   function move(colItems, id, direction) {
     const updates = reorderWithin(colItems, id, direction);
     if (updates) onMove(updates);
@@ -73,7 +111,7 @@ export default function KanbanView({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {columns.map((col) => (
           <div
             key={col.id}
@@ -107,37 +145,61 @@ export default function KanbanView({
             </div>
 
             <div className="flex flex-col gap-2">
-              {col.items.map((todo, idx) => (
-                <div
-                  key={todo.id}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setOverColumn(col.id);
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleDrop(col.id, idx);
-                  }}
-                >
-                  <TodoCard
-                    todo={todo}
-                    onClick={() => onOpen(todo.id)}
-                    draggable
-                    dragging={draggingId === todo.id}
-                    onDragStart={() => setDraggingId(todo.id)}
-                    onDragEnd={() => {
-                      setDraggingId(null);
-                      setOverColumn(null);
-                    }}
-                    onMoveUp={idx > 0 ? () => move(col.items, todo.id, 'up') : undefined}
-                    onMoveDown={
-                      idx < col.items.length - 1 ? () => move(col.items, todo.id, 'down') : undefined
-                    }
-                  />
-                </div>
-              ))}
+              {col.id === "done"
+                ? groupByDay(col.items).map((group, gi, groups) => {
+                    const open = dayIsOpen(groups, group.label, gi);
+                    return (
+                      <div key={group.label} className="flex flex-col gap-2">
+                        <button
+                          onClick={() => toggleDay(groups, group.label)}
+                          aria-expanded={open}
+                          className="tap-scale flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-semibold text-ink-muted hover:bg-black/[0.04]"
+                        >
+                          <ChevronRight
+                            size={12}
+                            className={`shrink-0 transition-transform ${open ? "rotate-90" : ""}`}
+                          />
+                          {group.label}
+                          <span className="ml-auto font-mono text-[10px]">{group.items.length}</span>
+                        </button>
+                        {open &&
+                          group.items.map((todo) => (
+                            <TodoCard key={todo.id} todo={todo} onClick={() => onOpen(todo.id)} />
+                          ))}
+                      </div>
+                    );
+                  })
+                : col.items.map((todo, idx) => (
+                    <div
+                      key={todo.id}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOverColumn(col.id);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDrop(col.id, idx);
+                      }}
+                    >
+                      <TodoCard
+                        todo={todo}
+                        onClick={() => onOpen(todo.id)}
+                        draggable
+                        dragging={draggingId === todo.id}
+                        onDragStart={() => setDraggingId(todo.id)}
+                        onDragEnd={() => {
+                          setDraggingId(null);
+                          setOverColumn(null);
+                        }}
+                        onMoveUp={idx > 0 ? () => move(col.items, todo.id, 'up') : undefined}
+                        onMoveDown={
+                          idx < col.items.length - 1 ? () => move(col.items, todo.id, 'down') : undefined
+                        }
+                      />
+                    </div>
+                  ))}
               {col.items.length === 0 && (
                 <div className="text-xs text-ink-muted/70 text-center py-6 border border-dashed border-hairline rounded-xl">
                   {col.id === "done"

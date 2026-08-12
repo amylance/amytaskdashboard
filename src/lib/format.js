@@ -130,3 +130,15 @@ export function activitySpan(t) {
   }
   return { from, to: null, open: true };
 }
+
+// "Mon Aug 10" in Pacific. Used to group the Kanban Done column by the day work finished.
+const PT_DAY_LABEL = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+});
+
+export function pacificDayLabel(value) {
+  return value ? PT_DAY_LABEL.format(new Date(value)) : 'No date';
+}

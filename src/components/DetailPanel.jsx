@@ -12,6 +12,7 @@ const SOURCE_LABEL = {
 };
 import { formatDateTime, shortId, pacificInputValue, pacificToISO } from '../lib/format.js';
 import Story from './Story.jsx';
+import BackButton from './BackButton.jsx';
 import { useTodoDetail } from '../hooks/useTodoDetail.js';
 
 const ACTIVITY_LABEL = {
@@ -107,13 +108,7 @@ export default function DetailPanel({
                 <Trash2 size={15} />
               </button>
             )}
-            <button
-              onClick={onClose}
-              title="Close"
-              className="tap-scale inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-muted hover:bg-black/10"
-            >
-              <X size={16} />
-            </button>
+            <BackButton onClose={onClose} />
           </div>
         </div>
 

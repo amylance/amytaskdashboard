@@ -4,6 +4,7 @@ import { useCalendarEvents } from '../hooks/useCalendarEvents.js';
 import { toPacificDateKey, formatDateTimePT } from '../lib/format.js';
 import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import CalendarSearch from '../components/CalendarSearch.jsx';
+import BackButton from '../components/BackButton.jsx';
 import { buildCalendarIndex } from '../lib/calendarSearch.js';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -398,15 +399,7 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, removed = [], 
       <div className="glass-panel relative slide-in-panel w-full max-w-md h-full border-l flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-hairline shrink-0">
           <h2 className="text-sm font-semibold text-ink">{label}</h2>
-          <button
-            onClick={onClose}
-            aria-label="Back to the calendar"
-            className="tap-scale inline-flex items-center justify-center gap-1 h-8 px-2 rounded-full text-ink-muted hover:bg-black/10"
-          >
-            <ChevronLeft size={16} className="sm:hidden" />
-            <span className="sm:hidden text-xs">Back</span>
-            <X size={16} className="hidden sm:block" />
-          </button>
+          <BackButton onClose={onClose} />
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
