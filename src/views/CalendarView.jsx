@@ -54,6 +54,18 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
       const key = todo.completed_at ? toPacificDateKey(todo.completed_at) : todo.due_date;
       if (key) bucket(key).removed.push(todo);
     }
+    // Newest first inside a day, so the last thing that happened reads first — except her
+    // 1:1s, which hold the top of their day. They are where the work comes from, so she
+    // wants them findable at a glance rather than buried under whatever finished latest.
+    const desc = (field) => (a, b) => new Date(b[field]) - new Date(a[field]);
+    for (const cell of map.values()) {
+      cell.meetings.sort((a, b) => {
+        if (a.is_one_on_one !== b.is_one_on_one) return a.is_one_on_one ? -1 : 1;
+        return new Date(b.occurred_at) - new Date(a.occurred_at);
+      });
+      cell.done.sort(desc('completed_at'));
+      cell.removed.sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+    }
     return map;
   }, [events, meetings, todos, removed]);
 

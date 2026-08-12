@@ -95,6 +95,11 @@ export default async function handler(req, res) {
       if (updates.status === 'doing' && !current.started_at) {
         updates.started_at = now;
       }
+      // Pending needs its own stamp or the card cannot say how long it has been blocked,
+      // and todo_audit flags it. The Inbox approve path already did this; a drag did not.
+      if (updates.status === 'waiting' && !current.waiting_since) {
+        updates.waiting_since = now;
+      }
       if (updates.status === 'done') {
         // The click is provisional testimony, not verified fact — a sweep may later
         // propose a correction from tool evidence, and Amy arbitrates in the Inbox.

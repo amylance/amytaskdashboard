@@ -64,6 +64,11 @@ async function handleInbox(req, res, db) {
       const inserted = [];
       for (const it of items) {
         if (!it?.title || !it?.received_at) continue;
+        // Exact source_raw catches a re-sweep of the same window. It does NOT catch the
+        // same commitment described in different words by two different runs, which is how
+        // "Sync with Gavin on Monday" and "Monday sync with Gavin" both reached the board.
+        // So also refuse anything whose title already exists as a live task or a card she
+        // has not decided on yet.
         const { data: dupe } = await db
           .from('inbox_items')
           .select('id')
@@ -71,6 +76,22 @@ async function handleInbox(req, res, db) {
           .eq('source_raw', it.source_raw ?? '')
           .maybeSingle();
         if (dupe) continue;
+
+        const { data: sameTitle } = await db
+          .from('inbox_items')
+          .select('id')
+          .eq('state', 'pending')
+          .ilike('title', it.title)
+          .maybeSingle();
+        if (sameTitle) continue;
+
+        const { data: alreadyATask } = await db
+          .from('todos')
+          .select('id')
+          .is('deleted_at', null)
+          .ilike('title', it.title)
+          .maybeSingle();
+        if (alreadyATask) continue;
         const { data: row } = await db
           .from('inbox_items')
           .insert({

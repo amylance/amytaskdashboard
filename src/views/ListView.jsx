@@ -2,7 +2,8 @@ import RecoverStrip, { removedAt } from '../components/RecoverStrip.jsx';
 import { useMemo, useState } from 'react';
 import { ArrowUp, ArrowDown, Lock } from 'lucide-react';
 import PriorityBadge from '../components/PriorityBadge.jsx';
-import { formatDueDate, isOverdue } from '../lib/format.js';
+import { activitySpan, formatDueDate, isOverdue } from '../lib/format.js';
+import { lastActivity } from '../lib/columnOrder.js';
 import { sourceOf, statusOf, waitingAge } from '../lib/visuals.js';
 import { CATEGORIES } from '../lib/constants.js';
 
@@ -11,6 +12,7 @@ const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
 const COLUMNS = [
   { key: 'source', label: 'From' },
   { key: 'title', label: 'Task' },
+  { key: 'when', label: 'Asked → Done' },
   { key: 'category', label: 'Category' },
   { key: 'status', label: 'Status' },
   { key: 'priority', label: 'Priority' },
@@ -20,8 +22,10 @@ const COLUMNS = [
 // The full record of every task, with filters. This doubles as Gavin's and Isaac's view:
 // they click their own name and see what they asked for and where it stands.
 export default function ListView({ todos, onOpen, removed = [], onRestore }) {
-  const [sortKey, setSortKey] = useState('due_date');
-  const [dir, setDir] = useState('asc');
+  // Newest work first. Due dates are mostly null on this board, so sorting by them left the
+  // List in effectively insertion order and buried what just moved.
+  const [sortKey, setSortKey] = useState('when');
+  const [dir, setDir] = useState('desc');
   const [person, setPerson] = useState('all');
   const [category, setCategory] = useState('all');
 
@@ -47,6 +51,10 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
       if (sortKey === 'priority') {
         av = PRIORITY_ORDER[a.priority];
         bv = PRIORITY_ORDER[b.priority];
+      }
+      if (sortKey === 'when') {
+        av = lastActivity(a);
+        bv = lastActivity(b);
       }
       if (av == null && bv == null) return 0;
       if (av == null) return 1;
@@ -148,6 +156,19 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
                       </span>
                     )}
                   </td>
+                  <td className="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-ink-muted">
+                    {(() => {
+                      const span = activitySpan(todo);
+                      if (!span) return '—';
+                      return (
+                        <>
+                          {span.from}
+                          {span.to && <span className="text-ink"> → {span.to}</span>}
+                          {span.open && <span className="text-ink-muted/60"> → open</span>}
+                        </>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap text-[11px] text-ink-muted">{todo.category ?? '—'}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1 text-[12px] ${statusOf(todo.status).text}`}>
@@ -171,7 +192,7 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
             })}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-sm text-ink-muted">
+                <td colSpan={7} className="px-4 py-10 text-center text-sm text-ink-muted">
                   Nothing matches that filter.
                 </td>
               </tr>

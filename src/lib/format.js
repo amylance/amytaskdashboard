@@ -108,3 +108,25 @@ export function pacificToISO(wall) {
   }
   return guess.toISOString();
 }
+
+// The span a task actually occupied: when someone asked, through when it finished. Both
+// ends come from evidence — received_at is the handover, completed_at is the finish — so
+// the List reads as a record of work rather than a list of rows. An open task has no end
+// yet and says so instead of borrowing today's date.
+const SPAN_DAY = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  month: 'short',
+  day: 'numeric',
+});
+
+export function activitySpan(t) {
+  const startedFrom = t.received_at ?? t.created_at;
+  if (!startedFrom) return null;
+  const from = SPAN_DAY.format(new Date(startedFrom));
+  if (t.status === 'done') {
+    if (!t.completed_at) return { from, to: null, open: true };
+    const to = SPAN_DAY.format(new Date(t.completed_at));
+    return { from, to: to === from ? null : to, open: false };
+  }
+  return { from, to: null, open: true };
+}

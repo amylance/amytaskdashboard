@@ -73,12 +73,6 @@ export default function KanbanView({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
-      <p className="mb-3 text-[11px] text-ink-muted">
-        Ordered by most recent activity, newest first — finished, started or blocked,
-        whichever happened last, by when the work happened rather than when it was filed.
-        Use the arrows to hold a card in place; pinned cards stay on top and everything else
-        keeps flowing beneath them.
-      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {columns.map((col) => (
           <div
