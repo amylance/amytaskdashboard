@@ -12,6 +12,9 @@ export default function KanbanView({
   todos,
   onOpen,
   onReorder,
+  onStepStatus,
+  onConfirmDone,
+  readOnly = false,
   removed = [],
   onRestore,
 }) {
@@ -55,16 +58,11 @@ export default function KanbanView({
       })
       .slice(),
   }))
-    // A step does not get its own card in a column its goal is already sitting in. The goal
-    // card lists every step with its status, so showing the step beside it printed the same
-    // work twice — Pending held "Process Gavin's inbox" plus both of the steps it was
-    // already listing. Drag a step into Doing and it appears there as its own card, while
-    // the goal stays in Pending showing that step as Doing. Nothing is hidden; it is only
-    // ever drawn once.
-    .map((col) => {
-      const goalsHere = new Set(col.items.filter((t) => stepsOf(t.id).length > 0).map((t) => t.id));
-      return { ...col, items: col.items.filter((t) => !(t.parent_id && goalsHere.has(t.parent_id))) };
-    })
+    // A step is never a card. It is ticked and re-statused inside the goal that owns it,
+    // in every column including Done. Amy saw one goal drawn three times in a single
+    // column before this rule existed, and her ruling has been consistent since the first
+    // correction card: an item is one item, spread across the views, not repeated in them.
+    .map((col) => ({ ...col, items: col.items.filter((t) => !t.parent_id) }))
     .map((col) => ({ ...col, items: orderColumn(col.items) }));
 
   // Done keeps a full week, so by Friday it is a wall of cards. Grouping by the day the
@@ -176,6 +174,9 @@ export default function KanbanView({
                               todo={todo}
                               goal={goalOf(todo)}
                               steps={stepsOf(todo.id)}
+                              onStepStatus={onStepStatus}
+                              onConfirmDone={onConfirmDone}
+                              readOnly={readOnly}
                               onClick={() => onOpen(todo.id)}
                             />
                           ))}
@@ -200,6 +201,9 @@ export default function KanbanView({
                         todo={todo}
                         goal={goalOf(todo)}
                         steps={stepsOf(todo.id)}
+                        onStepStatus={onStepStatus}
+                        onConfirmDone={onConfirmDone}
+                        readOnly={readOnly}
                         onClick={() => onOpen(todo.id)}
                         draggable
                         dragging={draggingId === todo.id}

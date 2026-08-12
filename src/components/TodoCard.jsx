@@ -1,7 +1,8 @@
-import { Lock, Calendar, CornerDownRight, BookOpen } from 'lucide-react';
+import { Lock, Calendar, CornerDownRight, BookOpen, Check } from 'lucide-react';
 import PriorityBadge from './PriorityBadge.jsx';
-import { formatDueDate, isOverdue } from '../lib/format.js';
+import { formatDueDate, isOverdue, pacificDayShort } from '../lib/format.js';
 import { sourceOf, statusOf, waitingAge } from '../lib/visuals.js';
+import { STEP_STATUSES } from '../lib/constants.js';
 
 export default function TodoCard({
   todo,
@@ -13,6 +14,9 @@ export default function TodoCard({
   showStatus,
   goal,
   steps = [],
+  onStepStatus,
+  onConfirmDone,
+  readOnly = false,
 }) {
   const overdue = isOverdue(todo.due_date, todo.status);
   const src = sourceOf(todo.source);
@@ -62,10 +66,11 @@ export default function TodoCard({
         {todo.title}
       </h3>
 
-      {/* A goal shows how far through its steps it is, so the board answers "how close is
-          this" without opening anything. */}
+      {/* The steps live here and nowhere else. Amy's ruling after seeing one goal drawn
+          three times in a single column: a step is never its own card. It is ticked,
+          re-statused and read from inside the goal it belongs to. */}
       {steps.length > 0 && (
-        <div className="mb-2 flex flex-col gap-1">
+        <div className="mb-2 flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-1.5">
             <span className="font-mono text-[10px] text-ink-muted">
               {doneSteps}/{steps.length} steps
@@ -77,19 +82,63 @@ export default function TodoCard({
               />
             </span>
           </div>
-          {steps.map((s) => (
-            <span key={s.id} className="flex items-center gap-1.5 text-[11px] leading-tight">
-              <span className={s.status === 'done' ? 'text-emerald-600' : 'text-ink-muted/60'}>
-                {s.status === 'done' ? '✓' : '○'}
+
+          {steps.map((s) => {
+            const finished = s.status === 'done';
+            return (
+              <span key={s.id} className="flex items-center gap-1.5 text-[11px] leading-tight">
+                <button
+                  type="button"
+                  disabled={readOnly}
+                  onClick={() => onStepStatus?.(s.id, finished ? 'todo' : 'done')}
+                  title={finished ? 'Not done after all' : 'Tick this step'}
+                  className={`tap-scale inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border ${
+                    finished
+                      ? 'border-emerald-600 bg-emerald-600 text-white'
+                      : 'border-ink-muted/50 text-transparent hover:border-ink'
+                  }`}
+                >
+                  <Check size={9} strokeWidth={3} />
+                </button>
+
+                <span className={`truncate ${finished ? 'text-ink-muted line-through' : 'text-ink'}`}>
+                  {s.title}
+                </span>
+
+                {/* Once finished the status word is replaced by the day it happened — the
+                    card stops describing state and starts being a record. */}
+                {finished ? (
+                  <span className="ml-auto shrink-0 font-mono text-[9px] text-ink-muted">
+                    {s.completed_at ? pacificDayShort(s.completed_at) : 'Done'}
+                  </span>
+                ) : (
+                  <select
+                    value={s.status}
+                    disabled={readOnly}
+                    onChange={(e) => onStepStatus?.(s.id, e.target.value)}
+                    className={`ml-auto shrink-0 cursor-pointer appearance-none bg-transparent font-mono text-[9px] outline-none ${statusOf(s.status).text}`}
+                  >
+                    {STEP_STATUSES.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </span>
-              <span className={`truncate ${s.status === 'done' ? 'text-ink-muted line-through' : 'text-ink'}`}>
-                {s.title}
-              </span>
-              <span className={`ml-auto shrink-0 font-mono text-[9px] ${statusOf(s.status).text}`}>
-                {statusOf(s.status).label}
-              </span>
-            </span>
-          ))}
+            );
+          })}
+
+          {/* Every step ticked is not the same as finished. She confirms. */}
+          {!readOnly && doneSteps === steps.length && todo.status !== 'done' && (
+            <button
+              type="button"
+              onClick={() => onConfirmDone?.(todo.id)}
+              className="tap-scale mt-1 self-start rounded-full border border-emerald-600/40 bg-emerald-600/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 hover:bg-emerald-600/20"
+            >
+              All steps ticked — mark this done
+            </button>
+          )}
         </div>
       )}
 

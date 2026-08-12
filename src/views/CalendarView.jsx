@@ -23,7 +23,7 @@ function toKey(date) {
 // the whole piece of work, not an orphaned fragment of it.
 export default function CalendarView({ todos, onOpen, config, removed = [], onRestore }) {
   const { meetings } = useCalendarEvents(config);
-  const { goalOf } = indexSteps(todos);
+  const { goalOf, hasSteps } = indexSteps(todos);
   const [openDay, setOpenDay] = useState(null);
   const [openMeeting, setOpenMeeting] = useState(null);
   const [highlight, setHighlight] = useState(null);
@@ -38,13 +38,19 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
   const byDate = useMemo(() => {
     const map = new Map();
     const bucket = (key) => {
-      if (!map.has(key)) map.set(key, { meetings: [], done: [], tasks: [], removed: [] });
+      if (!map.has(key)) map.set(key, { meetings: [], landed: [], done: [], tasks: [], removed: [] });
       return map.get(key);
     };
     for (const m of meetings) {
       bucket(toPacificDateKey(m.occurred_at)).meetings.push(m);
     }
     for (const todo of todos) {
+      // A goal bookends its own work: it appears on the day it landed and again on the day
+      // its last step closed. Amy's words — two entries for one goal, the ask and the
+      // finish. Only goals, not every task, or the month fills with arrivals.
+      if (hasSteps(todo.id) && todo.received_at) {
+        bucket(toPacificDateKey(todo.received_at)).landed.push(todo);
+      }
       if (todo.status === 'done' && todo.completed_at) {
         bucket(toPacificDateKey(todo.completed_at)).done.push(todo);
       } else if (todo.due_date && todo.status !== 'done') {
@@ -63,6 +69,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
     // wants them findable at a glance rather than buried under whatever finished latest.
     const desc = (field) => (a, b) => new Date(b[field]) - new Date(a[field]);
     for (const cell of map.values()) {
+      cell.landed.sort((a, b) => new Date(a.received_at) - new Date(b.received_at));
       cell.meetings.sort((a, b) => {
         if (a.is_one_on_one !== b.is_one_on_one) return a.is_one_on_one ? -1 : 1;
         return new Date(b.occurred_at) - new Date(a.occurred_at);
@@ -124,6 +131,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           <p className="text-[11px] text-ink-muted mt-0.5">
             <span className="mr-3">🎙 meeting</span>
             <span className="mr-3 rounded border-l-2 border-l-clay/60 bg-clay-soft/60 pl-1 pr-1.5">1:1</span>
+            <span className="mr-3">▸ landed</span>
             <span className="mr-3">✓ completed</span>
             <span className="mr-3">○ deadline</span>
             <span className="text-clay">all times PT</span>
@@ -155,7 +163,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
         {cells.map((date, idx) => {
           if (!date) return <div key={idx} className="bg-panel min-h-[68px] sm:min-h-[110px]" />;
           const key = toKey(date);
-          const cell = byDate.get(key) ?? { meetings: [], done: [], tasks: [], removed: [] };
+          const cell = byDate.get(key) ?? { meetings: [], landed: [], done: [], tasks: [], removed: [] };
           // Same rule as the day panel: when a goal and its own steps both finish on one
           // day, the day shows the goal once — not once per fragment of it. Amy opened
           // Aug 10 and found two Vanta rows for a single ask.
@@ -164,7 +172,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
             (t) => !(t.parent_id && goalsFinishedToday.has(t.parent_id)),
           );
           const isToday = key === todayKey;
-          const total = cell.meetings.length + collapsedDone.length + cell.tasks.length;
+          const total = cell.meetings.length + cell.landed.length + collapsedDone.length + cell.tasks.length;
           // A day holding only removed items still has to be openable.
           const openable = total + cell.removed.length > 0;
           // Meetings claim the top slots — they are the anchor of a day, and everything
@@ -173,8 +181,11 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           let left = 4 - shownMeetings.length;
           const shownDone = collapsedDone.slice(0, Math.max(0, left));
           left -= shownDone.length;
+          const shownLanded = cell.landed.slice(0, Math.max(0, left));
+          left -= shownLanded.length;
           const shownTasks = cell.tasks.slice(0, Math.max(0, left));
-          const overflow = total - shownMeetings.length - shownDone.length - shownTasks.length;
+          const overflow =
+            total - shownMeetings.length - shownDone.length - shownLanded.length - shownTasks.length;
 
           return (
             <div
@@ -217,6 +228,9 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                 ))}
                 {collapsedDone.length > 0 && (
                   <span className="font-mono text-[10px] text-ink">✓{collapsedDone.length}</span>
+                )}
+                {cell.landed.length > 0 && (
+                  <span className="font-mono text-[10px] text-ink-muted">▸{cell.landed.length}</span>
                 )}
                 {cell.tasks.length > 0 && (
                   <span className="font-mono text-[10px] text-ink-muted">○{cell.tasks.length}</span>
@@ -265,6 +279,20 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                     </button>
                   );
                 })}
+                {shownLanded.map((todo) => (
+                  <button
+                    key={`landed-${todo.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpen(todo.id);
+                    }}
+                    title="Landed as a goal on this day"
+                    className="tap-scale flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-ink-muted hover:bg-black/[0.05] text-left"
+                  >
+                    <span className="shrink-0">▸</span>
+                    <span className="truncate">{todo.title}</span>
+                  </button>
+                ))}
                 {shownTasks.map((todo) => (
                   <button
                     key={todo.id}
@@ -286,7 +314,7 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
       {openDay && (
         <DayPanel
           dayKey={openDay}
-          cell={byDate.get(openDay) ?? { meetings: [], done: [], tasks: [], removed: [] }}
+          cell={byDate.get(openDay) ?? { meetings: [], landed: [], done: [], tasks: [], removed: [] }}
           onClose={() => setOpenDay(null)}
           onOpen={onOpen}
           goalOf={goalOf}
@@ -407,6 +435,25 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, goalOf, remove
                   <p className="text-[11px] text-ink-muted mt-0.5">
                     {formatDateTimePT(m.occurred_at)}
                     {m.with_whom && <> · {m.with_whom}</>}
+                  </p>
+                </button>
+              ))}
+            </Group>
+          )}
+
+          {cell.landed.length > 0 && (
+            <Group title={`Landed (${cell.landed.length})`}>
+              {cell.landed.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => onOpen(t.id)}
+                  className={`tap-scale w-full text-left rounded-lg border border-hairline bg-panel px-3 py-2 ${
+                    highlightId === t.id ? LIT : ''
+                  }`}
+                >
+                  <p className="text-sm text-ink">▸ {t.title}</p>
+                  <p className="text-[11px] text-ink-muted mt-0.5">
+                    asked {formatDateTimePT(t.received_at)}
                   </p>
                 </button>
               ))}

@@ -84,6 +84,18 @@ export function shortId(id) {
 
 // The Finished field edits a timestamp as Pacific wall time — the dashboard's clock —
 // regardless of the browser being in Manila. Round-trips at minute precision.
+// "Aug 10" — the day a step finished, shown in place of its status once it is done.
+const PT_DAY_SHORT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  month: 'short',
+  day: 'numeric',
+});
+
+export function pacificDayShort(value) {
+  if (!value) return '';
+  return PT_DAY_SHORT.format(new Date(value));
+}
+
 export function pacificInputValue(value) {
   if (!value) return '';
   const d = new Date(value);

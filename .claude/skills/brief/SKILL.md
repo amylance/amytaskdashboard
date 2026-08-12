@@ -1,6 +1,6 @@
 ---
 name: brief
-description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-12b."
+description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-12c."
 ---
 
 ## Origin
@@ -19,6 +19,11 @@ or modifies any record. Drafts are rendered inline. Do not create Gmail drafts, 
 touch Linear or Slack.
 
 Tell her at the start that the sweep takes a few minutes.
+
+**One command, both directions.** *Brief* is forward-looking — what needs her. *Debrief* is
+backward-looking — what happened. She should never have to pick the right word: read which
+one she means from how she asked, and frame the same data accordingly. "Sweep", "catch me
+up" and "update my dashboard" all land here too.
 
 **Timezones.** Amy's day is `Asia/Manila` — every "today", "yesterday" and overdue
 calculation resolves against Manila. But the **dashboard is a shared surface on Pacific

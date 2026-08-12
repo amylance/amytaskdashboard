@@ -1,0 +1,40 @@
+{
+  "purged_at": "2026-08-12",
+  "why": "Amy asked to clear all dismissed and deleted items across the dashboard. Hard delete, no undo. The ten deleted todos are already captured in full in todos-2026-08-12-pre-steps-build.json, which dumped every row including soft-deleted ones. This file holds the two records that dump did not cover.",
+  "dismissed_inbox": [
+    {
+      "id": "38d4ab60-9b68-449d-a677-c0630c426873",
+      "title": "Verify: Hyatt Centric on-site Wi-Fi diagnosis",
+      "source": "fireflies",
+      "source_url": "https://app.fireflies.ai/view/01KZ9CKG9PVWZAGQJQJHZF7F2G",
+      "source_context": "Onboarding call",
+      "claude_note": "Fireflies filed this under your name, but you are in the Philippines and the hotel is in the US. Reads like Vanita's and Tyler's. Dismiss unless Gavin says otherwise.",
+      "received_at": "2026-08-05T18:00:00+00:00",
+      "state": "dismissed",
+      "resolved_at": "2026-08-10T17:39:42.992+00:00"
+    }
+  ],
+  "deleted_people": [
+    {
+      "id": "588a1cd0-2ece-48fc-966e-d1935b9c0de0",
+      "name": "Gatik Trivedi",
+      "company": "Lance",
+      "role": "CTO",
+      "department": "Engineering",
+      "verification_tier": "verified",
+      "verification_source": "Confirmed against the Rippling org chart and lance.live/internal Team page (screenshots Amy supplied).",
+      "crm_type": "lance_team",
+      "deleted_at": "2026-08-09T11:52:03.015+00:00"
+    },
+    {
+      "id": "4b5d7a8d-5c3d-4142-8e86-ebe37cb67dcb",
+      "name": "Gatik",
+      "company": "Lance",
+      "role": "CTO, co-founder",
+      "verification_tier": "unverified",
+      "verification_source": "Gavin in the Amy/Gavin 1:1 (Aug 10): CTO and co-founder, leads all engineering; will grant Amy Supabase read access. Fireflies renders the name variously (Guthic/Guthich); spelling unconfirmed — match against Rippling before verifying.",
+      "crm_type": "hotel_contact",
+      "deleted_at": "2026-08-11T20:32:59.095+00:00"
+    }
+  ]
+}

@@ -6,6 +6,14 @@ export const STATUSES = [
   { id: 'done', label: 'Done' },
 ];
 
+// A step is re-statused inside its goal's card, never dragged. Done is not in the list:
+// ticking the circle does that, and untucking it returns the step to To Do.
+export const STEP_STATUSES = [
+  { id: 'todo', label: 'To Do' },
+  { id: 'doing', label: 'Doing' },
+  { id: 'waiting', label: 'Pending' },
+];
+
 // A waiting item that nobody has chased in this many days is going stale.
 export const STALE_AFTER_DAYS = 2;
 

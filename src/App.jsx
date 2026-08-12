@@ -183,6 +183,18 @@ export default function App() {
     }
   }
 
+  // Ticking or re-statusing a step from inside its goal's card. The step is a normal task,
+  // so this is the same patch a drag used to make — steps just no longer have a card to drag.
+  async function handleStepStatus(stepId, status) {
+    await handlePatch(stepId, { status });
+  }
+
+  // Every step ticked is not the same as finished. Amy confirms, and that click is what
+  // moves the goal to Done — nothing closes a goal on her behalf.
+  async function handleConfirmDone(goalId) {
+    await handlePatch(goalId, { status: 'done' });
+  }
+
   // A step is an ordinary task that names its goal. It starts in To Do, where every other
   // piece of unstarted work starts, and shows up on the board immediately.
   async function handleAddStep(parentId, title) {
@@ -268,6 +280,9 @@ export default function App() {
         todos={todos}
         onOpen={openTodoDetail}
         onReorder={handlePatch}
+        onStepStatus={handleStepStatus}
+        onConfirmDone={handleConfirmDone}
+        readOnly={readOnly}
         removed={removedTodos}
         onRestore={restoreTodo}
       />
@@ -349,6 +364,8 @@ export default function App() {
           onDelete={handleDelete}
           onOpen={openTodoDetail}
           onAddStep={handleAddStep}
+          onStepStatus={handleStepStatus}
+          onConfirmDone={handleConfirmDone}
           readOnly={readOnly}
         />
       )}

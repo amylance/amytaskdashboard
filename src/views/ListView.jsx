@@ -10,6 +10,11 @@ import { CATEGORIES } from '../lib/constants.js';
 
 const PRIORITY_ORDER = { normal: 0, high: 1, urgent: 2 };
 
+// Amy's order, with one addition of mine she accepted: Pending sits above To Do because
+// Pending is held by someone else and decays, while To Do is hers to start whenever.
+// Doing leads because the List doubles as Gavin's and Isaac's view of what is live now.
+const STATUS_ORDER = { doing: 0, waiting: 1, todo: 2, done: 3 };
+
 const COLUMNS = [
   { key: 'source', label: 'From' },
   { key: 'title', label: 'Task' },
@@ -26,8 +31,8 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
   const { goalOf, stepsOf } = indexSteps(todos);
   // Newest work first. Due dates are mostly null on this board, so sorting by them left the
   // List in effectively insertion order and buried what just moved.
-  const [sortKey, setSortKey] = useState('when');
-  const [dir, setDir] = useState('desc');
+  const [sortKey, setSortKey] = useState('status');
+  const [dir, setDir] = useState('asc');
   const [person, setPerson] = useState('all');
   const [category, setCategory] = useState('all');
 
@@ -57,6 +62,12 @@ export default function ListView({ todos, onOpen, removed = [], onRestore }) {
       if (sortKey === 'when') {
         av = lastActivity(a);
         bv = lastActivity(b);
+      }
+      if (sortKey === 'status') {
+        av = STATUS_ORDER[a.status] ?? 9;
+        bv = STATUS_ORDER[b.status] ?? 9;
+        // Inside a status band, most recently touched first.
+        if (av === bv) return lastActivity(b) - lastActivity(a);
       }
       if (av == null && bv == null) return 0;
       if (av == null) return 1;

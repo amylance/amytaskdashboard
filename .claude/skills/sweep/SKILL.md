@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12g.
+description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12h.
 ---
 
 # Sweep
@@ -48,6 +48,38 @@ finishes":
   for the state of tasks *already on the board*, not only for items to file. A commitment
   she reports finished on a call is evidence of a finish, with the transcript timestamp as
   the instant.
+
+### Slack — walk the roster, never a search
+
+```sql
+select id, label, kind, why from public.slack_sources where active order by kind, label;
+```
+
+**Open every row by ID.** Search is not a substitute and never proof: a search for
+`from:@Amy` across her channels returned zero results while she had messages in all of
+them, and a search for the wrong phrase was written up as a fabricated quote. Search may
+find things; it can never show that something is absent.
+
+Two rules that cost her a whole evening:
+
+- **Always `response_format: 'detailed'`.** `concise` silently omits the `Thread: N replies`
+  marker, so threads become invisible rather than merely unread.
+- **Follow every thread marker** with `slack_read_thread`. Nine replies in the Gavin DM
+  alone had never been read — including Gavin settling who owes the API key.
+
+Count as you go and write the result down:
+
+```sql
+update public.sweep_state
+   set threads_found = <n>, threads_read = <n>,
+       sources_checked = '["D0BN411RCCV","C0AQXA7K1MZ", ...]'::jsonb
+ where id = true;
+```
+
+`hq_enforce()` reports any gap between found and read, so an unread thread surfaces at the
+top of her next brief instead of disappearing.
+
+### Then the rest
 
 1. **Fireflies first** — `fireflies_get_transcripts` with
    `participants: ["amy@lance.live"]`, `fromDate`. **Only meetings she attended.** Her
@@ -127,6 +159,36 @@ A meeting Amy attended belongs in `public.meetings` with its discussion points i
 - **Title 1:1s as `Sync — Amy & <first name>`** so the series reads as a series. Everything
   else keeps its real name.
 - `with_whom` is the other person's full name for a 1:1, or a short description for a group.
+
+## 4b-synth. Reconcile against the board BEFORE filing anything
+
+Amy's ruling, and the gap that produced a wrong Vanta timestamp for two days: the sweep read
+her Slack message *"Hi Gatik, this is done btw"* and never matched it to the Vanta card
+sitting in the dashboard. Reading a source is not the same as reconciling it.
+
+**Load the whole board first**, goals and steps:
+
+```sql
+select id, title, status, parent_id, is_method, received_at, completed_at,
+       completed_source, waiting_on, contact, left(story, 400) as story
+from public.todos where deleted_at is null order by parent_id nulls first, received_at;
+```
+
+Then every piece of evidence resolves to **exactly one of three outcomes**:
+
+1. **It is about a task already on the board** → **update that task.** Correct the timestamp,
+   the status, the blocked-on, add a line to the story. **No Inbox card.** Work already
+   tracked never arrives twice.
+2. **It belongs under an existing goal** → file an Inbox candidate with `parent_todo_id` set.
+   She approves and it lands as a step of that goal.
+3. **It is neither** → file an Inbox candidate as a new task.
+
+Never a fourth outcome. If you cannot tell which of the three, it is (3) and the
+`claude_note` says why you were unsure.
+
+**Every card gets checked, parent and step alike** — against Fireflies, every rostered Slack
+source and its threads, Gmail, Calendar, Linear and the notebook. A card nobody has touched
+in the window is still verified; silence is not confirmation.
 
 ## 4c-pre. Is it a step of something already on the board?
 
@@ -217,6 +279,16 @@ Rules for the story:
 
 `claude_note` stays a one-line verdict for the card ("already done", "looks
 mis-attributed"). If the note would run past a line, it belongs in the story instead.
+
+## 4c-click. Her click is authoritative
+
+`completed_source = 'click'` is her testimony and it stands. Evidence can **contradict** it —
+a Slack message showing the work landed earlier moves the timestamp, per 4d — but evidence
+is never *required* to confirm it. Absence of evidence changes nothing and is never raised.
+
+This one cost her real patience: the Vanta card was flagged as an unverified blind spot
+three times over work she had clicked done and told Gatik about. Never ask her to re-confirm
+something only she can see.
 
 ## 4d. Correct finished-times in place — no card
 

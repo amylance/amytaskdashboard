@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Lock, Trash2, ExternalLink, CornerDownRight, BookOpen, Plus } from 'lucide-react';
-import { STATUSES, PRIORITIES } from '../lib/constants.js';
+import { Lock, Trash2, ExternalLink, CornerDownRight, BookOpen, Plus, Check } from 'lucide-react';
+import { STATUSES, PRIORITIES, STEP_STATUSES } from '../lib/constants.js';
 import { statusOf } from '../lib/visuals.js';
 
 const SOURCE_LABEL = {
@@ -11,7 +11,7 @@ const SOURCE_LABEL = {
   lance_live: 'Lance Live',
   email: 'Email',
 };
-import { formatDateTime, shortId, pacificInputValue, pacificToISO } from '../lib/format.js';
+import { formatDateTime, shortId, pacificInputValue, pacificToISO, pacificDayShort } from '../lib/format.js';
 import Story from './Story.jsx';
 import BackButton from './BackButton.jsx';
 
@@ -27,6 +27,8 @@ export default function DetailPanel({
   onDelete,
   onOpen,
   onAddStep,
+  onStepStatus,
+  onConfirmDone,
   highlightStepId = null,
   readOnly = false,
 }) {
@@ -125,29 +127,59 @@ export default function DetailPanel({
               </div>
 
               <div className="flex flex-col gap-1">
-                {steps.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => onOpen(s.id)}
-                    className={`tap-scale flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/[0.04] ${
-                      highlightStepId === s.id ? 'ring-2 ring-clay bg-clay-soft/50' : ''
-                    }`}
-                  >
-                    <span className={s.status === 'done' ? 'text-emerald-600' : 'text-ink-muted/60'}>
-                      {s.status === 'done' ? '✓' : '○'}
-                    </span>
-                    <span
-                      className={`flex-1 truncate text-[13px] ${
-                        s.status === 'done' ? 'text-ink-muted line-through' : 'text-ink'
+                {steps.map((s) => {
+                  const finished = s.status === 'done';
+                  return (
+                    <div
+                      key={s.id}
+                      className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${
+                        highlightStepId === s.id ? 'ring-2 ring-clay bg-clay-soft/50' : ''
                       }`}
                     >
-                      {s.title}
-                    </span>
-                    <span className={`shrink-0 font-mono text-[10px] ${statusOf(s.status).text}`}>
-                      {statusOf(s.status).label}
-                    </span>
-                  </button>
-                ))}
+                      <button
+                        type="button"
+                        disabled={readOnly}
+                        onClick={() => onStepStatus?.(s.id, finished ? 'todo' : 'done')}
+                        title={finished ? 'Not done after all' : 'Tick this step'}
+                        className={`tap-scale inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                          finished
+                            ? 'border-emerald-600 bg-emerald-600 text-white'
+                            : 'border-ink-muted/50 text-transparent hover:border-ink'
+                        }`}
+                      >
+                        <Check size={10} strokeWidth={3} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpen(s.id)}
+                        className={`flex-1 truncate text-left text-[13px] hover:underline ${
+                          finished ? 'text-ink-muted line-through' : 'text-ink'
+                        }`}
+                      >
+                        {s.title}
+                      </button>
+                      {/* Finished steps show the day, not the word — open one to edit it. */}
+                      {finished ? (
+                        <span className="shrink-0 font-mono text-[10px] text-ink-muted">
+                          {s.completed_at ? pacificDayShort(s.completed_at) : 'Done'}
+                        </span>
+                      ) : (
+                        <select
+                          value={s.status}
+                          disabled={readOnly}
+                          onChange={(e) => onStepStatus?.(s.id, e.target.value)}
+                          className={`shrink-0 cursor-pointer appearance-none bg-transparent font-mono text-[10px] outline-none ${statusOf(s.status).text}`}
+                        >
+                          {STEP_STATUSES.map((o) => (
+                            <option key={o.id} value={o.id}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  );
+                })}
                 {steps.length === 0 && (
                   <p className="text-xs text-ink-muted">
                     No steps. Add one and this becomes a goal that closes when they all do.
@@ -182,9 +214,20 @@ export default function DetailPanel({
                 </div>
               )}
 
-              {steps.length > 0 && (
+              {/* Nothing closes a goal on her behalf. Every step ticked only unlocks the
+                  confirmation — her click is what finishes it. */}
+              {!readOnly && steps.length > 0 && doneSteps === steps.length && todo.status !== 'done' && (
+                <button
+                  type="button"
+                  onClick={() => onConfirmDone?.(todo.id)}
+                  className="tap-scale mt-2 w-full rounded-lg border border-emerald-600/40 bg-emerald-600/10 px-3 py-1.5 text-[12px] font-semibold text-emerald-700 hover:bg-emerald-600/20"
+                >
+                  All steps ticked — mark this done
+                </button>
+              )}
+              {steps.length > 0 && doneSteps < steps.length && (
                 <p className="mt-2 text-[10px] text-ink-muted/80">
-                  This closes itself when the last step does.
+                  Tick every step, then confirm — this never closes on its own.
                 </p>
               )}
             </div>
