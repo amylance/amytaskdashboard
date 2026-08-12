@@ -72,6 +72,12 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    queue she stops trusting.
 5. **Minimal but efficient.** No feature without a job. She cut tabs deliberately.
    Suggest something better if it exists; don't add surface area.
+5b. **Change what she asked for and nothing else.** She asked for a line of copy to be
+   reworded; the wording changed and then the element moved too. Stated plainly:
+   *"if I ask you to change something, just the text, you tend to change the placement of
+   it. Why don't you just change what is asked?"* A follow-up question is a question —
+   answer it. "Why don't I see it?" is not authorisation to redesign. If a second change
+   looks warranted, name it in one line and let her decide.
 6. **Nothing is ever destroyed.** Every table she can delete from soft-deletes
    (`deleted_at`; inbox uses `state='dismissed'`). Undo appears where the action
    happened — there is deliberately no Trash tab.
