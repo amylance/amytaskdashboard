@@ -36,6 +36,7 @@ export default function DetailPanel({
   onLinkPerson,
   onUnlinkPerson,
   onOpenPerson,
+  readOnly = false,
 }) {
   const { comments, activity, addComment } = useTodoDetail(todo?.id, config);
   const [title, setTitle] = useState(todo?.title ?? '');
@@ -72,13 +73,17 @@ export default function DetailPanel({
 
   if (!todo) return null;
 
+  // Gavin and Isaac open cards from the same panel Amy does. They should read everything —
+  // that is the point of sharing the board — and change nothing. The server already refuses
+  // their writes; this stops the panel from offering an edit that would silently fail.
   function patch(fields) {
+    if (readOnly) return;
     onChange(todo.id, fields);
   }
 
   async function handleSendComment() {
     const body = commentText.trim();
-    if (!body || sending) return;
+    if (readOnly || !body || sending) return;
     setSending(true);
     await addComment(body);
     setCommentText('');
@@ -93,13 +98,15 @@ export default function DetailPanel({
         <div className="flex items-center justify-between px-5 py-4 border-b border-hairline shrink-0">
           <span className="font-mono text-xs text-ink-muted">{shortId(todo.id)}</span>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => onDelete(todo.id)}
-              title="Delete"
-              className="tap-scale inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-muted hover:bg-clay-soft hover:text-clay"
-            >
-              <Trash2 size={15} />
-            </button>
+            {!readOnly && (
+              <button
+                onClick={() => onDelete(todo.id)}
+                title="Delete"
+                className="tap-scale inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-muted hover:bg-clay-soft hover:text-clay"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
             <button
               onClick={onClose}
               title="Close"
@@ -392,22 +399,24 @@ export default function DetailPanel({
               ))}
               {comments.length === 0 && <p className="text-xs text-ink-muted">No comments yet.</p>}
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-                placeholder="Add a comment…"
-                className="glass-field flex-1 rounded-full border border-hairline px-3.5 py-2 text-sm outline-none focus:border-ink/30"
-              />
-              <button
-                onClick={handleSendComment}
-                disabled={!commentText.trim() || sending}
-                className="tap-scale inline-flex items-center justify-center w-9 h-9 rounded-full bg-ink text-white disabled:opacity-30"
-              >
-                <Send size={14} />
-              </button>
-            </div>
+            {!readOnly && (
+              <div className="flex items-center gap-2">
+                <input
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
+                  placeholder="Add a comment…"
+                  className="glass-field flex-1 rounded-full border border-hairline px-3.5 py-2 text-sm outline-none focus:border-ink/30"
+                />
+                <button
+                  onClick={handleSendComment}
+                  disabled={!commentText.trim() || sending}
+                  className="tap-scale inline-flex items-center justify-center w-9 h-9 rounded-full bg-ink text-white disabled:opacity-30"
+                >
+                  <Send size={14} />
+                </button>
+              </div>
+            )}
           </div>
 
           <div>

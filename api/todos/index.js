@@ -1,4 +1,4 @@
-import { requireAuth, requireEditor } from '../_lib/auth.js';
+import { requireAuth, requireEditor, sessionRole } from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { PRIORITY_RANK, STATUSES, PRIORITIES } from '../_lib/priority.js';
 
@@ -8,11 +8,18 @@ export default async function handler(req, res) {
   const db = supabaseAdmin();
 
   if (req.method === 'GET') {
-    const { data, error } = await db
+    // The lock on a card has to mean something. Until now is_private only drew an icon —
+    // the row still went over the wire to anyone holding the view-only passphrase, which
+    // Gavin and Isaac have and which sits in Slack history. Private tasks are filtered out
+    // server-side so a viewer never receives them, story and comments included.
+    let query = db
       .from('todos')
       .select('*, todo_assignees(user_id), todo_people(people(id, name))')
-      .is('deleted_at', null)
-      .order('sort_order', { ascending: true });
+      .is('deleted_at', null);
+
+    if (sessionRole(req) !== 'editor') query = query.eq('is_private', false);
+
+    const { data, error } = await query.order('sort_order', { ascending: true });
 
     if (error) {
       res.status(500).json({ error: error.message });

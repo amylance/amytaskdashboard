@@ -318,6 +318,7 @@ export default function App() {
           onLinkPerson={handleLinkPerson}
           onUnlinkPerson={handleUnlinkPerson}
           onOpenPerson={openPersonDetail}
+          readOnly={readOnly}
         />
       )}
 

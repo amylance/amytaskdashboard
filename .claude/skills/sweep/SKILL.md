@@ -26,10 +26,21 @@ Amy's day opens with a cadence meeting that hands her the asks; everything after
 execution and confirmation. Sweep in that order so the later sources can settle the first.
 
 **Her ruling on which source wins a timestamp dispute:** *"the most reliable source of
-timestamps is my slack, and my log activities within claude home."* Fireflies gives you the
-ask; Slack and the notebook give you the finish. When a Fireflies action item and a Slack
-message disagree about when something happened, Slack is right — converted from the epoch,
-never from the displayed string.
+timestamps is my slack, and my log activities within claude home."* When two sources
+disagree about when something happened, Slack and the notebook are right — and Slack times
+must be converted from the epoch, never from the displayed string.
+
+**No source owns a single role.** Do not read Fireflies as "the asks" and Slack as "the
+finishes":
+
+- **A DM is an ask.** Isaac and Gavin hand her work in Slack constantly — MFA on Google,
+  the Rippling toggle, the Hilton support link. Treat a DM asking for something exactly as
+  you would a meeting action item.
+- **A transcript carries status, not just new work.** The meeting is where she and Gavin
+  say out loud what is done, what is stuck and what she has started. Read every transcript
+  for the state of tasks *already on the board*, not only for items to file. A commitment
+  she reports finished on a call is evidence of a finish, with the transcript timestamp as
+  the instant.
 
 1. **Fireflies first** — `fireflies_get_transcripts` with
    `participants: ["amy@lance.live"]`, `fromDate`. **Only meetings she attended.** Her
@@ -185,6 +196,10 @@ For each one, check the window you just pulled for anything that moved it. If so
 did, **update that card in place** — extend the `story`, correct `suggested_status`, refresh
 `claude_note`. Do not file a second card for the same thing. Say in the report which pending
 cards you refreshed, so she knows the queue was re-read and not just appended to.
+
+Do the same for **open tasks already on the board** — a transcript or DM in the window may
+report one of them finished, started or blocked. Those become `kind='correction'` cards, not
+direct edits.
 
 The same applies to the `Open` line of any story: if it names something that has since
 happened, it is no longer open and must not still say so.
