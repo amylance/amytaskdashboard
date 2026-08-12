@@ -6,7 +6,7 @@ web UI and from Claude Tag in Slack writing directly to the same tables.
 ## Stack
 
 - React + Vite, Tailwind CSS v4, lucide-react icons
-- Supabase JS client with Realtime subscriptions on `todos` and `todo_comments`
+- Supabase JS client with Realtime subscriptions on `todos`, `inbox_items` and `meetings`
 - Vercel serverless functions under `/api` for the passphrase gate and all data writes
   (using the service role key, kept server-only)
 
@@ -19,10 +19,12 @@ The app is gated by a single shared passphrase, not full user auth:
 - `GET /api/session` returns `{ authenticated: false }` until that cookie is valid. Once
   authenticated, it also hands the browser the Supabase URL + anon key so the client can
   open a Realtime websocket — those values are never in the static JS bundle.
-- All todo/comment reads and writes go through `/api/todos/*`, which run server-side with
-  the Supabase **service role** key. The anon key the browser holds is scoped by RLS to
-  read-only `SELECT` on `todos` (non-deleted rows) and `todo_comments` — just enough for
+- All task reads and writes go through `/api/todos/*` and `/api/hq/*`, which run
+  server-side with the Supabase **service role** key. The anon key the browser holds is
+  scoped by RLS to read-only `SELECT` on non-deleted, non-private `todos` — just enough for
   Realtime's `postgres_changes` delivery to work, with no INSERT/UPDATE/DELETE grant.
+  Private tasks are filtered both in the API and by the RLS policy, so the lock holds even
+  if someone reaches the database directly.
 
 ## Local development
 
@@ -49,5 +51,13 @@ See `.env.example`. Real values are set in Vercel's dashboard, not in this repo.
 ## Data model
 
 Schema and RLS policies live in Supabase migrations (`init_task_dashboard_schema`,
-`passphrase_app_rls_and_realtime`). `todo_proposals`, `slack_sync_state`, and
-`calendar_events` are reserved for future work and unused by this app today.
+`passphrase_app_rls_and_realtime`).
+
+A task with a `parent_id` is a **step** of the goal it points at — one level only. The
+`todos_close_goal` trigger closes a goal when its last step closes and reopens it when a
+step reopens, so an evidence-driven sweep and a click in the browser behave identically.
+`is_method` marks the work whose full history is worth keeping.
+
+`public.todo_audit` is the integrity check — it must return no rows. Nine unused tables and
+eleven unused columns were dropped in `steps_under_a_goal_and_card_cleanup` after measuring
+that nothing wrote to them.
