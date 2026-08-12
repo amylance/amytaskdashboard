@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12c.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12d.
 ---
 
 # Sweep
@@ -152,6 +152,10 @@ instead of dropping another card on the Kanban.
 - **Active voice. 2–5 words is the target, not a cap** — grammar wins over brevity. Never
   drop a possessive to save a word: *"Get Gavin inbox access"* is a noun pile and wrong;
   *"Get access to Gavin's inbox"* is right.
+- **Hard ceiling: 32 characters.** Past that the title truncates inside the step list on a
+  goal card, which is exactly where Amy reads it. `todo_audit` fails any title over 32 and
+  any title that does not open with a verb, so this is checked every sweep rather than left
+  to notice. Writing the rule down was not enough — she had to catch a long title twice.
 - **No detail in the title.** Names, dates, ticket numbers, the reason — all of that is the
   story's job.
 - **A goal states what done means** in its story, so a step can never be ticked ambiguously.

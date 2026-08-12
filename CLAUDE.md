@@ -94,6 +94,12 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    cap — grammar beats brevity**, and a possessive is never dropped to save a word
    ("Get access to Gavin's inbox", never "Get Gavin inbox access"). No names, dates or
    ticket numbers in a title; that is the story's job. A goal states what done means.
+   **32 characters is a hard ceiling** — longer truncates in the step list on a goal card.
+   `todo_audit` enforces both the ceiling and the leading verb, because writing the rule in
+   this file did not stop it being broken and she had to catch it twice.
+4g. **A rule is not done until something enforces it.** Every rule here that can be checked
+   mechanically belongs in `public.todo_audit`, not only in prose. The sweep runs the audit
+   and must return it empty. Her standard: *"I don't want to keep checking your work."*
 5. **Minimal but efficient.** No feature without a job. She cut tabs deliberately.
    Suggest something better if it exists; don't add surface area.
 5b. **Change what she asked for and nothing else.** She asked for a line of copy to be
