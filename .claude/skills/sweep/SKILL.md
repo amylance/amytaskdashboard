@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12f.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12g.
 ---
 
 # Sweep
@@ -295,9 +295,26 @@ it above things genuinely finished later, and puts it on the wrong day of her Ca
 Name the evidence in the story. "Delivered 3:38 PM PT" is a finish; "he asked at 10:17 AM"
 is not.
 
+## 0. Enforce the rules — first thing, before anything else
+
+```sql
+select * from public.hq_enforce();
+```
+
+This repairs everything that can be repaired without a judgement call — a finished task
+still flagged as blocked, an unfinished task carrying a finish time, a step orphaned by a
+deleted goal, a goal out of step with its own steps — and returns whatever is left.
+
+**Whatever it returns is yours to fix before the sweep ends.** Those are the ones needing a
+decision: a title over the ceiling, a missing story, a missing contact, an unevidenced
+finish. Never invent a value to clear a row; fix it properly or ask her.
+
+Run it **again as the last thing you do**. Starting clean tells you which rows this run
+broke; ending clean is the only proof the board is coherent.
+
 ## 4g. Run the audit before you finish — every time
 
-Run `select * from public.todo_audit;` **at the start of the sweep as well as the end.**
+Run `select * from public.hq_enforce();` **at the start of the sweep as well as the end.**
 Starting clean tells you which rows this run broke. It now checks the naming ceiling, a
 leading verb, blocked cards with nobody named, finished cards still flagged as blocked,
 goals closed too early, goals left open after their last step, and steps orphaned by a

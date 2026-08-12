@@ -1,6 +1,6 @@
 ---
 name: brief
-description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-12a."
+description: "Amy's on-demand briefing. First captures any new commitments from her tools into the dashboard Inbox, then reconciles everything into one prioritized prose briefing plus drafted replies. Use whenever she asks for her brief, briefing, daily rundown, 'catch me up', 'what needs me', 'what did I miss', 'brief me for my workday', 'I'm done for the day', or invokes /brief. Do not use it for a plain question about her calendar, inbox, or tasks: answer that directly instead. Version 2026-08-12b."
 ---
 
 ## Origin
@@ -28,6 +28,17 @@ convert deliberately. Plain dates (due dates) are never timezone-shifted.
 ---
 
 # PHASE 1 — Capture
+
+**Before anything else, run the enforcement pass:**
+
+```sql
+select * from public.hq_enforce();
+```
+
+It repairs the mechanical rule breaks and returns what still needs a decision. It must come
+back empty before the briefing is written, or the briefing is describing a board that
+contradicts itself. On an unattended read-only run, still call it — it is idempotent and
+only ever removes state a row's own status contradicts.
 
 Run the `sweep` skill's process first — follow that skill's current SKILL.md, not this
 summary, if the two ever disagree. In short: pull Fireflies (meetings she attended),

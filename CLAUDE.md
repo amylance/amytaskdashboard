@@ -107,8 +107,12 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    `todo_audit` enforces both the ceiling and the leading verb, because writing the rule in
    this file did not stop it being broken and she had to catch it twice.
 4g. **A rule is not done until something enforces it.** Every rule here that can be checked
-   mechanically belongs in `public.todo_audit`, not only in prose. The sweep runs the audit
-   and must return it empty. Her standard: *"I don't want to keep checking your work."*
+   mechanically belongs in `public.todo_audit`, not only in prose. **`public.hq_enforce()`
+   is the pass that runs first and last in every sweep and every brief** — it repairs what
+   needs no judgement and returns what does, and it must come back empty before a run ends.
+   Two triggers back it: goals follow their steps, and steps stay one level deep (the
+   database refuses a step of a step). Her standard: *"I don't want to keep checking your
+   work."*
 5. **Minimal but efficient.** No feature without a job. She cut tabs deliberately.
    Suggest something better if it exists; don't add surface area.
 5b. **Change what she asked for and nothing else.** She asked for a line of copy to be

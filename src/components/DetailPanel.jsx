@@ -35,6 +35,7 @@ export default function DetailPanel({
   const [contact, setContact] = useState(todo?.contact ?? '');
   const [category, setCategory] = useState(todo?.category ?? '');
   const [waitingOn, setWaitingOn] = useState(todo?.waiting_on ?? '');
+  const [finishedAt, setFinishedAt] = useState(pacificInputValue(todo?.completed_at));
   const [newStep, setNewStep] = useState('');
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function DetailPanel({
     setContact(todo?.contact ?? '');
     setCategory(todo?.category ?? '');
     setWaitingOn(todo?.waiting_on ?? '');
+    setFinishedAt(pacificInputValue(todo?.completed_at));
     setNewStep('');
   }, [todo?.id]);
 
@@ -310,12 +312,22 @@ export default function DetailPanel({
               Rendered and edited in Pacific, the dashboard's clock. */}
           {todo.status === 'done' && (
             <LabeledField label="Finished (PT)">
+              {/* Committed on blur, not on every keystroke. Saving mid-edit meant a
+                  half-typed date either threw away the change or wrote a date she never
+                  chose — "2026-08-0" is a valid-looking string and parses as the 1st. */}
               <input
                 type="datetime-local"
-                value={pacificInputValue(todo.completed_at)}
-                onChange={(e) => {
-                  const iso = pacificToISO(e.target.value);
-                  if (iso && iso !== todo.completed_at) patch({ completed_at: iso });
+                value={finishedAt}
+                onChange={(e) => setFinishedAt(e.target.value)}
+                onBlur={() => {
+                  const iso = pacificToISO(finishedAt);
+                  if (!iso) {
+                    setFinishedAt(pacificInputValue(todo.completed_at));
+                    return;
+                  }
+                  if (new Date(iso).getTime() !== new Date(todo.completed_at).getTime()) {
+                    patch({ completed_at: iso });
+                  }
                 }}
                 className={textFieldClass}
               />

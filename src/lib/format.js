@@ -96,15 +96,24 @@ export function pacificInputValue(value) {
   return `${date}T${time}`;
 }
 
+// A datetime-local field hands over its value on every keystroke, so half-typed strings
+// like "2026-08-1T09:48" arrive here constantly. This used to throw on them, which killed
+// the change handler before the edit could be saved — Amy retyped a finish date and it
+// silently stayed put. Worse, "2026-08-0" parsed happily as August 1st, so a partial entry
+// could write a date nobody chose. Anything that is not a complete wall time is refused.
+const WALL_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
 export function pacificToISO(wall) {
-  if (!wall) return null;
+  if (!wall || !WALL_TIME.test(wall)) return null;
   // Interpret the wall time as UTC, then shift by however far PT is from UTC at that
   // moment. Two passes so a DST boundary lands on the right side.
   let guess = new Date(`${wall}:00Z`);
+  if (Number.isNaN(guess.getTime())) return null;
   for (let i = 0; i < 2; i++) {
     const seen = pacificInputValue(guess.toISOString());
     const drift = new Date(`${wall}:00Z`) - new Date(`${seen}:00Z`);
     guess = new Date(guess.getTime() + drift);
+    if (Number.isNaN(guess.getTime())) return null;
   }
   return guess.toISOString();
 }
