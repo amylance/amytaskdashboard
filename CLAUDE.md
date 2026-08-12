@@ -197,6 +197,10 @@ with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
 
 - **Build-gated pushes, no exceptions:** `set -e`, `npm run build` must pass before
   commit; never pipe the build through anything that masks its exit code.
+- **Never tell her to refresh until the deploy is verified.** Compare the bundle filename
+  served by the live site against `dist/assets/*.js` from the local build. She was told a
+  fix was live and then shown the bug again, because the deploy had not landed yet. The
+  build passing is not the same as the fix being in front of her.
 - Push to **both** branches: the working branch and
   `claude/amy-task-dashboard-deploy-16f9gc` (Vercel deploys from the repo's default
   branch; ~20s builds).
