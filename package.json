@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:live": "node scripts/verify-live.mjs",
+    "ship": "npm run build && node scripts/verify-live.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2",

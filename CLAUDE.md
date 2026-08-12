@@ -112,6 +112,12 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    **32 characters is a hard ceiling** — longer truncates in the step list on a goal card.
    `todo_audit` enforces both the ceiling and the leading verb, because writing the rule in
    this file did not stop it being broken and she had to catch it twice.
+4h. **Errors do not accumulate, because every check is retroactive.** `todo_audit` and
+   `hq_enforce()` re-examine **every** card on every run, never just the new ones. A defect
+   written today is caught by any run after it. When the quote-source check was added it
+   immediately surfaced twelve cards from previous days — that is the mechanism working, not
+   a backlog forming. **The count of ways the board can be silently wrong only ever goes
+   down**, because each thing Amy catches becomes a query that catches it from then on.
 4g. **A rule is not done until something enforces it.** Every rule here that can be checked
    mechanically belongs in `public.todo_audit`, not only in prose. **`public.hq_enforce()`
    is the pass that runs first and last in every sweep and every brief** — it repairs what
