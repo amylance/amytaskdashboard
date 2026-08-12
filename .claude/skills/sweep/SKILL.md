@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12a.
+description: Sweep Amy's tools (Fireflies, Slack, Gmail) for new commitments since the last sweep, verify each against the record, and file them into the dashboard Inbox for her to approve, edit, or dismiss. Use when Amy says "sweep", "catch me up", "what did I miss", "brief me", or asks what's landed since she last looked. On-demand only — never scheduled. Version 2026-08-12b.
 ---
 
 # Sweep
@@ -157,26 +157,43 @@ Rules for the story:
 `claude_note` stays a one-line verdict for the card ("already done", "looks
 mis-attributed"). If the note would run past a line, it belongs in the story instead.
 
-## 4d. Verify finished-times on done tasks
+## 4d. Correct finished-times in place — no card
 
 Amy's timestamp protocol: `completed_at` is when the work actually finished, per best
-evidence; `completed_source` says which evidence ('click', 'evidence', 'manual'). A
-'click' stamp is provisional testimony — she often batch-updates the dashboard hours
-after the work, and her 15-hour offset makes crossing the Pacific midnight routine.
+evidence; `completed_source` says which ('click', 'evidence', 'manual'). A 'click' stamp is
+provisional testimony — she often updates the dashboard hours after the work, and her
+15-hour offset makes crossing the Pacific midnight routine.
 
-For each done task with `completed_source = 'click'`, check the swept window for
-completion evidence (the Slack message announcing it, the email that shipped it).
-**File a correction only when the evidence disagrees with the click on which Pacific
-day the work happened.** Same PT day → the click stands, silently. No evidence at
-all → the click stands, silently; absence is not a finding, and flags she learns to
-ignore are worse than none.
+For each done task with `completed_source = 'click'`, check the window for completion
+evidence (the Slack message announcing it, the email that shipped it, the transcript where
+she says it is finished). When the evidence disagrees with the click, **update the task
+directly**:
 
-A correction is an inbox item with `kind: 'correction'`, `target_todo_id`,
-`proposed_completed_at` (the evidenced instant, UTC), the evidence quoted verbatim in
-`source_raw`, and a `claude_note` naming both days plainly: "Your Slack message landed
-Fri 4:12 PM PT; your click stamped Sat. The Calendar currently shows Saturday." Never
-update the todo directly — she arbitrates from the Inbox, where the card offers
-"Move to <day>" and "Keep as is". Both answers are legitimate.
+```sql
+update public.todos
+set completed_at = <evidenced instant>, completed_source = 'evidence'
+where id = <todo id>;
+```
+
+Her ruling, and the reason: *"It will just silently update that card on the Done list...
+because an item is an item that spreads out to all views. It just updates it, not create a
+separate card."* A correction card was a second row in the Inbox for work already finished,
+which read as a duplicate and cost her a click to confirm something the evidence already
+proved. The click records when she reached the dashboard; the evidence records when the
+work happened, and the evidence is the better answer.
+
+**Every silent correction must leave a trail.** Add a line to the `story` naming both times
+and quoting the evidence — *"Finished 4:12 PM PT per your Slack message; the Done click
+stamped 9:06 AM the next day"*. Nothing about her record may change without the task itself
+saying so.
+
+**Same PT day, or no evidence at all → change nothing, silently.** Absence is not a finding.
+
+**One thing still goes to the Inbox.** If the evidence disputes that the task is *done* at
+all — she marked it done but the thread shows it reopened, or the evidence belongs to a
+different task — that is not a timestamp, it is a different claim. File it as
+`kind: 'correction'` with `target_todo_id` and let her arbitrate. Silent edits are for
+*when*, never for *whether*.
 
 ## 4e. Refresh the cards already waiting — they go stale
 

@@ -577,3 +577,33 @@ One correction went to the Inbox rather than being applied: the weekly check-in 
 was delivered Aug 10 5:37 PM PT but click-stamped Aug 11. That is a day-level disagreement
 on her own click, and rule 4b says she arbitrates those. Everything else was applied
 directly, because she asked for it directly.
+
+## Aug 12, 2026 — Finish-time corrections happen in place, not in the Inbox
+
+Reverses the Aug 11 decision that day-level finish-time disagreements become
+`kind='correction'` Inbox cards for Amy to arbitrate. She saw the first one in practice and
+rejected the shape: *"When you say 'get a separate card,' do you mean a duplicate card
+sitting in my inbox? ... It will just silently update that card on the Done list ... because
+an item is an item that spreads out to all views. It just updates it, not create a separate
+card."*
+
+She is right, and the original reasoning was weaker than it looked. A correction card is a
+second row in the review queue for work already finished — it reads as a duplicate, and it
+asks her to confirm something the evidence already proved. The Done click records when she
+reached the dashboard. The evidence records when the work happened. The evidence is simply
+the better answer, and making her click to accept it is ceremony.
+
+**The sweep now updates `completed_at` directly and sets `completed_source = 'evidence'`.**
+
+Two guardrails keep this from becoming the silent-rewrite problem rule 6 exists to prevent:
+
+- **Every correction leaves a trail.** A line in the `story` names both times and quotes the
+  evidence. `todo_activity` records the write. Nothing about her record changes without the
+  task itself saying so.
+- **Silent edits are for *when*, never for *whether*.** Evidence that disputes the task is
+  done at all — reopened in a thread, or belonging to a different task — is a different
+  claim, not a timestamp, and still goes to the Inbox as `kind='correction'` for her to
+  arbitrate.
+
+The `correction` kind stays in the schema for that second case. Same-day agreement and
+absence of evidence still change nothing, silently, as before.

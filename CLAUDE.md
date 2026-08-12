@@ -57,9 +57,13 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    when unsure, err earlier — dedupe is free, a blind window is not.
 4b. **Finished-times.** `completed_at` = when the work actually finished, per best
    evidence; `completed_source` says which ('click' provisional, 'evidence', 'manual').
-   A Done click stamps immediately so work is never invisible; sweeps propose day-level
-   corrections as `kind='correction'` Inbox cards — evidence quoted, Amy arbitrates.
-   Never flag mere absence of evidence, and never rewrite her record directly.
+   A Done click stamps immediately so work is never invisible. When a sweep finds evidence
+   the work finished at a different time, it **updates the task in place** and says so in
+   the `story` — no Inbox card. Her ruling: *"an item is an item that spreads out to all
+   views. It just updates it, not create a separate card."* A card for work already finished
+   read as a duplicate. **Silent edits are for *when*, never for *whether*** — evidence that
+   disputes the task is done at all still goes to the Inbox as `kind='correction'`.
+   Never flag mere absence of evidence.
    **The ask is not the finish.** `received_at` is when the work was handed over;
    collapsing it into `completed_at` produced eleven wrong records in week one, including
    Isaac's unanswered question marked done at the moment she asked it. `public.todo_audit`
