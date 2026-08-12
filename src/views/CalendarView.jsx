@@ -156,15 +156,22 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
           if (!date) return <div key={idx} className="bg-panel min-h-[68px] sm:min-h-[110px]" />;
           const key = toKey(date);
           const cell = byDate.get(key) ?? { meetings: [], done: [], tasks: [], removed: [] };
+          // Same rule as the day panel: when a goal and its own steps both finish on one
+          // day, the day shows the goal once — not once per fragment of it. Amy opened
+          // Aug 10 and found two Vanta rows for a single ask.
+          const goalsFinishedToday = new Set(cell.done.map((t) => t.id));
+          const collapsedDone = cell.done.filter(
+            (t) => !(t.parent_id && goalsFinishedToday.has(t.parent_id)),
+          );
           const isToday = key === todayKey;
-          const total = cell.meetings.length + cell.done.length + cell.tasks.length;
+          const total = cell.meetings.length + collapsedDone.length + cell.tasks.length;
           // A day holding only removed items still has to be openable.
           const openable = total + cell.removed.length > 0;
           // Meetings claim the top slots — they are the anchor of a day, and everything
           // else that day usually came out of one.
           const shownMeetings = cell.meetings.slice(0, 4);
           let left = 4 - shownMeetings.length;
-          const shownDone = cell.done.slice(0, Math.max(0, left));
+          const shownDone = collapsedDone.slice(0, Math.max(0, left));
           left -= shownDone.length;
           const shownTasks = cell.tasks.slice(0, Math.max(0, left));
           const overflow = total - shownMeetings.length - shownDone.length - shownTasks.length;
@@ -208,7 +215,9 @@ export default function CalendarView({ todos, onOpen, config, removed = [], onRe
                     🎙
                   </span>
                 ))}
-                {cell.done.length > 0 && <span className="font-mono text-[10px] text-ink">✓{cell.done.length}</span>}
+                {collapsedDone.length > 0 && (
+                  <span className="font-mono text-[10px] text-ink">✓{collapsedDone.length}</span>
+                )}
                 {cell.tasks.length > 0 && (
                   <span className="font-mono text-[10px] text-ink-muted">○{cell.tasks.length}</span>
                 )}
@@ -480,26 +489,39 @@ function DayPanel({ dayKey, cell, onClose, onOpen, onOpenMeeting, goalOf, remove
   );
 }
 
-// One row per goal that had steps finish today, one row per standalone task. Order follows
-// the day's own order — whatever finished first leads.
+// One row per piece of work. A goal that finished on the same day as its own steps was
+// being drawn twice — once as the heading of its step group, once again as its own
+// finished row underneath. Amy saw two Vanta cards for one ask. The goal is absorbed into
+// its group when both land on the same day, and only stands alone when none of its steps
+// finished that day.
 function groupUnderGoals(done, goalOf) {
   const rows = [];
-  const seen = new Map();
+  const byGoal = new Map();
+
   for (const t of done) {
     const goal = goalOf(t);
-    if (!goal) {
-      rows.push({ todo: t });
-      continue;
-    }
-    if (seen.has(goal.id)) {
-      seen.get(goal.id).steps.push(t);
+    if (!goal) continue;
+    if (byGoal.has(goal.id)) {
+      byGoal.get(goal.id).steps.push(t);
       continue;
     }
     const row = { goal, steps: [t] };
-    seen.set(goal.id, row);
+    byGoal.set(goal.id, row);
     rows.push(row);
   }
-  return rows;
+
+  // Second pass for the goals themselves, so a goal already heading a group is not
+  // repeated as a standalone row.
+  for (const t of done) {
+    if (goalOf(t)) continue;
+    if (byGoal.has(t.id)) continue;
+    rows.push({ todo: t });
+  }
+
+  // Keep the day in its own order — whatever finished first leads.
+  const position = new Map(done.map((t, i) => [t.id, i]));
+  const rank = (r) => (r.goal ? Math.min(...r.steps.map((s) => position.get(s.id))) : position.get(r.todo.id));
+  return rows.sort((a, b) => rank(a) - rank(b));
 }
 
 function Group({ title, children }) {
