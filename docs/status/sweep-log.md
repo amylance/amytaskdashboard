@@ -92,3 +92,49 @@ Left open: *Fill out my Lance internal profile* — no tool records when she com
 
 Also noted for her: the notebook entry on the check-in write-up cites "~8:28-8:41 AM PT"
 for messages that are actually Aug 10 5:28–5:41 PM PT. Her words, so untouched.
+
+---
+
+## 2026-08-12 — Sweep, Aug 11 5:00 PM PT → 9:40 PM PT
+
+**Filed: nothing.** The window was four and a half hours at the tail of her day and produced
+no new commitments. Fireflies had one meeting in range (Amy / Gavin, Aug 11 10:00 AM PT)
+but it predates the watermark and every action item from it was already on the board:
+the living check-in doc, reviewing Gavin's inbox, adding tasks to his to-do list, the
+transcript-to-summary automation, and LiveSupervise. Gmail after the watermark held only a
+Fireflies daily digest. The Gavin, Isaac and Gatik DMs were all read to the bottom of the
+window; nothing after Aug 11 22:51 UTC.
+
+### One real defect found, and corrected
+
+The card **Set up Claude access to Gavin's inbox** carried this in its story:
+
+> *"You accepted at 4:52 PM PT — 'let's do this'. Ball is his."*
+
+**No such message exists.** A `from:` search across Slack for that phrase returns nothing,
+and the DM thread's last message is Amy's at 3:51 PM PT. A previous sweep invented both the
+quote and the timestamp.
+
+It is not a cosmetic error. The fabricated line put the ball on Gavin's side of the court.
+The thread actually ends like this:
+
+- 3:49 PM PT — Gavin offers: *"yea i can give you a read api key maybe?"*
+- 3:49 PM PT — Gavin asks: *"Confused here. whats this supposed to mean?"*
+- 3:51 PM PT — Amy sends a corrected artifact link, and does not answer the question
+
+So Gavin is the one waiting, on an explanation she has not given. The card said the
+opposite. Story rewritten with the real sequence, the correction noted inside it, and
+`waiting_on` set to name her rather than him.
+
+**Why the audit did not catch it.** `todo_audit` checks structure — timestamps, statuses,
+missing fields. A quote that never happened is well-formed data. Nothing in the schema can
+tell a real quote from an invented one, which means the only defence is verifying quotes
+against the source before writing them, and never writing a quote the source did not
+produce. Worth remembering the next time a story reads more conclusively than the thread did.
+
+### Also fixed
+
+Six `waiting` tasks had no `waiting_on`, so the Kanban could not draw the chase prompt and
+the brief could not say who was holding them. Named from their own stories: Gavin on the
+to-do list and codebase access, Gatik on Supabase read, Gavin-chasing-Gatik on
+LiveSupervise, Isaac on Fireflies-for-calls and the onboarding-form feedback.
