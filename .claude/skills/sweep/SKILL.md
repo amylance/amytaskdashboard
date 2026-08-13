@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12j.
+description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12k.
 ---
 
 # Sweep
@@ -81,9 +81,18 @@ top of her next brief instead of disappearing.
 
 ### Then the rest
 
-1. **Fireflies first** — `fireflies_get_transcripts` with
-   `participants: ["amy@lance.live"]`, `fromDate`. **Only meetings she attended.** Her
-   action items are the day's asks. Hold as candidates; do not file yet.
+1. **Fireflies first** — `fireflies_get_transcripts` with `fromDate` and **no participant
+   filter**. Two different questions live here and only one of them is about her calendar:
+   - **Meetings she attended** carry her action items — the day's asks. Hold as candidates.
+   - **Meetings she did not attend** are the raw material of her actual job. The weekly
+     hotel write-up is built entirely from calls she is not on, and the SPLs ask her for
+     their own commitments out of them.
+
+   Filtering on `participants: ["amy@lance.live"]` hides the second set completely. It
+   returned zero transcripts for a day she had processed six, and that empty result was
+   written up as Alex failing to grant her access — when she had already checked and
+   confirmed she had it. **A filter that narrows to her calendar cannot be used to conclude
+   anything about what she can see.**
 2. **Slack** — DMs, threads, @-mentions since the window. Her ID is `U0BMZ75ANDT`.
    **This is where she says a thing is finished**, and where a task gets pivoted.
 3. **Notebook** — **not windowed.** Read every entry not yet acted on:
