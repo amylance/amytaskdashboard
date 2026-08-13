@@ -147,6 +147,18 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
 7. **The Inbox is the gate.** Sweeps file *candidates* with a `claude_note` explaining
    the verification finding. Nothing auto-approves. Fireflies mis-attributes — check
    whether an item is actually hers, and whether it's already done, before filing.
+7b. **The board is what she did, asked or not.** Her words: *"my dashboard should be about
+   the tasks included what I did whether I was told or not."* The filter used to be "someone
+   asked her, or she said she would" — which quietly meant work only counted once it passed
+   through another person. Most of what makes her good never does: looping Gatik in before
+   anyone asked, checking Vanta was legitimate before acting on it, proposing the by-owner
+   section, building this dashboard. **Self-initiated work is first-class work**, and the
+   Calendar is proof of it. She proved the point herself by restoring three cards a sweep had
+   deleted for having no requester.
+   **The line is a deliverable, not activity.** Something changed, shipped, or landed with
+   someone — not "read a thread", "thought about it", "sent a message". Same test as a step:
+   who received what. A dashboard that logs activity is a second Slack, and she cut tabs to
+   avoid exactly that.
 8. **On demand, never scheduled.** `sweep` and `brief` fire when she asks. A scheduled
    run once contradicted this and was deleted; `brief` carries an unattended-run guard
    (skip capture, read-only) as insurance.

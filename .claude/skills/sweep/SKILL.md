@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12k.
+description: Update Amy's dashboard and catch her up. Enforces the rules, sweeps every rostered Slack conversation including threaded replies, plus Fireflies, Gmail, Calendar and her notebook, reconciles all of it against the board, and files only genuinely new work to her Inbox. Use for "brief", "debrief", "sweep", "catch me up", "what did I miss", "what needs me", "update my dashboard", "I'm done for the day" — all the same command. On-demand only, never scheduled. Version 2026-08-12l.
 ---
 
 # Sweep
@@ -118,9 +118,22 @@ to-do she has to remember she already did.
 
 ## 3. Filter — this is what keeps the noise out
 
-An item reaches the Inbox **only if it is a commitment**:
+An item reaches the Inbox if it is **work of Amy's**. Three ways in, and the third was
+missing for a week:
 - Someone asked Amy to do something, **or**
-- Amy said she would do something.
+- Amy said she would do something, **or**
+- **Amy did something.** Nobody asked, she never announced it, it simply happened.
+
+Her ruling: *"my dashboard should be about the tasks included what I did whether I was told
+or not."* The old filter required work to pass through another person to count, so
+self-initiated work was invisible by construction — looping Gatik in before anyone asked,
+verifying Vanta was legitimate before acting on it, proposing the by-owner section, building
+the dashboard itself. A sweep deleted three such cards for having no requester and she
+restored all three. **Do not look for who asked. Look for what changed.**
+
+**The line is a deliverable, not activity.** Something shipped, landed, or changed hands.
+Reading a thread is not a task. Sending a message is not a task. The test is the same one
+that decides a step: *who received what, and what could they do with it afterwards.*
 
 **One deliberate exception — announcements that may involve Amy.** If an announcement in
 a channel she's in could plausibly require something *from her* (she's named, her team is
@@ -471,6 +484,7 @@ POST to `/api/hq/inbox` with `action: "create"` (dedupes on source + source_raw)
       "claude_note": "One-line verdict for the card",
       "story": "**From** · …\n**Asked** · …\n\n**What happened**\n• …",
       "contact": "Alex",
+      "self_initiated": false,
       "suggested_status": "todo|done",
       "received_at": "2026-08-06T23:23:33Z",
       "proposed_completed_at": "2026-08-06T23:41:02Z",

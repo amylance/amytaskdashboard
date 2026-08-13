@@ -217,6 +217,9 @@ async function handleInbox(req, res, db) {
         // tripped the audit, because the Inbox had nowhere to record the name the sweep
         // already knew.
         contact: item.contact ?? null,
+        // Work she started herself has no requester, so its ask time and finish time
+        // legitimately coincide. The flag is what stops the audit calling that a defect.
+        self_initiated: item.self_initiated ?? false,
         // A swept step names its goal, so approving it lands under that goal on the board
         // rather than as another loose card.
         parent_id: item.parent_todo_id ?? null,
