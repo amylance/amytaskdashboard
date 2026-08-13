@@ -470,6 +470,7 @@ POST to `/api/hq/inbox` with `action: "create"` (dedupes on source + source_raw)
       "source_context": "Sync II, Aug 6",
       "claude_note": "One-line verdict for the card",
       "story": "**From** · …\n**Asked** · …\n\n**What happened**\n• …",
+      "contact": "Alex",
       "suggested_status": "todo|done",
       "received_at": "2026-08-06T23:23:33Z",
       "proposed_completed_at": "2026-08-06T23:41:02Z",

@@ -116,7 +116,10 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    ticket numbers in a title; that is the story's job. A goal states what done means.
    **32 characters is a hard ceiling** — longer truncates in the step list on a goal card.
    `todo_audit` enforces both the ceiling and the leading verb, because writing the rule in
-   this file did not stop it being broken and she had to catch it twice.
+   this file did not stop it being broken and she had to catch it twice. The verb half was
+   claimed here for a day before it existed — only the ceiling was ever built, and two
+   non-verb titles walked straight past it. The check now reads `public.title_verbs`; a
+   genuinely new verb is one insert, so a false flag is fixed without touching the view.
 4h. **Errors do not accumulate, because every check is retroactive.** `todo_audit` and
    `hq_enforce()` re-examine **every** card on every run, never just the new ones. A defect
    written today is caught by any run after it. When the quote-source check was added it

@@ -213,6 +213,10 @@ async function handleInbox(req, res, db) {
         source_raw: item.source_raw,
         claude_note: item.claude_note,
         story: item.story ?? null,
+        // Who the card is for. Without this every approved card arrived contactless and
+        // tripped the audit, because the Inbox had nowhere to record the name the sweep
+        // already knew.
+        contact: item.contact ?? null,
         // A swept step names its goal, so approving it lands under that goal on the board
         // rather than as another loose card.
         parent_id: item.parent_todo_id ?? null,
