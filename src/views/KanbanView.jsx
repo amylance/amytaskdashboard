@@ -47,23 +47,23 @@ export default function KanbanView({
     return day.toISOString().slice(0, 10);
   })();
 
-  const columns = STATUSES.map((s) => ({
-    ...s,
-    items: todos
-      .filter((t) => {
-        if (t.status !== s.id) return false;
-        if (s.id !== "done") return true;
-        if (!t.completed_at) return true;
-        return ptKey(new Date(t.completed_at)) >= weekStartKey;
-      })
-      .slice(),
-  }))
-    // A step is never a card. It is ticked and re-statused inside the goal that owns it,
-    // in every column including Done. Amy saw one goal drawn three times in a single
-    // column before this rule existed, and her ruling has been consistent since the first
-    // correction card: an item is one item, spread across the views, not repeated in them.
-    .map((col) => ({ ...col, items: col.items.filter((t) => !t.parent_id) }))
-    .map((col) => ({ ...col, items: orderColumn(col.items) }));
+  // A step is never a card — except in Done, and only while its goal is still open
+  // elsewhere on the board. Amy saw one goal drawn three times in a single column before
+  // that rule existed; the exception can't reopen that hole, so a step disappears the
+  // moment its goal itself lands in Done (the goal card already lists it once, there).
+  const doneGoalIds = new Set(
+    todos.filter((t) => !t.parent_id && t.status === "done").map((t) => t.id),
+  );
+
+  const columns = STATUSES.map((s) => {
+    const items = todos.filter((t) => {
+      if (t.status !== s.id) return false;
+      if (s.id !== "done") return !t.parent_id;
+      if (t.completed_at && ptKey(new Date(t.completed_at)) < weekStartKey) return false;
+      return !t.parent_id || !doneGoalIds.has(t.parent_id);
+    });
+    return { ...s, items: orderColumn(items) };
+  });
 
   // Done keeps a full week, so by Friday it is a wall of cards. Grouping by the day the
   // work finished turns it into a week at a glance: four on Monday, six on Tuesday. The
@@ -84,6 +84,15 @@ export default function KanbanView({
       else out.push({ label, items: [t] });
     }
     return out;
+  }
+
+  // Today always heads the column, even with nothing finished yet — a section that only
+  // appears once something lands reads as broken, not quiet. Everything else about the
+  // grouping (label, order, fold state) stays keyed on the real Pacific date underneath.
+  const todayLabel = pacificDayLabel(new Date());
+  function withToday(groups) {
+    if (groups.length && groups[0].label === todayLabel) return groups;
+    return [{ label: todayLabel, items: [] }, ...groups];
   }
 
   function dayIsOpen(groups, label, idx) {
@@ -151,8 +160,9 @@ export default function KanbanView({
 
             <div className="flex flex-col gap-2">
               {col.id === "done"
-                ? groupByDay(col.items).map((group, gi, groups) => {
+                ? withToday(groupByDay(col.items)).map((group, gi, groups) => {
                     const open = dayIsOpen(groups, group.label, gi);
+                    const isToday = group.label === todayLabel;
                     return (
                       <div key={group.label} className="flex flex-col gap-2">
                         <button
@@ -164,9 +174,14 @@ export default function KanbanView({
                             size={12}
                             className={`shrink-0 transition-transform ${open ? "rotate-90" : ""}`}
                           />
-                          {group.label}
+                          {isToday ? "Today" : group.label}
                           <span className="ml-auto font-mono text-[10px]">{group.items.length}</span>
                         </button>
+                        {open && group.items.length === 0 && (
+                          <p className="px-1.5 pb-1 text-[11px] text-ink-muted/70">
+                            Nothing finished yet today
+                          </p>
+                        )}
                         {open &&
                           group.items.map((todo) => (
                             <TodoCard
@@ -177,7 +192,9 @@ export default function KanbanView({
                               onStepStatus={onStepStatus}
                               onConfirmDone={onConfirmDone}
                               readOnly={readOnly}
-                              onClick={() => onOpen(todo.id)}
+                              onClick={() =>
+                                todo.parent_id ? onOpen(todo.parent_id, todo.id) : onOpen(todo.id)
+                              }
                             />
                           ))}
                       </div>
@@ -215,14 +232,12 @@ export default function KanbanView({
                       />
                     </div>
                   ))}
-              {col.items.length === 0 && (
+              {col.id !== "done" && col.items.length === 0 && (
                 <div className="text-xs text-ink-muted/70 text-center py-6 border border-dashed border-hairline rounded-xl">
-                  {col.id === "done"
-                    ? "Nothing finished yet this week"
-                    : "Nothing here"}
+                  Nothing here
                 </div>
               )}
-              {col.id === "done" && col.items.length > 0 && (
+              {col.id === "done" && (
                 <p className="text-[10px] text-ink-muted/70 text-center pt-1">
                   Clears every Monday. Older work is in the Calendar.
                 </p>

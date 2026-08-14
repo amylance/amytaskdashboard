@@ -865,3 +865,31 @@ Two quotes were also wrong about *when*: Isaac's *"The dashboard looks great!"* 
 
 `hq_enforce()` and `todo_audit` both return empty. That is the first time they have done so
 without something being deferred to get there.
+
+## 2026-08-14 — Kanban Done gets a Today section, and a narrow step-card exception
+
+Amy: the Done column should add a **Today** group on top of the existing day groups, and
+a step ticked done today should show as **its own card** there — even while its parent
+goal is still sitting in Doing or Pending elsewhere on the board.
+
+This narrows rule 4d ("a step is never its own card") rather than replacing it. The
+original rule exists because Amy watched one goal drawn three times in a single Kanban
+column — a step must never be drawn *alongside* its own goal. The exception holds that
+line by construction: a step-card only ever appears in Done, and only while
+`doneGoalIds` (goals currently `status='done'`) does **not** contain its `parent_id`. The
+instant the goal itself lands in Done, its steps disappear from view as separate cards —
+the goal card already lists them once, inside itself. A goal and its steps are still
+never drawn twice at once; they just take turns depending on which one finished.
+
+Two calls made without asking, both logged so they can be corrected:
+- **Today always renders, even at zero.** A collapsed "Today · 0" header with "Nothing
+  finished yet today" underneath, rather than the section only appearing once something
+  lands — a section that materializes out of nowhere reads as broken, not quiet.
+- **A step under a To Do goal also gets a card.** Amy said "Doing and Pending"; a ticked
+  step whose goal is still in To Do is exactly the kind of case rule 4b exists for —
+  finished work must never go invisible over a status technicality.
+
+Clicking a step-card opens its goal with that step lit, same behavior as the Calendar's
+step rows. Implementation: `src/views/KanbanView.jsx` — column membership, day-grouping,
+and the Today-prepend all changed; `src/components/TodoCard.jsx` needed no changes since
+a step card's own step-list (`stepsOf`) is always empty (one level only).

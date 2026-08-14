@@ -93,10 +93,16 @@ Rotate the editor passphrase by updating the hash in `access_gate`.
    two. Her words: those *"don't need that verbatim shit."*
 4d. **Goals and steps.** A task with a `parent_id` is a **step** of the goal it points at.
    Her shape, in her words: *"All these related tasks only lead to one task."*
-   **A step is never its own card** — not in any column, not in Done. It is ticked,
-   re-statused (To Do / Doing / Pending) and read from inside the goal that owns it. She
-   reversed the draggable-step design after watching one goal drawn three times in a single
-   column. The goal's own status decides its column.
+   **A step is never its own card, drawn alongside its own goal** — not in any column. It
+   is ticked, re-statused (To Do / Doing / Pending) and read from inside the goal that owns
+   it. She reversed the draggable-step design after watching one goal drawn three times in
+   a single column. The goal's own status decides its column.
+   **Narrow exception, added 2026-08-14:** in Kanban **Done only**, a step finished today
+   or this week shows as its own card — a Today view of what actually got ticked — for as
+   long as its goal is still open (To Do / Doing / Pending) elsewhere on the board. The
+   instant the goal itself reaches Done, the step-card disappears; the goal's own card
+   already lists it once, inside itself. A goal and its steps still never appear as cards
+   at the same time — they take turns.
    **Nothing closes a goal on her behalf.** Every step ticked unlocks a confirmation; her
    click finishes it. The trigger keeps only the protective half — reopening a step reopens
    the goal, so a goal can never sit in Done above live work.
