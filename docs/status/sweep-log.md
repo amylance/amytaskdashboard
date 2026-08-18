@@ -174,3 +174,71 @@ Six `waiting` tasks had no `waiting_on`, so the Kanban could not draw the chase 
 the brief could not say who was holding them. Named from their own stories: Gavin on the
 to-do list and codebase access, Gatik on Supabase read, Gavin-chasing-Gatik on
 LiveSupervise, Isaac on Fireflies-for-calls and the onboarding-form feedback.
+
+## 2026-08-18 — full sweep, Aug 13 00:25 → Aug 18 17:10 UTC
+
+All five sources read and named; roster of six Slack sources walked in `detailed`
+format; six in-window threads found and six read. `hq_enforce()` ran first (37 rows,
+all pre-existing) and last (4 rows, each one hers to arbitrate — see below).
+
+### What the window held
+
+The Aug 17 PT afternoon reshaped her role. Two meetings, both read raw, both filed with
+discussion checklists:
+
+- **1:1 with Gavin (1:00 PM PT).** Marriott security review kicking off. Go-signal on the
+  inbox categorization (*"feel free to just move forward with that"*). A new standing
+  responsibility: **hotel support tickets** — 10-minute first response, bugs escalate to
+  Linear, feature requests tag the product owner. On inbox access, Gavin is rethinking
+  the API-key shape and talking to Alex.
+- **Ticketing/Support with Alex & Vinita (2:00 PM PT).** SPL onboarding: the tool, the
+  yellow needs-reply state, `@Lance Support dev` for customer-visible Slack replies, the
+  product-owner map (sent in chat). Vinita proposed **Gmail MCP** for Gavin's inbox.
+  Amy's own ramp plan, her words: shadow a week, respond from next week.
+
+Also: Gavin's three Saturday asks (refundable flights, rental car, OTO/FL rollout
+coordination — all blocked on his answers to her questions); the weekend-hours question
+to Isaac (his Saturdays-are-standard answer vs. her unanswered "Was that in the
+contract?"); the week-2 living doc closed out with sections 7–8; two week-3 check-in
+calls already recorded this morning.
+
+### Judgement calls
+
+- **Vanta finish corrected in place** (silent, timestamp-only): the card claimed
+  Aug 10 4:45 PM PT with `completed_source='evidence'`, but her own notebook log against
+  the Vanta dashboard puts all three tasks done at **Aug 14 5:52 PM PT**. Story carries
+  both times. Deadline Aug 28 and Isaac-as-admin recorded. The stale ⚠ about the
+  Philippines option is gone.
+- **Two correction cards filed** for `Customize the dashboard v2` and
+  `Install the dashboard skills` — both stamp `completed_at` identical to `received_at`
+  with no source, the same invented-Aug-8 pattern she already ruled on once. Not touched
+  in place: whether they were real work on a real day is hers to say.
+- **The pending Hotel-Support inbox card was dismissed as a duplicate** — the same
+  promise already lives as a step, now carrying the exact Fireflies quote and timestamp
+  ([24:58], Aug 11). The step was *not* ticked done: both Aug 17 walkthroughs ran on
+  their screens, so her own account opening the tool is still unconfirmed — one click.
+- **The Slash cluster got its history back.** Five bare cards under
+  `Document Slash banking benefits` now carry verb-first titles under the ceiling and
+  stories rebuilt from the Isaac DM (his two-path offer, her 7 questions, his API answers
+  the same evening, the two screenshots he still owes — his own "remind me tomorrow").
+- **"Manual Process Gavin's Inbox" cluster** retitled and storied from the Gavin DM:
+  "Do without api keys for now" started it; the deep-dive list, the three corrections,
+  and the Aug 17 go-signal are all in the stories with permalinks.
+- **Titles compressed, flagged inside their own stories** where intent wasn't certain:
+  *A/B testing device/tool stacks timezone* → `Test device/tool stacks timezone`.
+  `Integrate FF Trx : Slack` kept her wording; `integrate` and `coordinate` added to
+  `title_verbs`.
+
+### Filed
+
+7 Inbox candidates (3 Saturday asks · tickets responsibility · weekend terms · 2 doc
+steps, one already-done with its evidence instant), 2 corrections, 6 people
+(Sunil, David Barcenas, Sushrut Kulkarni, Andreas Bloomquist, Brittany Guevara,
+Paula Evans — all unverified, each with a citation), 13 notebook entries processed and
+stamped, 2 meetings + 10 discussion items, Aug 14 Townhall marked delayed.
+
+### hq_enforce after: 4 rows, none resolvable without her
+
+- 3 × unevidenced finish (`Customize v2`, `Install skills`, `Fix SUPABASE_ANON_KEY`) —
+  all three have pending Inbox cards; her answer clears them.
+- 1 × no contact (`Integrate FF Trx : Slack`) — intent unconfirmed, asked in the report.

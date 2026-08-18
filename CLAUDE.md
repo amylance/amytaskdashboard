@@ -287,11 +287,16 @@ with anon policies. Likewise `sweep_state.updated_at` is trigger-maintained
 ## Known live threads (check, don't assume)
 
 **This section rots. Verify every line against the board before repeating it.** As of
-2026-08-12: Gmail delegation is live and browser access works; codebase, Supabase and the
-Lance tool were all provisioned by Isaac; the three separate access cards were one tool and
-are deleted. What is actually open — Gavin owes the shape of a read API key so Claude can
-reach his inbox, and Gavin owes an introduction to Gatik so Claude can reach the Lance
-tool. Vanta security tasks are due **Aug 18** and the card is marked done by click, which
-is testimony rather than evidence — worth one look before the deadline. Lance Live password
-is still `testing`. Passphrases have been shared in Slack — flag exposure when relevant,
-don't lecture.
+2026-08-18: Gmail delegation is live and browser access works. The read API key is
+**superseded** — Gavin's "Do without api keys for now" (Aug 13) started the manual pass,
+and the Aug 17 ticketing call replaced the plan with a **Gmail MCP** setup (Gavin's login,
+his 2FA code on demand; Alex/Vinita offered help) while Gavin separately rethinks the
+shape ("maybe an API is not the best way... I just want to make sure it's legible from
+your agents") with Alex. Gatik still owes his answer on whether Claude's access covers the
+hotel support system. **New since Aug 17: hotel support tickets are Amy's third-responder
+responsibility** — 10-minute first response, bugs escalate to Linear, feature requests tag
+the product owner; she is shadowing this week, responding next. Gavin's three Saturday
+asks (flights, rental car, OTO/FL rollout) are blocked on his answers to her questions.
+Vanta is done (Aug 14 PT per her log; deadline had moved to Aug 28; trainings recur
+annually; Isaac is the admin now). Passphrases have been shared in Slack — flag exposure
+when relevant, don't lecture.
